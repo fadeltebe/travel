@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Rutes\Schemas;
+namespace App\Filament\SuperAdmin\Resources\Rutes\Schemas;
 
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;

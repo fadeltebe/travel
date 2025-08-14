@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Mobils\Pages;
+namespace App\Filament\SuperAdmin\Resources\Mobils\Pages;
 
-use App\Filament\Admin\Resources\Mobils\MobilResource;
+use App\Filament\SuperAdmin\Resources\Mobils\MobilResource;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateMobil extends CreateRecord

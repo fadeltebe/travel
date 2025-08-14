@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('agens', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('slug')->unique();
             $table->string('kode_agen')->unique();
             $table->string('kota');
             $table->string('alamat');

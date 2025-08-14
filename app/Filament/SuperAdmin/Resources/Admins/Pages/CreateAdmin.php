@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Filament\Owner\Resources\Admins\Pages;
+namespace App\Filament\SuperAdmin\Resources\Admins\Pages;
 
 use Illuminate\Support\Facades\DB;
 use App\Models\Agen;
 use App\Models\Admin;
 use App\Services\UserService;
 use Filament\Resources\Pages\CreateRecord;
-use App\Filament\Owner\Resources\Admins\AdminResource;
+use App\Filament\SuperAdmin\Resources\Admins\AdminResource;
 
 class CreateAdmin extends CreateRecord
 {

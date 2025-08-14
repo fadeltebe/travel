@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Rutes;
+namespace App\Filament\SuperAdmin\Resources\Rutes;
 
-use App\Filament\Admin\Resources\Rutes\Pages\CreateRute;
-use App\Filament\Admin\Resources\Rutes\Pages\EditRute;
-use App\Filament\Admin\Resources\Rutes\Pages\ListRutes;
-use App\Filament\Admin\Resources\Rutes\Schemas\RuteForm;
-use App\Filament\Admin\Resources\Rutes\Tables\RutesTable;
+use App\Filament\SuperAdmin\Resources\Rutes\Pages\CreateRute;
+use App\Filament\SuperAdmin\Resources\Rutes\Pages\EditRute;
+use App\Filament\SuperAdmin\Resources\Rutes\Pages\ListRutes;
+use App\Filament\SuperAdmin\Resources\Rutes\Schemas\RuteForm;
+use App\Filament\SuperAdmin\Resources\Rutes\Tables\RutesTable;
 use App\Models\Rute;
 use BackedEnum;
 use Filament\Resources\Resource;

@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Owner\Resources\Agens;
+namespace App\Filament\SuperAdmin\Resources\Agens;
 
-use App\Filament\Owner\Resources\Agens\Pages\CreateAgen;
-use App\Filament\Owner\Resources\Agens\Pages\EditAgen;
-use App\Filament\Owner\Resources\Agens\Pages\ListAgens;
-use App\Filament\Owner\Resources\Agens\Pages\ViewAgen;
-use App\Filament\Owner\Resources\Agens\Schemas\AgenForm;
-use App\Filament\Owner\Resources\Agens\Schemas\AgenInfolist;
-use App\Filament\Owner\Resources\Agens\Tables\AgensTable;
+use App\Filament\SuperAdmin\Resources\Agens\Pages\CreateAgen;
+use App\Filament\SuperAdmin\Resources\Agens\Pages\EditAgen;
+use App\Filament\SuperAdmin\Resources\Agens\Pages\ListAgens;
+use App\Filament\SuperAdmin\Resources\Agens\Pages\ViewAgen;
+use App\Filament\SuperAdmin\Resources\Agens\Schemas\AgenForm;
+use App\Filament\SuperAdmin\Resources\Agens\Schemas\AgenInfolist;
+use App\Filament\SuperAdmin\Resources\Agens\Tables\AgensTable;
 use App\Models\Agen;
 use BackedEnum;
 use Filament\Resources\Resource;

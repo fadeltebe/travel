@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Owner\Resources\Admins\Pages;
+namespace App\Filament\SuperAdmin\Resources\Admins\Pages;
 
 use App\Models\User;
 use App\Services\UserService;
@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Resources\Pages\EditRecord;
-use App\Filament\Owner\Resources\Admins\AdminResource;
+use App\Filament\SuperAdmin\Resources\Admins\AdminResource;
 
 class EditAdmin extends EditRecord
 {

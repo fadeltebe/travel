@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Owner\Resources\Jadwals\Pages;
+namespace App\Filament\SuperAdmin\Resources\Jadwals\Pages;
 
-use App\Filament\Owner\Resources\Jadwals\JadwalResource;
+use App\Filament\SuperAdmin\Resources\Jadwals\JadwalResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Owner\Resources\Jadwals\Schemas;
+namespace App\Filament\SuperAdmin\Resources\Jadwals\Schemas;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -40,11 +40,11 @@ class JadwalForm
                     ->numeric(),
                 Select::make('status')
                     ->options([
-            'Dijadwalkan' => 'Dijadwalkan',
-            'Berangkat' => 'Berangkat',
-            'Tiba' => 'Tiba',
-            'Dibatalkan' => 'Dibatalkan',
-        ])
+                        'Dijadwalkan' => 'Dijadwalkan',
+                        'Berangkat' => 'Berangkat',
+                        'Tiba' => 'Tiba',
+                        'Dibatalkan' => 'Dibatalkan',
+                    ])
                     ->default('Dijadwalkan')
                     ->required(),
                 Textarea::make('catatan')

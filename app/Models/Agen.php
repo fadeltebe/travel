@@ -15,6 +15,7 @@ class Agen extends Model
 
     protected $fillable = [
         'name',
+        'slug',
         'kode_agen',
         'kota',
         'alamat',
@@ -27,10 +28,10 @@ class Agen extends Model
         'is_active' => 'boolean',
     ];
 
-    //  public function getRouteKeyName()
-    // {
-    //     return 'slug';
-    // }
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
 
     public function travel(): BelongsTo
     {

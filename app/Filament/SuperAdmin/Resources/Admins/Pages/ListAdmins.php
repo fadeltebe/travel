@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Owner\Resources\Admins\Pages;
+namespace App\Filament\SuperAdmin\Resources\Admins\Pages;
 
-use App\Filament\Owner\Resources\Admins\AdminResource;
+use App\Filament\SuperAdmin\Resources\Admins\AdminResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 

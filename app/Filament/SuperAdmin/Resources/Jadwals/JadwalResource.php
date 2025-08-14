@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Owner\Resources\Jadwals;
+namespace App\Filament\SuperAdmin\Resources\Jadwals;
 
-use App\Filament\Owner\Resources\Jadwals\Pages\CreateJadwal;
-use App\Filament\Owner\Resources\Jadwals\Pages\EditJadwal;
-use App\Filament\Owner\Resources\Jadwals\Pages\ListJadwals;
-use App\Filament\Owner\Resources\Jadwals\Schemas\JadwalForm;
-use App\Filament\Owner\Resources\Jadwals\Tables\JadwalsTable;
+use App\Filament\SuperAdmin\Resources\Jadwals\Pages\CreateJadwal;
+use App\Filament\SuperAdmin\Resources\Jadwals\Pages\EditJadwal;
+use App\Filament\SuperAdmin\Resources\Jadwals\Pages\ListJadwals;
+use App\Filament\SuperAdmin\Resources\Jadwals\Schemas\JadwalForm;
+use App\Filament\SuperAdmin\Resources\Jadwals\Tables\JadwalsTable;
 use App\Models\Jadwal;
 use BackedEnum;
 use Filament\Resources\Resource;

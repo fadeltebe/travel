@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Mobils\Schemas;
+namespace App\Filament\SuperAdmin\Resources\Mobils\Schemas;
 
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -36,11 +36,11 @@ class MobilForm
                     ->required(),
                 Select::make('kelas')
                     ->options([
-            'Ekonomi' => 'Ekonomi',
-            'Bisnis' => 'Bisnis',
-            'Sleeper' => 'Sleeper',
-            'Executive' => 'Executive',
-        ])
+                        'Ekonomi' => 'Ekonomi',
+                        'Bisnis' => 'Bisnis',
+                        'Sleeper' => 'Sleeper',
+                        'Executive' => 'Executive',
+                    ])
                     ->required(),
                 Textarea::make('fasilitas')
                     ->columnSpanFull(),

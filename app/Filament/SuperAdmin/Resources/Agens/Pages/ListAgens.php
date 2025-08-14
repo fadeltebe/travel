@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Owner\Resources\Agens\Pages;
+namespace App\Filament\SuperAdmin\Resources\Agens\Pages;
 
-use App\Filament\Owner\Resources\Agens\AgenResource;
+use App\Filament\SuperAdmin\Resources\Agens\AgenResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 

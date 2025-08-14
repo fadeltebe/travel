@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Rutes\Pages;
+namespace App\Filament\SuperAdmin\Resources\Rutes\Pages;
 
-use App\Filament\Admin\Resources\Rutes\RuteResource;
+use App\Filament\SuperAdmin\Resources\Rutes\RuteResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;

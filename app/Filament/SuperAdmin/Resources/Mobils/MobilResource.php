@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Mobils;
+namespace App\Filament\SuperAdmin\Resources\Mobils;
 
-use App\Filament\Admin\Resources\Mobils\Pages\CreateMobil;
-use App\Filament\Admin\Resources\Mobils\Pages\EditMobil;
-use App\Filament\Admin\Resources\Mobils\Pages\ListMobils;
-use App\Filament\Admin\Resources\Mobils\Schemas\MobilForm;
-use App\Filament\Admin\Resources\Mobils\Tables\MobilsTable;
+use App\Filament\SuperAdmin\Resources\Mobils\Pages\CreateMobil;
+use App\Filament\SuperAdmin\Resources\Mobils\Pages\EditMobil;
+use App\Filament\SuperAdmin\Resources\Mobils\Pages\ListMobils;
+use App\Filament\SuperAdmin\Resources\Mobils\Schemas\MobilForm;
+use App\Filament\SuperAdmin\Resources\Mobils\Tables\MobilsTable;
 use App\Models\Mobil;
 use BackedEnum;
 use Filament\Resources\Resource;

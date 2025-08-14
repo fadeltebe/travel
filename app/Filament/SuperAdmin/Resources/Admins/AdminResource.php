@@ -1,20 +1,21 @@
 <?php
 
-namespace App\Filament\Owner\Resources\Admins;
+namespace App\Filament\SuperAdmin\Resources\Admins;
 
-use App\Filament\Owner\Resources\Admins\Pages\CreateAdmin;
-use App\Filament\Owner\Resources\Admins\Pages\EditAdmin;
-use App\Filament\Owner\Resources\Admins\Pages\ListAdmins;
-use App\Filament\Owner\Resources\Admins\Pages\ViewAdmin;
-use App\Filament\Owner\Resources\Admins\Schemas\AdminForm;
-use App\Filament\Owner\Resources\Admins\Schemas\AdminInfolist;
-use App\Filament\Owner\Resources\Admins\Tables\AdminsTable;
-use App\Models\Admin;
+
 use BackedEnum;
-use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
+use App\Models\Admin;
 use Filament\Tables\Table;
+use Filament\Schemas\Schema;
+use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
+use App\Filament\SuperAdmin\Resources\Admins\Pages\EditAdmin;
+use App\Filament\SuperAdmin\Resources\Admins\Pages\ViewAdmin;
+use App\Filament\SuperAdmin\Resources\Admins\Pages\ListAdmins;
+use App\Filament\SuperAdmin\Resources\Admins\Pages\CreateAdmin;
+use App\Filament\SuperAdmin\Resources\Admins\Schemas\AdminForm;
+use App\Filament\SuperAdmin\Resources\Admins\Tables\AdminsTable;
+use App\Filament\SuperAdmin\Resources\Admins\Schemas\AdminInfolist;
 
 class AdminResource extends Resource
 {

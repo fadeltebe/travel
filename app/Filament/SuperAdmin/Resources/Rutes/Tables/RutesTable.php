@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Rutes\Tables;
+namespace App\Filament\SuperAdmin\Resources\Rutes\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;

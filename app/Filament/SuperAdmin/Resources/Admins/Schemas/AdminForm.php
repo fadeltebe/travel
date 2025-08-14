@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Owner\Resources\Admins\Schemas;
+namespace App\Filament\SuperAdmin\Resources\Admins\Schemas;
 
 use Illuminate\Support\Facades\DB;
 use App\Models\Agen;
