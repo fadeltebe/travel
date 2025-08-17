@@ -15,14 +15,15 @@ class MobilSeeder extends Seeder
                 'nomor_mesin' => 'ENG123456',
                 'nomor_rangka' => 'FRM123456',
                 'tahun_perakitan' => '2020',
+                'tahun_perolehan' => 2020,
                 'merk' => 'Toyota',
                 'model' => 'Hiace',
-                'tahun' => 2020,
                 'kapasitas' => 15,
                 'tipe' => 'Mini Bus',
                 'kelas' => 'Bisnis',
                 'fasilitas' => 'AC, Reclining Seat',
-                'status' => 'Aktif'
+                'status' => 'Aktif',
+                'warna' => 'Putih'
             ],
             [
                 'nomor_polisi' => 'DN 5678 CD',
@@ -36,7 +37,8 @@ class MobilSeeder extends Seeder
                 'tipe' => 'Mini Bus',
                 'kelas' => 'Ekonomi',
                 'fasilitas' => 'AC',
-                'status' => 'Aktif'
+                'status' => 'Aktif',
+                'warna' => 'Hitam'
             ]
         ]);
     }

@@ -43,11 +43,6 @@ class Agen extends Model
         return $this->belongsToMany(User::class, 'agen_user', 'agen_id', 'user_id');
     }
 
-    // public function users(): HasMany
-    // {
-    //     return $this->hasMany(User::class);
-    // }
-
     public function jadwals(): HasMany
     {
         return $this->hasMany(Jadwal::class);
@@ -71,5 +66,10 @@ class Agen extends Model
     public function admins(): HasMany
     {
         return $this->hasMany(Admin::class);
+    }
+
+    public function pemesananPenumpangs()
+    {
+        return $this->hasMany(PemesananPenumpang::class);
     }
 }

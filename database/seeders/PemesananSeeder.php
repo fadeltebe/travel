@@ -2,11 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Pemesanan;
-use App\Models\Jadwal;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\Jadwal;
+use App\Models\Pemesanan;
+use Illuminate\Support\Str;
+use Illuminate\Database\Seeder;
 
 class PemesananSeeder extends Seeder
 {
@@ -23,14 +24,14 @@ class PemesananSeeder extends Seeder
                 $statuses = ['pending', 'confirmed', 'paid', 'cancelled'];
                 $status = $statuses[array_rand($statuses)];
 
+                // Ambil satu pemesan_id secara acak dari tabel pemesans
+                $pemesanId = DB::table('pemesans')->inRandomOrder()->value('id');
+
                 Pemesanan::create([
                     'agen_id' => $jadwal->agen_id,
-                    'user_id' => null, // tidak mengisi user untuk seed ini
+                    'pemesan_id' => $pemesanId,
                     'jadwal_id' => $jadwal->id,
                     'kode_pemesanan' => 'PMN-' . strtoupper(Str::random(8)),
-                    'nama_pemesan' => 'Pemesan ' . substr(Str::random(6), 0, 6),
-                    'telepon_pemesan' => '0812' . rand(10000000, 99999999),
-                    'email_pemesan' => null,
                     'jumlah_penumpang' => $jumlah,
                     'total_harga' => $total,
                     'status' => $status,

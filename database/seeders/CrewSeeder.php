@@ -13,7 +13,7 @@ class CrewSeeder extends Seeder
         $crews = [
             [
                 'nama' => 'Rudi Hartono',
-                'no_hp' => '081200000001',
+                'telepon' => '081200000001',
                 'alamat' => 'Jl. Mawar No.1',
                 'nik' => '7202010101010001',
                 'tempat_lahir' => 'Palu',
@@ -22,7 +22,7 @@ class CrewSeeder extends Seeder
             ],
             [
                 'nama' => 'Fajar Ramadhan',
-                'no_hp' => '081200000002',
+                'telepon' => '081200000002',
                 'alamat' => 'Jl. Akasia No.2',
                 'nik' => '7202020202020002',
                 'tempat_lahir' => 'Ampana',
@@ -31,7 +31,7 @@ class CrewSeeder extends Seeder
             ],
             [
                 'nama' => 'Eko Prasetyo',
-                'no_hp' => '081200000003',
+                'telepon' => '081200000003',
                 'alamat' => 'Jl. Flamboyan No.3',
                 'nik' => '7202030303030003',
                 'tempat_lahir' => 'Luwuk',
@@ -40,7 +40,7 @@ class CrewSeeder extends Seeder
             ],
             [
                 'nama' => 'Imam Saputra',
-                'no_hp' => '081200000004',
+                'telepon' => '081200000004',
                 'alamat' => 'Jl. Kenanga No.4',
                 'nik' => '7202040404040004',
                 'tempat_lahir' => 'Palu',
@@ -49,7 +49,7 @@ class CrewSeeder extends Seeder
             ],
             [
                 'nama' => 'Maya Sari',
-                'no_hp' => '081200000005',
+                'telepon' => '081200000005',
                 'alamat' => 'Jl. Melur No.5',
                 'nik' => '7202050505050005',
                 'tempat_lahir' => 'Ampana',
@@ -58,7 +58,7 @@ class CrewSeeder extends Seeder
             ],
             [
                 'nama' => 'Dewi Lestari',
-                'no_hp' => '081200000006',
+                'telepon' => '081200000006',
                 'alamat' => 'Jl. Cempaka No.6',
                 'nik' => '7202060606060006',
                 'tempat_lahir' => 'Luwuk',

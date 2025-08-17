@@ -11,16 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('penumpangs', function (Blueprint $table) {
+        Schema::create('pemesans', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
-            $table->string('nik')->unique()->nullable();
-            $table->enum('jenis_kelamin', ['L', 'P']);
-            $table->date('tanggal_lahir');
             $table->string('telepon');
             $table->string('email')->nullable();
-            $table->text('alamat');
+            $table->text('alamat')->nullable();
+            $table->string('nik')->nullable();
+            $table->date('tanggal_lahir')->nullable();
+            $table->enum('jenis_kelamin', ['L', 'P'])->nullable();
             $table->timestamps();
+
+            $table->index('telepon');
+            $table->index('email');
             $table->softDeletes();
         });
     }
@@ -30,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('penumpangs');
+        Schema::dropIfExists('pemesans');
     }
 };

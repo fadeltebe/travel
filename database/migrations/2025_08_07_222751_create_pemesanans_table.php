@@ -13,13 +13,10 @@ return new class extends Migration
     {
         Schema::create('pemesanans', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('agen_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('jadwal_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('agen_id')->constrained('agens')->onDelete('cascade');
             $table->string('kode_pemesanan')->unique();
-            $table->string('nama_pemesan');
-            $table->string('telepon_pemesan');
-            $table->string('email_pemesan')->nullable();
+            $table->foreignId('pemesan_id')->constrained('pemesans')->cascadeOnDelete();
+            $table->foreignId('jadwal_id')->constrained()->cascadeOnDelete();
             $table->integer('jumlah_penumpang');
             $table->decimal('total_harga', 12, 2);
             $table->enum('status', ['pending', 'confirmed', 'paid', 'cancelled'])->default('pending');

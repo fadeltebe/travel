@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('crews', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
-            $table->string('no_hp')->nullable();
             $table->string('alamat')->nullable();
             $table->string('nik')->nullable();
+            $table->string('telepon')->nullable();
             $table->string('tempat_lahir')->nullable();
             $table->date('tanggal_lahir')->nullable();
             $table->enum('jenis_kelamin', ['L', 'P'])->nullable();

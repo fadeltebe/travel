@@ -30,7 +30,7 @@ class AdminSeeder extends Seeder
                 'nama'      => 'Admin ' . $agen->name,
                 'nik'       => fake()->numerify('7201##########'),
                 'alamat'    => fake()->address(),
-                'nomor_hp'  => fake()->phoneNumber(),
+                'telepon'  => fake()->phoneNumber(),
                 'foto'      => null,
                 'status'    => 'aktif',
             ]);

@@ -16,10 +16,11 @@ return new class extends Migration
             $table->string('nomor_polisi')->unique();
             $table->string('nomor_mesin')->unique();
             $table->string('nomor_rangka')->unique();
-            $table->string('tahun_perakitan')->unique();
+            $table->integer('tahun_perakitan')->nullable();
+            $table->integer('tahun_perolehan')->nullable();
             $table->string('merk');
             $table->string('model');
-            $table->integer('tahun');
+            $table->string('warna');
             $table->integer('kapasitas');
             $table->enum('tipe', ['Bus', 'Mini Bus', 'SUV', 'MPV']);
             $table->enum('kelas', ['Ekonomi', 'Bisnis', 'Sleeper', 'Executive']);

@@ -14,14 +14,14 @@ return new class extends Migration
         Schema::create('drivers', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
-            $table->string('no_hp')->nullable();
             $table->string('alamat')->nullable();
             $table->string('nik')->nullable();
+            $table->string('telepon')->nullable();
             $table->string('tempat_lahir')->nullable();
             $table->date('tanggal_lahir')->nullable();
             $table->enum('jenis_kelamin', ['L', 'P'])->nullable();
-            $table->enum('jenis_sim', ['A', 'B1', 'B2', 'C', 'D', 'SIM Internasional'])->nullable();
             $table->string('foto')->nullable();
+            $table->enum('jenis_sim', ['A', 'B1', 'B2', 'C', 'D', 'SIM Internasional'])->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

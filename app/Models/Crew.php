@@ -13,7 +13,7 @@ class Crew extends Model
 
     protected $fillable = [
         'nama',
-        'no_hp',
+        'telepon',
         'alamat',
         'nik',
         'tempat_lahir',

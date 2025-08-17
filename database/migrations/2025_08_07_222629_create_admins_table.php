@@ -16,9 +16,12 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('agen_id')->constrained('agens')->onDelete('cascade');
             $table->string('nama');
-            $table->string('nik')->nullable(); // nomor KTP
-            $table->text('alamat')->nullable();
-            $table->string('nomor_hp');
+            $table->string('alamat')->nullable();
+            $table->string('nik')->nullable();
+            $table->string('telepon')->nullable();
+            $table->string('tempat_lahir')->nullable();
+            $table->date('tanggal_lahir')->nullable();
+            $table->enum('jenis_kelamin', ['L', 'P'])->nullable();
             $table->string('foto')->nullable();
             $table->enum('status', ['aktif', 'nonaktif'])->default('aktif');
             $table->timestamps();

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('pemesanan_id')->constrained()->cascadeOnDelete();
             $table->string('kode_pembayaran')->unique();
             $table->decimal('jumlah', 12, 2);
-            $table->enum('metode_pembayaran', ['cash', 'transfer', 'e_wallet', 'credit_card']);
+            $table->enum('metode_pembayaran', ['qris', 'cash', 'transfer', 'e_wallet', 'credit_card']);
             $table->enum('status', ['pending', 'success', 'failed', 'cancelled'])->default('pending');
             $table->timestamp('tanggal_pembayaran')->nullable();
             $table->string('referensi_eksternal')->nullable();

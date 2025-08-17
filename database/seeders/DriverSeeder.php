@@ -13,7 +13,7 @@ class DriverSeeder extends Seeder
         $drivers = [
             [
                 'nama' => 'Budi Santoso',
-                'no_hp' => '081234567890',
+                'telepon' => '081234567890',
                 'alamat' => 'Jl. Matoa No.1, Palu',
                 'nik' => '7201010101010001',
                 'tempat_lahir' => 'Palu',
@@ -23,7 +23,7 @@ class DriverSeeder extends Seeder
             ],
             [
                 'nama' => 'Andi Saputra',
-                'no_hp' => '081298765432',
+                'telepon' => '081298765432',
                 'alamat' => 'Jl. Merdeka No.2, Ampana',
                 'nik' => '7201020202020002',
                 'tempat_lahir' => 'Ampana',
@@ -33,7 +33,7 @@ class DriverSeeder extends Seeder
             ],
             [
                 'nama' => 'Rizal Fahmi',
-                'no_hp' => '081355551234',
+                'telepon' => '081355551234',
                 'alamat' => 'Jl. Kenanga No.3, Luwuk',
                 'nik' => '7201030303030003',
                 'tempat_lahir' => 'Luwuk',
@@ -43,7 +43,7 @@ class DriverSeeder extends Seeder
             ],
             [
                 'nama' => 'Hendra Wijaya',
-                'no_hp' => '081355559876',
+                'telepon' => '081355559876',
                 'alamat' => 'Jl. Dahlia No.4',
                 'nik' => '7201040404040004',
                 'tempat_lahir' => 'Palu',
@@ -53,7 +53,7 @@ class DriverSeeder extends Seeder
             ],
             [
                 'nama' => 'Sulastri',
-                'no_hp' => '081300011122',
+                'telepon' => '081300011122',
                 'alamat' => 'Jl. Melati No.5',
                 'nik' => '7201050505050005',
                 'tempat_lahir' => 'Ampana',
@@ -63,7 +63,7 @@ class DriverSeeder extends Seeder
             ],
             [
                 'nama' => 'Agus Salim',
-                'no_hp' => '081300022233',
+                'telepon' => '081300022233',
                 'alamat' => 'Jl. Flamboyan No.6',
                 'nik' => '7201060606060006',
                 'tempat_lahir' => 'Luwuk',

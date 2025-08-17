@@ -3,15 +3,18 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str; // Digunakan untuk slug
 use App\Models\Rute;
-use App\Models\Agen;
+use App\Models\Agen; // Model Agen tidak diperlukan, jadi bisa dihapus
 
 class RuteSeeder extends Seeder
 {
+    /**
+     * Jalankan seeder database.
+     */
     public function run(): void
     {
-        $agens = Agen::all();
-
+        // Data sampel untuk rute
         $sample = [
             ['kota_asal' => 'Palu', 'kota_tujuan' => 'Ampana', 'jarak_km' => 150, 'estimasi_waktu' => 180, 'harga_dasar' => 250000],
             ['kota_asal' => 'Palu', 'kota_tujuan' => 'Luwuk', 'jarak_km' => 220, 'estimasi_waktu' => 240, 'harga_dasar' => 300000],
@@ -20,23 +23,24 @@ class RuteSeeder extends Seeder
             ['kota_asal' => 'Luwuk', 'kota_tujuan' => 'Palu', 'jarak_km' => 220, 'estimasi_waktu' => 240, 'harga_dasar' => 300000],
         ];
 
-        $i = 1;
-        foreach ($sample as $s) {
-            // assign agen in round-robin
-            $agen = $agens->skip(($i - 1) % $agens->count())->first();
+        // Looping untuk membuat setiap rute dari data sampel
+        foreach ($sample as $data) {
+            // Membuat kode rute yang unik dan mudah dibaca
+            // Contoh: PLU-AMP atau AMP-LWK
+            $kode_rute = Str::upper(Str::substr($data['kota_asal'], 0, 3)) . '-' . Str::upper(Str::substr($data['kota_tujuan'], 0, 3));
 
-            Rute::create([
-                'agen_id' => $agen->id,
-                'kode_rute' => 'RTE-' . strtoupper(uniqid()),
-                'kota_asal' => $s['kota_asal'],
-                'kota_tujuan' => $s['kota_tujuan'],
-                'jarak_km' => $s['jarak_km'],
-                'estimasi_waktu' => $s['estimasi_waktu'],
-                'harga_dasar' => $s['harga_dasar'],
-                'is_active' => true,
-            ]);
-
-            $i++;
+            // Buat atau perbarui rute. Jika sudah ada, lewati.
+            Rute::firstOrCreate(
+                ['kode_rute' => $kode_rute],
+                [
+                    'kota_asal' => $data['kota_asal'],
+                    'kota_tujuan' => $data['kota_tujuan'],
+                    'jarak_km' => $data['jarak_km'],
+                    'estimasi_waktu' => $data['estimasi_waktu'],
+                    'harga_dasar' => $data['harga_dasar'],
+                    'is_active' => true,
+                ]
+            );
         }
     }
 }

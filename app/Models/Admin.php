@@ -15,10 +15,13 @@ class Admin extends Model
         'user_id',
         'agen_id',
         'nama',
-        'nik',
-        'nomor_hp',
-        'foto',
         'alamat',
+        'nik',
+        'telepon',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'jenis_kelamin',
+        'foto',
         'status'
     ];
 

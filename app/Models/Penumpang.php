@@ -12,7 +12,7 @@ class Penumpang extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'nama_lengkap',
+        'nama',
         'nik',
         'jenis_kelamin',
         'tanggal_lahir',
@@ -28,5 +28,10 @@ class Penumpang extends Model
     public function tikets(): HasMany
     {
         return $this->hasMany(Tiket::class);
+    }
+
+    public function agen()
+    {
+        return $this->belongsTo(Agen::class);
     }
 }

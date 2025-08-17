@@ -18,8 +18,10 @@ class DatabaseSeeder extends Seeder
             CrewSeeder::class,
             RuteSeeder::class,
             JadwalSeeder::class,
+            PemesanSeeder::class,
             PenumpangSeeder::class,
             PemesananSeeder::class,
+            PemesananPenumpangsSeeder::class,
             TiketSeeder::class,
             PembayaranSeeder::class,
         ]);

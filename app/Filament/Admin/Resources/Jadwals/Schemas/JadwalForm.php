@@ -39,6 +39,7 @@ class JadwalForm
                     })
                     ->searchable()
                     ->required()
+                    ->preload()
                     ->afterStateUpdated(function ($state, callable $set) {
                         $hargaDasar = \App\Models\Rute::find($state)?->harga_dasar;
                         $set('harga', $hargaDasar);

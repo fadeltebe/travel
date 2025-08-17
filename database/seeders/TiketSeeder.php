@@ -22,7 +22,7 @@ class TiketSeeder extends Seeder
             for ($i = 0; $i < $p->jumlah_penumpang; $i++) {
                 // buat penumpang baru untuk setiap tiket (agar relasi jelas)
                 $penumpang = Penumpang::create([
-                    'nama_lengkap' => 'Penumpang ' . strtoupper(substr(Str::random(6), 0, 6)),
+                    'nama' => 'Penumpang ' . strtoupper(substr(Str::random(6), 0, 6)),
                     'nik' => null,
                     'jenis_kelamin' => (rand(0, 1) ? 'L' : 'P'),
                     'tanggal_lahir' => now()->subYears(rand(18, 50))->toDateString(),

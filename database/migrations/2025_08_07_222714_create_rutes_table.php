@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('rutes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('agen_id')->constrained()->cascadeOnDelete();
             $table->string('kode_rute')->unique();
             $table->string('kota_asal');
             $table->string('kota_tujuan');
