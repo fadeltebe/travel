@@ -12,6 +12,7 @@ class Crew extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'user_id',
         'nama',
         'telepon',
         'alamat',

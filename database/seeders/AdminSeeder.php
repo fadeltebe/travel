@@ -16,12 +16,19 @@ class AdminSeeder extends Seeder
         $agens = Agen::all();
 
         foreach ($agens as $agen) {
-            // Buat user baru untuk setiap agen
-            $user = User::create([
-                'name'     => 'Admin ' . $agen->name,
-                'email'    => strtolower(str_replace(' ', '', $agen->name)) . '@example.com',
-                'password' => Hash::make('password123'),
-            ]);
+            $email = strtolower(str_replace(' ', '', $agen->name)) . '@example.com';
+
+            // Cek jika user sudah ada berdasarkan email
+            $user = User::where('email', $email)->first();
+
+            // Jika belum ada, buat user baru
+            if (!$user) {
+                $user = User::create([
+                    'name'     => 'Admin ' . $agen->name,
+                    'email'    => $email,
+                    'password' => Hash::make('password123'),
+                ]);
+            }
 
             // Buat admin yang terkait ke agen
             Admin::create([
@@ -30,7 +37,7 @@ class AdminSeeder extends Seeder
                 'nama'      => 'Admin ' . $agen->name,
                 'nik'       => fake()->numerify('7201##########'),
                 'alamat'    => fake()->address(),
-                'telepon'  => fake()->phoneNumber(),
+                'telepon'   => fake()->phoneNumber(),
                 'foto'      => null,
                 'status'    => 'aktif',
             ]);

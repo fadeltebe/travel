@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('crews', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->string('nama');
             $table->string('alamat')->nullable();
             $table->string('nik')->nullable();

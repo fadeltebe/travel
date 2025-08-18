@@ -4,7 +4,9 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Driver;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 class DriverSeeder extends Seeder
 {
@@ -74,6 +76,22 @@ class DriverSeeder extends Seeder
         ];
 
         foreach ($drivers as $d) {
+            $email = strtolower(str_replace(' ', '', $d['nama'])) . '@driver.com';
+
+            // Cek jika user sudah ada berdasarkan email
+            $user = User::where('email', $email)->first();
+
+            // Jika belum ada, buat user baru
+            if (!$user) {
+                $user = User::create([
+                    'name'     => $d['nama'],
+                    'email'    => $email,
+                    'password' => Hash::make('password123'),
+                ]);
+            }
+
+            $d['user_id'] = $user->id;
+
             Driver::create($d);
         }
     }

@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
             CrewSeeder::class,
             RuteSeeder::class,
             JadwalSeeder::class,
+            JadwalDriverSeeder::class,
+            JadwalCrewSeeder::class,
             PemesanSeeder::class,
             PenumpangSeeder::class,
             PemesananSeeder::class,

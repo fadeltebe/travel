@@ -81,4 +81,9 @@ class User extends Authenticatable implements FilamentUser, HasTenants
 
         return true;
     }
+
+    public function driver()
+    {
+        return $this->hasOne(\App\Models\Driver::class);
+    }
 }

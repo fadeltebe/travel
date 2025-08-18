@@ -4,7 +4,9 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Crew;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 class CrewSeeder extends Seeder
 {
@@ -68,6 +70,22 @@ class CrewSeeder extends Seeder
         ];
 
         foreach ($crews as $c) {
+            $email = strtolower(str_replace(' ', '', $c['nama'])) . '@crew.com';
+
+            // Cek jika user sudah ada berdasarkan email
+            $user = User::where('email', $email)->first();
+
+            // Jika belum ada, buat user baru
+            if (!$user) {
+                $user = User::create([
+                    'name'     => $c['nama'],
+                    'email'    => $email,
+                    'password' => Hash::make('password123'),
+                ]);
+            }
+
+            $c['user_id'] = $user->id;
+
             Crew::create($c);
         }
     }
