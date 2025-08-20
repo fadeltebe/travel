@@ -44,6 +44,21 @@ class Pemesanan extends Model
         return $this->belongsTo(Jadwal::class);
     }
 
+    public function pemesan(): BelongsTo
+    {
+        return $this->belongsTo(Pemesan::class);
+    }
+
+    public function penumpangs()
+    {
+        return $this->belongsToMany(Penumpang::class, 'pemesanan_penumpangs');
+    }
+
+    public function pemesananPenumpangs(): HasMany
+    {
+        return $this->hasMany(PemesananPenumpang::class);
+    }
+
     public function tikets(): HasMany
     {
         return $this->hasMany(Tiket::class);

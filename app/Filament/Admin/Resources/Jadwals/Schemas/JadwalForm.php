@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Filament\Schemas\Schema;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -124,6 +125,13 @@ class JadwalForm
                         ->preload()
                         ->multiple()
                         ->searchable(),
+
+                    Forms\Components\Select::make('penumpangs')
+                        ->label('Penumpang')
+                        ->relationship('penumpangs', 'nama') // pastikan relasi exists di model Jadwal
+                        ->multiple()
+                        ->preload()
+                        ->searchable(),
                 ]),
 
                 Section::make('Waktu')->schema([
@@ -149,6 +157,31 @@ class JadwalForm
                     Forms\Components\Textarea::make('keterangan')
                         ->rows(3),
                 ]),
+
+                Section::make('Daftar Pemesan & Penumpang')
+                    ->schema([
+                        Repeater::make('pemesanan')
+                            ->relationship('pemesanans') // relasi ini HARUS ada di model Jadwal
+                            ->schema([
+                                Select::make('pemesan_id')
+                                    ->label('Pemesan')
+                                    ->relationship('pemesan', 'nama') // relasi di model Pemesanan
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(),
+
+                                Repeater::make('pemesananPenumpangs')
+                                    ->relationship('pemesananPenumpangs') // relasi di model Pemesanan
+                                    ->schema([
+                                        Select::make('penumpang_id')
+                                            ->label('Penumpang')
+                                            ->relationship('penumpang', 'nama') // relasi di model PemesananPenumpang
+                                            ->preload()
+                                            ->searchable()
+                                            ->required(),
+                                    ]),
+                            ]),
+                    ]),
 
             ]);
     }

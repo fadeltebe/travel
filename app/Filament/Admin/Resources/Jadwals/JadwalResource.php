@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\Jadwals;
 
 use App\Filament\Admin\Resources\Jadwals\Pages\CreateJadwal;
 use App\Filament\Admin\Resources\Jadwals\Pages\EditJadwal;
+use App\Filament\Admin\Resources\Jadwals\Pages\JadwalDetail;
 use App\Filament\Admin\Resources\Jadwals\Pages\ListJadwals;
 use App\Filament\Admin\Resources\Jadwals\Schemas\JadwalForm;
 use App\Filament\Admin\Resources\Jadwals\Tables\JadwalsTable;

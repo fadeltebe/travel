@@ -9,7 +9,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
-use Illuminate\Support\Str;
 
 class JadwalForm
 {
@@ -65,9 +64,7 @@ class JadwalForm
                     ->required(),
 
                 TextInput::make('kode_jadwal')
-                    ->required()
-                    ->default(fn () => 'JDL-' . strtoupper(Str::random(10)))
-                    ->unique(ignoreRecord: true),
+                    ->required(),
                 DatePicker::make('tanggal')
                     ->required(),
                 TimePicker::make('jam_berangkat')

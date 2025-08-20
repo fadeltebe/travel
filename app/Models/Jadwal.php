@@ -74,4 +74,8 @@ class Jadwal extends Model
     {
         return $this->belongsToMany(Crew::class, 'jadwal_crew');
     }
+
+    /**
+     * The penumpangs that belong to the jadwal.
+     */
 }

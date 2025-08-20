@@ -34,4 +34,9 @@ class Penumpang extends Model
     {
         return $this->belongsTo(Agen::class);
     }
+
+    public function pemesanans()
+    {
+        return $this->belongsToMany(Pemesanan::class, 'pemesanan_penumpangs');
+    }
 }
