@@ -24,7 +24,7 @@ class PemesananSeeder extends Seeder
                 $statuses = ['pending', 'confirmed', 'paid', 'cancelled'];
                 $status = $statuses[array_rand($statuses)];
 
-                // Ambil satu pemesan_id secara acak dari tabel pemesans
+                // Ambil satu pemesan_id secara acak
                 $pemesanId = DB::table('pemesans')->inRandomOrder()->value('id');
 
                 Pemesanan::create([

@@ -8,6 +8,7 @@ class PemesananPenumpang extends Model
 {
     protected $fillable = [
         'agen_id',
+        'jadwal_id',
         'pemesanan_id',
         'penumpang_id',
         'nomor_kursi',
@@ -17,6 +18,11 @@ class PemesananPenumpang extends Model
     public function agen()
     {
         return $this->belongsTo(Agen::class);
+    }
+
+    public function jadwal()
+    {
+        return $this->belongsTo(Jadwal::class);
     }
 
     public function pemesanan()

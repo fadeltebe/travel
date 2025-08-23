@@ -9,28 +9,42 @@ class PemesananPenumpangsSeeder extends Seeder
 {
     public function run(): void
     {
-        // Ambil data id yang dibutuhkan
-        $agenIds = DB::table('agens')->pluck('id')->toArray();
-        $pemesananIds = DB::table('pemesanans')->pluck('id')->toArray();
+        $pemesananList = DB::table('pemesanans')->get();
         $penumpangIds = DB::table('penumpangs')->pluck('id')->toArray();
+        $agenIds = DB::table('agens')->pluck('id')->toArray();
 
-        // Pastikan data tersedia
-        if (empty($agenIds) || empty($pemesananIds) || empty($penumpangIds)) {
+        if ($pemesananList->isEmpty() || empty($penumpangIds) || empty($agenIds)) {
             return;
         }
 
-        // Contoh seed 3 data, round-robin id
         $data = [];
-        for ($i = 0; $i < 3; $i++) {
-            $data[] = [
-                'agen_id' => $agenIds[$i % count($agenIds)],
-                'pemesanan_id' => $pemesananIds[$i % count($pemesananIds)],
-                'penumpang_id' => $penumpangIds[$i % count($penumpangIds)],
-                'nomor_kursi' => $i + 1,
-                'harga' => 250000 + ($i * 50000),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
+        $penumpangCount = count($penumpangIds);
+        $penumpangIndex = 0;
+
+        foreach ($pemesananList as $i => $pemesanan) {
+            $jadwal_id = $pemesanan->jadwal_id;
+            $agen_id = $pemesanan->agen_id ?? $agenIds[$i % count($agenIds)];
+            $pemesanan_id = $pemesanan->id;
+
+            // Set jumlah penumpang per pemesanan (misal 2-3 penumpang)
+            $jumlahPenumpang = rand(2, 3);
+
+            for ($j = 0; $j < $jumlahPenumpang; $j++) {
+                // Ambil penumpang secara berurutan/round-robin
+                $penumpang_id = $penumpangIds[$penumpangIndex % $penumpangCount];
+                $penumpangIndex++;
+
+                $data[] = [
+                    'agen_id' => $agen_id,
+                    'jadwal_id' => $jadwal_id,
+                    'pemesanan_id' => $pemesanan_id,
+                    'penumpang_id' => $penumpang_id,
+                    'nomor_kursi' => $j + 1,
+                    'harga' => 250000 + ($i * 50000),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
         }
 
         DB::table('pemesanan_penumpangs')->insert($data);
