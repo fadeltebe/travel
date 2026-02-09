@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Filament\Resources\Cargos\Pages;
+
+use App\Filament\Resources\Cargos\CargoResource;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
+use Filament\Resources\Pages\EditRecord;
+
+class EditCargo extends EditRecord
+{
+    protected static string $resource = CargoResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            DeleteAction::make(),
+            ForceDeleteAction::make(),
+            RestoreAction::make(),
+        ];
+    }
+}

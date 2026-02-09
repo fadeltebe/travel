@@ -20,7 +20,10 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
+        'is_active',
+        'email_verified_at',
     ];
 
     /**
@@ -43,6 +46,28 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
+    }
+
+    // Relationships
+    public function agents()
+    {
+        return $this->belongsToMany(Agent::class, 'agent_user');
+    }
+
+    public function ticketsScanned()
+    {
+        return $this->hasMany(Ticket::class, 'scanned_by');
+    }
+
+    public function cargoReceiptsHandled()
+    {
+        return $this->hasMany(CargoReceipt::class, 'handler_user_id');
+    }
+
+    public function paymentsReceived()
+    {
+        return $this->hasMany(Payment::class, 'received_by');
     }
 }
