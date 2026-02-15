@@ -22,8 +22,8 @@ class Schedule extends Model
 
     protected $casts = [
         'departure_date' => 'date',
-        'departure_time' => 'time',
-        'arrival_time' => 'time',
+        'departure_time' => 'datetime:H:i:s', // ✨ Ganti jadi datetime dengan format
+        'arrival_time' => 'datetime:H:i:s',   // ✨ Ganti jadi datetime dengan format
         'price' => 'decimal:2',
         'available_seats' => 'integer',
         'created_at' => 'datetime',

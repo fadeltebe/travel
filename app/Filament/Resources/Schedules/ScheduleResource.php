@@ -2,21 +2,20 @@
 
 namespace App\Filament\Resources\Schedules;
 
-use App\Filament\Resources\Schedules\Pages\CreateSchedule;
-use App\Filament\Resources\Schedules\Pages\EditSchedule;
-use App\Filament\Resources\Schedules\Pages\ListSchedules;
-use App\Filament\Resources\Schedules\Pages\ViewSchedule;
-use App\Filament\Resources\Schedules\Schemas\ScheduleForm;
-use App\Filament\Resources\Schedules\Schemas\ScheduleInfolist;
-use App\Filament\Resources\Schedules\Tables\SchedulesTable;
-use App\Models\Schedule;
 use BackedEnum;
-use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
+use App\Models\Schedule;
 use Filament\Tables\Table;
+
+use Filament\Schemas\Schema;
+use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\Schedules\Pages\EditSchedule;
+use App\Filament\Resources\Schedules\Pages\ListSchedules;
+use App\Filament\Resources\Schedules\Pages\CreateSchedule;
+use App\Filament\Resources\Schedules\Schemas\ScheduleForm;
+use App\Filament\Resources\Schedules\Tables\SchedulesTable;
 
 class ScheduleResource extends Resource
 {
@@ -27,11 +26,6 @@ class ScheduleResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return ScheduleForm::configure($schema);
-    }
-
-    public static function infolist(Schema $schema): Schema
-    {
-        return ScheduleInfolist::configure($schema);
     }
 
     public static function table(Table $table): Table
@@ -51,7 +45,6 @@ class ScheduleResource extends Resource
         return [
             'index' => ListSchedules::route('/'),
             'create' => CreateSchedule::route('/create'),
-            'view' => ViewSchedule::route('/{record}'),
             'edit' => EditSchedule::route('/{record}/edit'),
         ];
     }
@@ -62,5 +55,10 @@ class ScheduleResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    public static function isScopedToTenant(): bool
+    {
+        return false; // Routes tidak scoped ke tenant (global)
     }
 }

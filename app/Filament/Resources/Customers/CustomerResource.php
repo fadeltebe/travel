@@ -63,4 +63,10 @@ class CustomerResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
+    // Tidak pakai tenant scope
+    public static function isScopedToTenant(): bool
+    {
+        return false; // ✨ Resource jadi global
+    }
 }

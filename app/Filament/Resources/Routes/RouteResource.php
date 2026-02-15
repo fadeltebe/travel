@@ -63,4 +63,9 @@ class RouteResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
+    public static function isScopedToTenant(): bool
+    {
+        return false; // Routes tidak scoped ke tenant (global)
+    }
 }

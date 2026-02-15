@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('bus_id')->constrained()->cascadeOnDelete();
             $table->date('departure_date'); // Tanggal keberangkatan
             $table->time('departure_time'); // Jam keberangkatan
+            $table->date('arrival_date')->nullable(); // Tanggal tiba
             $table->time('arrival_time')->nullable(); // Jam perkiraan tiba
             $table->decimal('price', 10, 2); // Harga tiket (bisa beda dari base_price)
             $table->integer('available_seats'); // Sisa kursi tersedia

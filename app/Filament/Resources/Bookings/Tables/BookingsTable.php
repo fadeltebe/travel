@@ -25,7 +25,7 @@ class BookingsTable
                 TextColumn::make('agent_id')
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('customer_id')
+                TextColumn::make('customer.name')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('booker_name')
