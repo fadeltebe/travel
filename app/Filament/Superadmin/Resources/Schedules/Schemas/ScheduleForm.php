@@ -2,10 +2,12 @@
 
 namespace App\Filament\Superadmin\Resources\Schedules\Schemas;
 
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\TimePicker;
+use App\Models\Route;
 use Filament\Schemas\Schema;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\TimePicker;
 
 class ScheduleForm
 {
@@ -13,12 +15,34 @@ class ScheduleForm
     {
         return $schema
             ->components([
-                TextInput::make('route_id')
-                    ->required()
-                    ->numeric(),
-                TextInput::make('bus_id')
-                    ->required()
-                    ->numeric(),
+                Select::make('route_id')
+                    ->label('Rute')
+                    ->relationship(
+                        name: 'route',
+                        modifyQueryUsing: fn($query) =>
+                        $query->with([
+                            'originAgent:id,city',
+                            'destinationAgent:id,city',
+                        ])
+                    )
+                    ->getOptionLabelFromRecordUsing(
+                        fn(Route $record) =>
+                        $record->originAgent->city
+                            . ' → '
+                            . $record->destinationAgent->city
+                    )
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+                Select::make('bus_id')
+                    ->label('Bus')
+                    ->relationship(
+                        name: 'bus',
+                        titleAttribute: 'plate_number',
+                    )
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 DatePicker::make('departure_date')
                     ->required(),
                 TimePicker::make('departure_time')

@@ -4,10 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Schedule extends Model
 {
     use SoftDeletes;
+
+    // ✨ Auto eager load relasi
+    protected $with = ['route', 'bus'];
 
     protected $fillable = [
         'route_id',
@@ -22,8 +26,8 @@ class Schedule extends Model
 
     protected $casts = [
         'departure_date' => 'date',
-        'departure_time' => 'datetime:H:i:s', // ✨ Ganti jadi datetime dengan format
-        'arrival_time' => 'datetime:H:i:s',   // ✨ Ganti jadi datetime dengan format
+        'departure_time' => 'string', // ✨ Fix: string bukan datetime
+        'arrival_time' => 'string',   // ✨ Fix: string bukan datetime
         'price' => 'decimal:2',
         'available_seats' => 'integer',
         'created_at' => 'datetime',
@@ -31,12 +35,12 @@ class Schedule extends Model
         'deleted_at' => 'datetime',
     ];
 
-    public function route()
+    public function route(): BelongsTo
     {
         return $this->belongsTo(Route::class);
     }
 
-    public function bus()
+    public function bus(): BelongsTo
     {
         return $this->belongsTo(Bus::class);
     }

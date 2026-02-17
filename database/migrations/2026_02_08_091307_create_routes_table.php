@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('routes', function (Blueprint $table) {
             $table->id();
-            $table->string('origin_city'); // Kota asal
-            $table->string('destination_city'); // Kota tujuan
+            $table->foreignId('origin_agent_id')->constrained('agents')->cascadeOnDelete();
+            $table->foreignId('destination_agent_id')->constrained('agents')->cascadeOnDelete();
             $table->integer('distance_km')->nullable(); // Jarak dalam KM
             $table->integer('estimated_duration_minutes')->nullable(); // Estimasi durasi dalam menit
             $table->decimal('base_price', 10, 2); // Harga dasar

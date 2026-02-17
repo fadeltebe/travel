@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Schedules\Schemas;
 
 
+use App\Models\Route;
 use Filament\Schemas\Schema;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Radio;
@@ -21,25 +22,27 @@ class ScheduleForm
         return $schema
             ->components([
                 Select::make('route_id')
-                    ->label('Route')
-                    ->relationship(
-                        name: 'route',
-                        titleAttribute: 'origin_city',
-                        modifyQueryUsing: function (Builder $query) {
-                            $tenant = Filament::getTenant(); // Current agent
-
-                            // ✨ Filter: hanya rute yang origin_city = agent city
-                            return $query->where('origin_city', $tenant->city);
-                        }
+                    ->label('Rute')
+                    ->options(
+                        \App\Models\Route::with(['originAgent', 'destinationAgent'])
+                            ->get()
+                            ->mapWithKeys(fn($route) => [
+                                $route->id =>
+                                optional($route->originAgent)->city
+                                    . ' → '
+                                    . optional($route->destinationAgent)->city
+                            ])
                     )
-                    ->getOptionLabelFromRecordUsing(fn($record) => "{$record->origin_city} → {$record->destination_city}")
+                    ->required()
+
                     ->searchable()
                     ->preload()
                     ->required()
+
                     ->afterStateUpdated(function (Set $set, $state) {
                         if ($state) {
                             $route = \App\Models\Route::find($state);
-                            $set('price', $route?->base_price); // ✨ Set price otomatis
+                            $set('price', $route?->base_price);
                         }
                     }),
                 Select::make('bus_id')

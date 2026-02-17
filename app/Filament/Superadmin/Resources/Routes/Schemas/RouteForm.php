@@ -2,6 +2,7 @@
 
 namespace App\Filament\Superadmin\Resources\Routes\Schemas;
 
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -12,9 +13,19 @@ class RouteForm
     {
         return $schema
             ->components([
-                TextInput::make('origin_city')
+                Select::make('origin_agent_id')
+                    ->label('Asal')
+                    ->options(function () {
+                        return \App\Models\Agent::where('is_active', true)->pluck('name', 'id');
+                    })
+                    ->searchable()
                     ->required(),
-                TextInput::make('destination_city')
+                Select::make('destination_agent_id')
+                    ->label('Tujuan')
+                    ->options(function () {
+                        return \App\Models\Agent::where('is_active', true)->pluck('name', 'id');
+                    })
+                    ->searchable()
                     ->required(),
                 TextInput::make('distance_km')
                     ->numeric(),

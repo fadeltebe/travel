@@ -18,10 +18,14 @@ class RoutesTable
     {
         return $table
             ->columns([
-                TextColumn::make('origin_city')
-                    ->searchable(),
-                TextColumn::make('destination_city')
-                    ->searchable(),
+                TextColumn::make('originAgent.name')
+                    ->label('Asal')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('destinationAgent.name')
+                    ->label('Tujuan')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('distance_km')
                     ->numeric()
                     ->sortable(),

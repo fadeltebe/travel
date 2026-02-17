@@ -32,7 +32,17 @@ class SchedulesTable
                             ->label('Jadwal')
                             ->html()
                             ->getStateUsing(function ($record) {
-                                $route = "<strong class='text-primary-600'>{$record->route->origin_city} → {$record->route->destination_city}</strong>";
+                                // ✨ Null safety check yang lengkap
+                                if (!$record->route) {
+                                    return "<span class='text-gray-400'>Route tidak tersedia</span>";
+                                }
+
+                                if (!$record->route->originAgent || !$record->route->destinationAgent) {
+                                    return "<span class='text-gray-400'>Data agent tidak lengkap</span>";
+                                }
+
+                                // Tampilkan nama agent
+                                $route = "<strong class='text-primary-600'>{$record->route->originAgent->city} → {$record->route->destinationAgent->city}</strong>";
 
                                 // Format tanggal berangkat dengan Carbon
                                 $departureDateTime = \Carbon\Carbon::parse($record->departure_date)->format('d M Y') . ', ' .
@@ -46,7 +56,7 @@ class SchedulesTable
 
                                 return "{$route}<br><small class='text-gray-600'>{$departure}<br>{$arrival}</small>";
                             })
-                            ->searchable(['routes.origin_city', 'routes.destination_city']),
+                            ->searchable(),
                     ]),
                     Stack::make([
                         // KOLOM 2: Bus, Harga, Kursi
