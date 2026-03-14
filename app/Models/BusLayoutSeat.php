@@ -41,4 +41,15 @@ class BusLayoutSeat extends Model
     {
         return $this->hasMany(SeatBooking::class, 'bus_layout_seat_id');
     }
+
+    // ── Helpers ────────────────────────────
+    public function isPassenger(): bool
+    {
+        return $this->type === 'passenger';
+    }
+
+    public function isBookable(): bool
+    {
+        return $this->is_available && $this->isPassenger();
+    }
 }

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('route_id')->constrained()->cascadeOnDelete();
             $table->foreignId('bus_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('driver_id')->nullable()->constrained('users')->nullOnDelete(); // ← TAMBAH
             $table->date('departure_date'); // Tanggal keberangkatan
             $table->time('departure_time'); // Jam keberangkatan
             $table->date('arrival_date')->nullable(); // Tanggal tiba

@@ -3,21 +3,21 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Filament\Panel;
-use Illuminate\Support\Collection;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Notifications\Notifiable;
-use Filament\Models\Contracts\HasTenants;
-use Filament\Models\Contracts\FilamentUser;
+use App\Enums\Role;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 
-class User extends Authenticatable implements FilamentUser, HasTenants
+
+class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -27,10 +27,10 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     protected $fillable = [
         'name',
         'email',
-        'phone',
         'password',
+        'role',
+        'agent_id',
         'is_active',
-        'email_verified_at',
     ];
 
     /**
@@ -52,43 +52,51 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'is_active' => 'boolean',
+            'password'          => 'hashed',
+            'role'              => Role::class,
+            'is_active'         => 'boolean',
         ];
     }
 
-    public function agents(): BelongsToMany
+    // ── Relationships ──────────────────────
+    public function agent(): BelongsTo
     {
-        return $this->belongsToMany(Agent::class);
+        return $this->belongsTo(Agent::class);
     }
 
-    public function getTenants(Panel $panel): Collection
+    public function schedules(): HasMany
     {
-        return $this->agents;
+        return $this->hasMany(Schedule::class, 'driver_id');
     }
 
-    public function canAccessTenant(Model $tenant): bool
+    // ── Role Helpers ───────────────────────
+    public function isSuperAdmin(): bool
     {
-        return $this->agents()->whereKey($tenant)->exists();
+        return $this->role === Role::SuperAdmin;
     }
 
-    public function canAccessPanel(Panel $panel): bool
+    public function isOwner(): bool
     {
-        return true;
+        return $this->role === Role::Owner;
     }
 
-    public function ticketsScanned()
+    public function isAdmin(): bool
     {
-        return $this->hasMany(Ticket::class, 'scanned_by');
+        return $this->role === Role::Admin;
     }
 
-    public function cargoReceiptsHandled()
+    public function isDriver(): bool
     {
-        return $this->hasMany(CargoReceipt::class, 'handler_user_id');
+        return $this->role === Role::Driver;
     }
 
-    public function paymentsReceived()
+    public function hasRole(Role $role): bool
     {
-        return $this->hasMany(Payment::class, 'received_by');
+        return $this->role === $role;
+    }
+
+    public function canViewAll(): bool
+    {
+        return $this->role->canViewAll();
     }
 }
