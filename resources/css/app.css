@@ -9,9 +9,17 @@
         font-family: 'Inter', sans-serif;
         -webkit-tap-highlight-color: transparent;
     }
-
-    /* Prevent iOS bounce scroll */
     body {
         overscroll-behavior: none;
+        background-color: #F5F6FA;
+    }
+}
+
+@layer utilities {
+    .safe-bottom {
+        padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    }
+    .wave-bottom {
+        clip-path: ellipse(120% 100% at 50% 0%);
     }
 }

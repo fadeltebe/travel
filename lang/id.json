@@ -1,0 +1,21 @@
+{
+    "Dashboard": "Beranda",
+    "Profile": "Profil",
+    "Log Out": "Keluar",
+    "Login": "Masuk",
+    "Register": "Daftar",
+    "Email Address": "Alamat Email",
+    "Password": "Kata Sandi",
+    "Confirm Password": "Konfirmasi Kata Sandi",
+    "Remember me": "Ingat saya",
+    "Forgot your password?": "Lupa kata sandi?",
+    "Reset Password": "Reset Kata Sandi",
+    "Send Password Reset Link": "Kirim Tautan Reset Kata Sandi",
+    "Save": "Simpan",
+    "Cancel": "Batal",
+    "Delete": "Hapus",
+    "Edit": "Ubah",
+    "Back": "Kembali",
+    "Next": "Selanjutnya",
+    "Previous": "Sebelumnya"
+}

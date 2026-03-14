@@ -4,119 +4,133 @@ state([]);
 ?>
 
 <div>
-    <x-layouts.app title="Dashboard">
-        <div class="p-4 space-y-4 pb-24">
+    <div class="overflow-x-hidden">
+        <x-layouts.app title="Dashboard">
 
-            {{-- Welcome Card --}}
-            <div class="relative overflow-hidden rounded-2xl p-5 text-white" style="background: linear-gradient(135deg, #1d4ed8 0%, #6366f1 100%);">
+            {{-- Header Wave (BRImo style) --}}
+            <div class="relative text-white mx-4 rounded-2xl px-4 pt-5 pb-12 mt-0" style="background: linear-gradient(160deg, #0D47A1 0%, #1565C0 50%, #1976D2 100%);">
 
-                {{-- Decorative circles --}}
-                <div class="absolute -top-6 -right-6 w-32 h-32 rounded-full opacity-20" style="background: rgba(255,255,255,0.3)"></div>
-                <div class="absolute -bottom-8 -right-12 w-40 h-40 rounded-full opacity-10" style="background: rgba(255,255,255,0.4)"></div>
+                {{-- Decorative circle --}}
+                <div class="absolute -top-8 -right-8 w-40 h-40 rounded-full opacity-10" style="background: white;"></div>
 
-                <div class="relative z-10">
-                    <p class="text-blue-200 text-sm">Selamat datang,</p>
-                    <h2 class="text-2xl font-bold mt-0.5">
-                        {{ auth()->user()->name }}
-                    </h2>
-                    <div class="flex items-center gap-2 mt-2">
-                        <span class="bg-white/20 text-white text-xs font-medium px-2.5 py-1 rounded-full">
-                            {{ auth()->user()->role->label() }}
-                        </span>
-                        <span class="text-blue-200 text-xs">
-                            {{ now()->isoFormat('dddd, D MMMM Y') }}
-                        </span>
-                    </div>
+                <p class="text-blue-200 text-sm">Selamat datang,</p>
+                <h2 class="text-2xl font-bold">{{ auth()->user()->name }}</h2>
+
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-xs font-semibold px-3 py-1 rounded-full" style="background: #F57C00; color: white;">
+                        {{ auth()->user()->role->label() }}
+                    </span>
+                    <span class="text-blue-200 text-xs">
+                        {{ now()->isoFormat('dddd, D MMM Y') }}
+                    </span>
                 </div>
             </div>
 
-            {{-- Stats Grid --}}
-            <div class="grid grid-cols-2 gap-3">
+            {{-- Content --}}
+            <div class="px-4 -mt-6 space-y-5 pb-4">
 
-                {{-- Jadwal --}}
+                {{-- Quick Actions (BRImo style) --}}
                 <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                    <div class="flex items-center justify-between mb-3">
-                        <p class="text-xs font-medium text-gray-400">Jadwal Hari Ini</p>
-                        <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe)">
-                            <x-heroicon-o-calendar-days class="w-4 h-4 text-blue-600" />
-                        </div>
+                    <div class="grid grid-cols-4 gap-2 mt-6">
+
+                        <a href="{{ route('schedules.index') }}" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background: #E3F2FD">
+                                <x-heroicon-o-calendar-days class="w-6 h-6 text-primary-800" />
+                            </div>
+                            <span class="text-[11px] font-medium text-gray-600 text-center leading-tight">
+                                Jadwal
+                            </span>
+                        </a>
+
+                        <a href="{{ route('agents.index') }}" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background: #FFF3E0">
+                                <x-heroicon-o-building-office class="w-6 h-6 text-accent-700" />
+                            </div>
+                            <span class="text-[11px] font-medium text-gray-600 text-center leading-tight">
+                                Agen
+                            </span>
+                        </a>
+
+                        <a href="{{ route('cargo.index') }}" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background: #E8F5E9">
+                                <x-heroicon-o-cube class="w-6 h-6 text-green-700" />
+                            </div>
+                            <span class="text-[11px] font-medium text-gray-600 text-center leading-tight">
+                                Cargo
+                            </span>
+                        </a>
+
+                        <a href="#" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background: #F3E5F5">
+                                <x-heroicon-o-chart-bar class="w-6 h-6 text-purple-700" />
+                            </div>
+                            <span class="text-[11px] font-medium text-gray-600 text-center leading-tight">
+                                Laporan
+                            </span>
+                        </a>
+
                     </div>
-                    <p class="text-2xl font-bold text-gray-800">0</p>
-                    <p class="text-xs text-gray-400 mt-1">jadwal aktif</p>
                 </div>
 
-                {{-- Booking --}}
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                    <div class="flex items-center justify-between mb-3">
-                        <p class="text-xs font-medium text-gray-400">Total Booking</p>
-                        <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0)">
-                            <x-heroicon-o-ticket class="w-4 h-4 text-emerald-600" />
-                        </div>
-                    </div>
-                    <p class="text-2xl font-bold text-gray-800">0</p>
-                    <p class="text-xs text-gray-400 mt-1">bulan ini</p>
-                </div>
+                {{-- Stats --}}
+                <div>
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                        Ringkasan Hari Ini
+                    </p>
+                    <div class="grid grid-cols-2 gap-3">
 
-                {{-- Penumpang --}}
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                    <div class="flex items-center justify-between mb-3">
-                        <p class="text-xs font-medium text-gray-400">Penumpang</p>
-                        <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe)">
-                            <x-heroicon-o-users class="w-4 h-4 text-violet-600" />
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background: #E3F2FD">
+                                    <x-heroicon-o-calendar-days class="w-4 h-4 text-primary-800" />
+                                </div>
+                                <div>
+                                    <p class="text-[11px] text-gray-400">Jadwal</p>
+                                    <p class="text-xl font-bold text-gray-800 leading-tight">0</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <p class="text-2xl font-bold text-gray-800">0</p>
-                    <p class="text-xs text-gray-400 mt-1">hari ini</p>
-                </div>
 
-                {{-- Cargo --}}
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                    <div class="flex items-center justify-between mb-3">
-                        <p class="text-xs font-medium text-gray-400">Cargo</p>
-                        <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #fef3c7, #fde68a)">
-                            <x-heroicon-o-cube class="w-4 h-4 text-amber-600" />
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background: #FFF3E0">
+                                    <x-heroicon-o-ticket class="w-4 h-4 text-accent-700" />
+                                </div>
+                                <div>
+                                    <p class="text-[11px] text-gray-400">Booking</p>
+                                    <p class="text-xl font-bold text-gray-800 leading-tight">0</p>
+                                </div>
+                            </div>
                         </div>
+
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background: #E8F5E9">
+                                    <x-heroicon-o-users class="w-4 h-4 text-green-700" />
+                                </div>
+                                <div>
+                                    <p class="text-[11px] text-gray-400">Penumpang</p>
+                                    <p class="text-xl font-bold text-gray-800 leading-tight">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background: #F3E5F5">
+                                    <x-heroicon-o-cube class="w-4 h-4 text-purple-700" />
+                                </div>
+                                <div>
+                                    <p class="text-[11px] text-gray-400">Cargo</p>
+                                    <p class="text-xl font-bold text-gray-800 leading-tight">0</p>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
-                    <p class="text-2xl font-bold text-gray-800">0</p>
-                    <p class="text-xs text-gray-400 mt-1">pengiriman</p>
                 </div>
 
             </div>
 
-            {{-- Quick Access --}}
-            <div>
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                    Akses Cepat
-                </p>
-                <div class="grid grid-cols-3 gap-3">
-
-                    <a href="{{ route('schedules.index') }}" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100
-                          flex flex-col items-center gap-2 active:scale-95 transition-transform">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #1d4ed8, #6366f1)">
-                            <x-heroicon-o-calendar-days class="w-5 h-5 text-white" />
-                        </div>
-                        <span class="text-xs font-medium text-gray-600 text-center">Jadwal</span>
-                    </a>
-
-                    <a href="{{ route('agents.index') }}" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100
-                          flex flex-col items-center gap-2 active:scale-95 transition-transform">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #059669, #10b981)">
-                            <x-heroicon-o-building-office class="w-5 h-5 text-white" />
-                        </div>
-                        <span class="text-xs font-medium text-gray-600 text-center">Agen</span>
-                    </a>
-
-                    <a href="{{ route('cargo.index') }}" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100
-                          flex flex-col items-center gap-2 active:scale-95 transition-transform">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #d97706, #f59e0b)">
-                            <x-heroicon-o-cube class="w-5 h-5 text-white" />
-                        </div>
-                        <span class="text-xs font-medium text-gray-600 text-center">Cargo</span>
-                    </a>
-
-                </div>
-            </div>
-
-        </div>
-    </x-layouts.app>
-</div>
+        </x-layouts.app>
+    </div>

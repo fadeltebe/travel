@@ -2,20 +2,14 @@
 
 <x-app-layout :title="$title">
 
-    {{-- Top Bar --}}
     <x-nav.top-bar :title="$title" />
 
-    {{-- Main Content Area --}}
-    <main class="min-h-screen pt-8 pb-15">
-        {{-- pt-8 = tinggi top bar --}}
-        {{-- pb-15 = tinggi bottom bar --}}
+    {{-- safe-bottom class = padding bawah otomatis sesuai tinggi bottom bar --}}
+    <main class="min-h-screen pt-11 safe-bottom bg-gray-50">
         {{ $slot }}
     </main>
 
-    {{-- Bottom Navigation --}}
     <x-nav.bottom-bar />
-
-    {{-- FAB Button + Menu --}}
     <x-nav.fab-menu />
 
 </x-app-layout>
