@@ -18,6 +18,12 @@ state([
     <x-layouts.app title="Detail Jadwal">
         <div class="px-4 pt-0 pb-24 space-y-6">
 
+            @if(session('success'))
+            <div class="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800">
+                {{ session('success') }}
+            </div>
+            @endif
+
             {{-- Back + Header --}}
             <div class="flex items-center gap-3">
                 <a href="{{ route('schedules.index') }}" class="w-9 h-9 rounded-xl flex items-center justify-center border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 active:scale-95 transition-all shadow-sm">
@@ -157,15 +163,21 @@ state([
                 </div>
             </div>
 
-            {{-- Actions --}}
+            <!-- {{-- Actions --}}
             <div class="flex gap-3 pt-2">
                 <a href="{{ route('schedules.index') }}" class="flex-1 py-3 rounded-xl border border-gray-200 text-center text-sm font-semibold text-gray-600 hover:bg-gray-50 active:scale-[0.98] transition-all">
                     Kembali ke Daftar
                 </a>
-                <button type="button" class="flex-1 py-3 rounded-xl text-center text-sm font-semibold text-white hover:opacity-90 active:scale-[0.98] transition-all" style="background: linear-gradient(160deg, #0D47A1 0%, #1565C0 50%, #1976D2 100%);">
+                <a href="{{ route('schedules.edit', $scheduleModel) }}" class="flex-1 py-3 rounded-xl text-center text-sm font-semibold text-white
+          hover:opacity-90 active:scale-[0.98] transition-all" style="background: linear-gradient(160deg, #0D47A1 0%, #1565C0 50%, #1976D2 100%);">
                     Edit Jadwal
-                </button>
-            </div>
+                </a>
+            </div> -->
+
+            {{-- FAB Edit Jadwal (kanan bawah, orange) --}}
+            <a href="{{ route('schedules.edit', $scheduleModel) }}" class="fixed right-4 z-40 w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg active:scale-95 transition-transform border-2 border-white/30" style="bottom: calc(72px + env(safe-area-inset-bottom)); background: linear-gradient(135deg, #F57C00, #FF9800); box-shadow: 0 4px 20px rgba(245,124,0,0.45);" title="Edit jadwal">
+                <x-heroicon-o-pencil class="w-7 h-7" />
+            </a>
 
         </div>
     </x-layouts.app>

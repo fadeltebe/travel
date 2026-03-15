@@ -25,8 +25,22 @@ Route::middleware(['auth'])->group(function () {
     // Schedules
     Volt::route('/schedules', 'schedules.index')
         ->name('schedules.index');
+    Volt::route('/schedules/create', 'schedules.create')
+        ->name('schedules.create');
+    Volt::route('/schedules/{schedule}/edit', 'schedules.edit')
+        ->name('schedules.edit');
     Volt::route('/schedules/{schedule}', 'schedules.show')
         ->name('schedules.show');
+
+    //Bookings
+    // Route untuk Booking Penumpang (Wizard 4 step)
+    Volt::route('/bookings/create', 'bookings.create')
+        ->name('bookings.create');
+
+    // Route untuk Kirim Barang (Quick Add Cargo)
+    Volt::route('/cargo/create', 'bookings.quick-add-cargo')
+        ->name('cargo.create');
+
 
     // Cargo (placeholder)
     Route::get('/cargo', function () {

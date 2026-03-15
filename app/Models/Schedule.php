@@ -71,4 +71,20 @@ class Schedule extends Model
         return $this->status === 'scheduled'
             && $this->available_seats > 0;
     }
+
+    // Mencari total pendapatan kargo vs penumpang dalam satu jadwal
+    public function getTotalCargoRevenueAttribute()
+    {
+        return $this->bookings()->with('cargos')->get()->sum(fn($b) => $b->cargos->sum('fee'));
+    }
+
+    public function getTotalPassengerRevenueAttribute()
+    {
+        return $this->bookings()->sum('total_price');
+    }
+
+    public function bookingSumTotalPassengers()
+    {
+        return $this->bookings()->sum('total_passengers');
+    }
 }

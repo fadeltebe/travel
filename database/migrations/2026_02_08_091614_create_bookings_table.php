@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
-            $table->string('booking_code')->unique(); // TRV-20250208-001
+            $table->string('booking_code')->unique()->index(); // TRV-20250208-001
             $table->foreignId('schedule_id')->constrained()->cascadeOnDelete();
             $table->foreignId('agent_id')->constrained()->cascadeOnDelete(); // Agen yang input booking
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete(); // User yang input booking
             $table->foreignId('customer_id')->nullable()->constrained()->nullOnDelete(); // Link ke customer
 
             // Data pemesan
@@ -35,13 +36,15 @@ return new class extends Migration
             $table->decimal('total_price', 10, 2); // Total keseluruhan = subtotal + cargo_fee + pickup_dropoff_fee (TIDAK termasuk COD)
 
             // Payment info
-            $table->string('payment_status')->default('pending'); // pending, paid, refunded
+            $table->string('payment_status')->default('pending')->index(); // pending, paid, refunded
             $table->string('payment_method')->nullable(); // cash, transfer, qris
             $table->timestamp('paid_at')->nullable(); // Waktu pembayaran
+            $table->timestamp('expired_at')->nullable();
 
             // Status & notes
+
+            $table->string('status')->default('confirmed')->index(); // confirmed, cancelled, completed
             $table->text('notes')->nullable(); // Catatan booking
-            $table->string('status')->default('confirmed'); // confirmed, cancelled, completed
 
             $table->timestamps();
             $table->softDeletes();

@@ -1,6 +1,17 @@
 <?php
-use function Livewire\Volt\{state};
-state([]);
+use function Livewire\Volt\{state,computed};
+use App\Models\Schedule;
+state([
+'filterDate' => now()->format('Y-m-d'),
+]);
+
+$schedules = computed(function () {
+    return Schedule::query()
+        ->with('route.originAgent', 'route.destinationAgent', 'bus', 'driver')
+        ->latest()
+        ->get();
+});
+
 ?>
 
 <div>
@@ -29,7 +40,7 @@ state([]);
             {{-- Content --}}
             <div class="px-4 -mt-6 space-y-5 pb-4">
 
-                {{-- Quick Actions (BRImo style) --}}
+                {{-- Quick Actions --}}
                 <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                     <div class="grid grid-cols-4 gap-2 mt-6">
 
@@ -86,7 +97,7 @@ state([]);
                                 </div>
                                 <div>
                                     <p class="text-[11px] text-gray-400">Jadwal</p>
-                                    <p class="text-xl font-bold text-gray-800 leading-tight">0</p>
+                                    <p class="text-xl font-bold text-gray-800 leading-tight">{{ $this->schedules->count() }}</p>
                                 </div>
                             </div>
                         </div>
