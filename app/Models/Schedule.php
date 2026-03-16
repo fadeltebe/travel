@@ -87,4 +87,25 @@ class Schedule extends Model
     {
         return $this->bookings()->sum('total_passengers');
     }
+
+    public function bookingSumTotalCargos()
+    {
+        return $this->bookings()->with('cargos')->get()->sum(fn($b) => $b->cargos->sum('quantity'));
+    }
+
+    public function scopeFilterByRole($query)
+    {
+        $user = auth()->user();
+
+        // 1. Jika SuperAdmin/Owner, jangan filter apa-apa (lihat semua)
+        if ($user->canViewAll()) {
+            return $query;
+        }
+
+        // 2. Jika Admin Agen, lihat jadwal yang Asal-nya ATAU Tujuan-nya adalah agen dia
+        return $query->whereHas('route', function ($q) use ($user) {
+            $q->where('origin_agent_id', $user->agent_id)
+                ->orWhere('destination_agent_id', $user->agent_id);
+        });
+    }
 }

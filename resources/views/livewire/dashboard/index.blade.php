@@ -18,7 +18,7 @@ $schedules = computed(function () {
     <div class="overflow-x-hidden">
         <x-layouts.app title="Dashboard">
 
-            {{-- Header Wave (BRImo style) --}}
+            {{-- Header --}}
             <div class="relative text-white mx-4 rounded-2xl px-4 pt-5 pb-12 mt-0" style="background: linear-gradient(160deg, #0D47A1 0%, #1565C0 50%, #1976D2 100%);">
 
                 {{-- Decorative circle --}}

@@ -1,6 +1,6 @@
 @props(['title' => 'Dashboard'])
 
-<header class="fixed top-0 inset-x-0 z-40 text-white h-14 bg-[#1565C0]">
+<header class="fixed top-0 inset-x-0 z-40 text-white h-14 bg-blue-600 rounded-b-2xl shadow-sm border border-blue-700">
     <div class="flex items-center justify-between h-full px-4">
 
         {{-- Logo + Title --}}
