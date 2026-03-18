@@ -32,25 +32,33 @@ state([
     'selected_seats'      => [],   // Cache kursi yang sedang dipilih di sesi ini
 ]);
 
-// 1. Saat komponen pertama kali dimuat, ambil data dari session jika ada
+// Gunakan boot atau mount untuk mengisi data dari session
 on(['mount' => function () {
-    if (session()->has('booking_draft')) {
-        $draft = session('booking_draft');
-        foreach ($draft as $key => $value) {
-            $this->{$key} = $value;
-        }
+    $draft = session('booking_draft');
+    
+    if ($draft) {
+        // Isi state satu per satu dari session
+        $this->step                = $draft['step'] ?? 1;
+        $this->schedule_id         = $draft['schedule_id'] ?? '';
+        $this->booker_name         = $draft['booker_name'] ?? '';
+        $this->booker_phone        = $draft['booker_phone'] ?? '';
+        $this->booker_is_passenger = $draft['booker_is_passenger'] ?? true;
+        $this->passengers          = $draft['passengers'] ?? [['name' => '', 'phone' => '', 'id_card_number' => '', 'seat_number' => '', 'is_booker' => false]];
+        $this->agent_id            = $draft['agent_id'] ?? '';
     }
 }]);
 
-// 2. Setiap kali ada data yang berubah, simpan ke session
-updated(function () {
+// Simpan ke session setiap kali ada perubahan pada state apapun
+updated(function ($value, $key) {
     session(['booking_draft' => [
-        'step' => $this->step,
-        'schedule_id' => $this->schedule_id,
-        'booker_name' => $this->booker_name,
-        'booker_phone' => $this->booker_phone,
-        'passengers' => $this->passengers,
-        'agent_id' => $this->agent_id,
+        'step'                => $this->step,
+        'schedule_id'         => $this->schedule_id,
+        'booker_name'         => $this->booker_name,
+        'booker_phone'        => $this->booker_phone,
+        'booker_is_passenger' => $this->booker_is_passenger,
+        'passengers'          => $this->passengers,
+        'agent_id'            => $this->agent_id,
+        'payment_method'      => $this->payment_method,
     ]]);
 });
 
@@ -285,6 +293,8 @@ $save = function () {
             ]);
         }
     });
+
+    session()->forget('booking_draft');
 
     session()->flash('success', 'Booking berhasil disimpan.');
     return $this->redirect(route('schedules.index'), navigate: true);
