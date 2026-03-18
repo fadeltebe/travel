@@ -28,6 +28,8 @@ state([
     'status'              => 'confirmed',
     'notes'               => '',
     'can_manage_all_agents' => fn() => auth()->user()->canViewAll(),
+    'selecting_for_index' => null, // Menyimpan indeks penumpang yang sedang pilih kursi
+    'selected_seats'      => [],   // Cache kursi yang sedang dipilih di sesi ini
 ]);
 
 // --- Lifecycle Hooks (Watchers) ---
@@ -46,12 +48,75 @@ updated(['booker_phone' => function ($value) {
     }
 }]);
 
+// Ambil layout kursi berdasarkan jadwal yang dipilih
+$busSeats = computed(function () {
+    $schedule = $this->selectedSchedule;
+    if (!$schedule || !$schedule->bus || !$schedule->bus->busLayout) return collect();
+
+    return $schedule->bus->busLayout->seats()
+        ->orderBy('row')
+        ->orderBy('column')
+        ->get();
+});
+
+// Ambil daftar kursi yang SUDAH terpesan (di database)
+$bookedSeats = computed(function () {
+    if (!$this->schedule_id) return [];
+
+    return Passenger::whereHas('booking', function ($q) {
+        $q->where('schedule_id', $this->schedule_id)
+          ->where('status', '!=', 'cancelled');
+    })
+    ->pluck('seat_number')
+    ->toArray();
+});
+
+// Logika pilih kursi
+$selectSeat = function ($seatNumber) {
+    // 1. Cek apakah kursi sudah ada di database
+    if (in_array($seatNumber, $this->bookedSeats)) return;
+
+    // 2. Cek apakah kursi sudah dipilih oleh penumpang lain di form yang sama
+    // (Kecuali jika itu adalah kursi milik penumpang yang sedang aktif ini sendiri)
+    $currentSeat = $this->passengers[$this->selecting_for_index]['seat_number'] ?? null;
+    $allSelected = collect($this->passengers)->pluck('seat_number')->filter()->toArray();
+    
+    if (in_array($seatNumber, $allSelected) && $seatNumber !== $currentSeat) {
+        $this->dispatch('notify', message: 'Kursi ini sudah dipilih penumpang lain', type: 'warning');
+        return;
+    }
+
+    // Masukkan ke data penumpang yang sedang aktif
+    $this->passengers[$this->selecting_for_index]['seat_number'] = $seatNumber;
+
+    // Update cache visual
+    $this->selected_seats = collect($this->passengers)->pluck('seat_number')->filter()->toArray();
+
+    $this->dispatch('close-seat-modal');
+};
+
+// Action untuk membuka modal pilih kursi
+$openSeatModal = function ($index) {
+    $this->selecting_for_index = $index;
+    $this->dispatch('open-seat-modal');
+};
+
 // --- Computed Properties ---
 
 $schedules = computed(function () {
     $user = auth()->user();
+    
     return Schedule::query()
-        ->with('route.originAgent', 'route.destinationAgent')
+        // 1. Ambil kolom yang diperlukan saja untuk mengurangi beban memori
+        ->select('id', 'route_id', 'price', 'departure_date', 'departure_time', 'available_seats')
+        ->with([
+            'route' => function($q) {
+                // Hanya ambil data kota, jangan ambil seluruh kolom agen
+                $q->select('id', 'origin_agent_id', 'destination_agent_id');
+            },
+            'route.originAgent:id,city', // Eager loading spesifik kolom
+            'route.destinationAgent:id,city'
+        ])
         ->withSum('bookings as total_passengers_sum', 'total_passengers')
         ->where('departure_date', '>=', now()->toDateString())
         ->whereIn('status', ['active', 'scheduled'])
@@ -67,9 +132,12 @@ $schedules = computed(function () {
 
 $agents = computed(fn() => Agent::where('is_active', true)->orderBy('name')->get());
 
+// Gunakan find() sederhana saja untuk selectedSchedule agar tidak berat
 $selectedSchedule = computed(function () {
     if (!$this->schedule_id) return null;
-    return Schedule::with('route.originAgent', 'route.destinationAgent')->find($this->schedule_id);
+    return Schedule::select('id', 'price', 'bus_id')
+        ->with('bus.busLayout')
+        ->find($this->schedule_id);
 });
 
 $subtotalPrice = computed(function () {
@@ -188,6 +256,30 @@ $save = function () {
     session()->flash('success', 'Booking berhasil disimpan.');
     return $this->redirect(route('schedules.index'), navigate: true);
 };
+
+$toggleSeat = function ($seatNumber) {
+    if (!$seatNumber) return;
+
+    // Jika kursi sudah terisi orang lain, abaikan
+    if (in_array($seatNumber, $this->bookedSeats)) return;
+
+    if (in_array($seatNumber, $this->selected_seats)) {
+        // Hapus jika diklik lagi (unselect)
+        $this->selected_seats = array_diff($this->selected_seats, [$seatNumber]);
+    } else {
+        // Tambahkan jika jumlah kursi belum melebihi jumlah penumpang yang didaftarkan
+        if (count($this->selected_seats) < count($this->passengers)) {
+            $this->selected_seats[] = $seatNumber;
+        } else {
+            $this->dispatch('notify', message: 'Jumlah kursi sudah sesuai dengan jumlah penumpang', type: 'warning');
+        }
+    }
+
+    // Sinkronisasi nomor kursi ke array passengers secara otomatis
+    foreach ($this->passengers as $index => $passenger) {
+        $this->passengers[$index]['seat_number'] = $this->selected_seats[$index] ?? null;
+    }
+};
 ?>
 
 <div x-on:scroll-to-top.window="window.scrollTo(0,0)">
@@ -281,10 +373,10 @@ $save = function () {
                     </select>
                 </div>
                 @else
-                <div class="mt-1 px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-between">
+                <!-- <div class="mt-1 px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-between">
                     <span class="text-sm font-bold text-gray-700">{{ auth()->user()->agent->name ?? 'Internal Pusat' }}</span>
                     <x-heroicon-m-lock-closed class="w-4 h-4 text-gray-400" />
-                </div>
+                </div> -->
                 <input type="hidden" wire:model="agent_id">
                 @endif
             </div>
@@ -296,7 +388,7 @@ $save = function () {
 
         {{-- STEP 3: PENUMPANG --}}
         @if($this->step === 3)
-        <div class="space-y-4">
+        <div class="space-y-4" x-data="{ openModal: false }" x-on:open-seat-modal.window="openModal = true" x-on:close-seat-modal.window="openModal = false">
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
                 <div class="flex justify-between items-center">
                     <h2 class="font-bold text-gray-900">Daftar Penumpang</h2>
@@ -307,8 +399,9 @@ $save = function () {
 
                 @foreach($this->passengers as $index => $passenger)
                 <div class="p-4 rounded-xl border border-gray-200 space-y-3 relative {{ ($passenger['is_booker'] ?? false) ? 'bg-blue-50/30 border-blue-200' : '' }}">
+
                     @if(count($this->passengers) > 1 && !($passenger['is_booker'] ?? false))
-                    <button wire:click="removePassenger({{ $index }})" class="absolute top-3 right-3 text-red-400 hover:text-red-600">
+                    <button wire:click="removePassenger({{ $index }})" class="absolute top-2 right-2 text-red-400 hover:text-red-600">
                         <x-heroicon-o-x-circle class="w-5 h-5" />
                     </button>
                     @endif
@@ -319,17 +412,133 @@ $save = function () {
                     </div>
                     @endif
 
+                    {{-- Tombol Pilih Kursi --}}
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Penumpang #{{ $index + 1 }}</span>
+                        <button type="button" wire:click="openSeatModal({{ $index }})" class="flex items-center gap-1 px-3 py-1.5 bg-orange-100 text-orange-600 rounded-lg text-xs font-bold active:scale-95 transition-transform">
+                            <x-heroicon-s-stop class="w-3 h-3" />
+                            {{ $passenger['seat_number'] ?? 'Pilih Kursi' }}
+                        </button>
+                    </div>
+
                     <div>
-                        <input type="text" wire:model="passengers.{{ $index }}.name" class="w-full px-4 py-2 rounded-lg border-gray-200 text-sm" placeholder="Nama Penumpang" {{ ($passenger['is_booker'] ?? false) ? 'readonly' : '' }}>
-                        @error("passengers.{$index}.name") <span class="text-[10px] text-red-500">{{ $message }}</span> @enderror
+                        <input type="text" wire:model="passengers.{{ $index }}.name" class="w-full px-4 py-2 rounded-lg border-gray-200 text-sm" placeholder="Nama Penumpang">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" wire:model="passengers.{{ $index }}.phone" class="w-full px-4 py-2 rounded-lg border-gray-200 text-xs" placeholder="No. HP" {{ ($passenger['is_booker'] ?? false) ? 'readonly' : '' }}>
+                            <input type="text" wire:model="passengers.{{ $index }}.id_card_number" class="w-full px-4 py-2 rounded-lg border-gray-200 text-xs" placeholder="NIK">
+                        </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="text" wire:model="passengers.{{ $index }}.phone" class="w-full px-4 py-2 rounded-lg border-gray-200 text-xs" placeholder="No. HP" {{ ($passenger['is_booker'] ?? false) ? 'readonly' : '' }}>
-                        <input type="text" wire:model="passengers.{{ $index }}.id_card_number" class="w-full px-4 py-2 rounded-lg border-gray-200 text-xs" placeholder="NIK">
-                    </div>
+                    {{-- Input Hidden untuk simpan nomor kursi --}}
+                    <input type="hidden" wire:model="passengers.{{ $index }}.seat_number">
                 </div>
                 @endforeach
             </div>
+
+            {{-- MODAL LAYOUT KURSI (Fixed & Responsive) --}}
+            <div x-show="openModal" x-cloak class="fixed inset-0 z-[99] flex items-end sm:items-center justify-center overflow-hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+
+                {{-- Backdrop dengan Blur --}}
+                <div x-show="openModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="openModal = false" class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity">
+                </div>
+
+                {{-- Content Modal --}}
+                <div x-show="openModal" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="translate-y-full sm:translate-y-10 sm:scale-95 sm:opacity-0" x-transition:enter-end="translate-y-0 sm:scale-100 sm:opacity-100" x-transition:leave="transition ease-in duration-200 transform" x-transition:leave-start="translate-y-0 sm:scale-100 sm:opacity-100" x-transition:leave-end="translate-y-full sm:translate-y-10 sm:scale-95 sm:opacity-0" class="relative bg-white w-full max-w-lg rounded-t-[2.5rem] sm:rounded-3xl shadow-2xl flex flex-col max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+
+                    {{-- Handle bar untuk Mobile (Visual Only) --}}
+                    <div class="sm:hidden w-12 h-1.5 bg-gray-300 rounded-full mx-auto mt-4 mb-2"></div>
+
+                    {{-- Header Modal --}}
+                    <div class="px-6 py-4 border-b flex justify-between items-center bg-white sticky top-0 z-10">
+                        <div>
+                            <h3 class="font-black text-gray-900 text-lg">Pilih Kursi</h3>
+                            <p class="text-[10px] text-orange-600 font-bold uppercase tracking-wider">Penumpang #{{ $this->selecting_for_index + 1 }}</p>
+                        </div>
+                        <button @click="openModal = false" class="p-2 bg-gray-100 text-gray-500 rounded-full hover:bg-gray-200 transition-colors">
+                            <x-heroicon-s-x-mark class="w-6 h-6" />
+                        </button>
+                    </div>
+
+                    {{-- Body Modal (Scrollable) --}}
+                    <div class="p-6 overflow-y-auto custom-scrollbar flex-1 bg-gray-50/50">
+
+                        {{-- Info Legend --}}
+                        <div class="flex justify-between items-center bg-white p-3 rounded-2xl border border-gray-100 shadow-sm mb-6">
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-4 h-4 bg-white border border-gray-200 rounded"></div>
+                                <span class="text-[8px] font-bold text-gray-400">Tersedia</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-4 h-4 bg-gray-400 rounded"></div>
+                                <span class="text-[8px] font-bold text-gray-400">Terisi</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-4 h-4 bg-red-500 rounded"></div>
+                                <span class="text-[8px] font-bold text-gray-400">Dipilih (Lain)</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-4 h-4 bg-blue-600 rounded"></div>
+                                <span class="text-[8px] font-bold text-gray-400">Pilihan Anda</span>
+                            </div>
+                        </div>
+
+                        {{-- Visual Bus Layout --}}
+                        <div class="bg-white p-6 rounded-[2rem] border-2 border-gray-100 shadow-inner relative overflow-hidden">
+                            {{-- Ornamen Dashboard --}}
+                            <!-- <div class="flex justify-between items-end mb-10 pb-4 border-b-2 border-dashed border-gray-100">
+                                <div class="flex flex-col items-center gap-2">
+                                    <div class="w-12 h-8 bg-gray-200 rounded-t-lg flex items-center justify-center">
+                                        <div class="w-6 h-6 rounded-full border-4 border-gray-400 border-t-gray-600 animate-spin-slow"></div>
+                                    </div>
+                                    <span class="text-[9px] font-black text-gray-400 uppercase">SOPIR</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="w-14 h-6 bg-blue-50 text-blue-400 rounded-full flex items-center justify-center text-[8px] font-black tracking-tighter border border-blue-100 mb-2">PINTU MASUK</div>
+                                </div>
+                            </div> -->
+
+                            {{-- Grid Kursi --}}
+                            <div class="grid gap-3" style="grid-template-columns: repeat({{ $this->selectedSchedule?->bus?->busLayout?->total_columns ?? 4 }}, minmax(0, 1fr));">
+                                @foreach($this->busSeats as $seat)
+                                @php
+                                // 1. Kursi sudah dibayar/dipesan orang lain (Database)
+                                $isBooked = in_array($seat->seat_number, $this->bookedSeats);
+
+                                // 2. Kursi sedang dipilih oleh penumpang dalam transaksi ini (State)
+                                $allSelectedInForm = collect($this->passengers)->pluck('seat_number')->filter()->toArray();
+                                $isSelectedByOthers = in_array($seat->seat_number, $allSelectedInForm);
+
+                                // 3. Kursi yang spesifik milik penumpang yang sedang dibuka modalnya
+                                $isMyCurrentSeat = ($this->passengers[$this->selecting_for_index]['seat_number'] ?? null) === $seat->seat_number;
+
+                                // Gabungkan status: Tidak tersedia jika sudah di DB atau sudah dipilih penumpang lain
+                                $isUnavailable = $isBooked || ($isSelectedByOthers && !$isMyCurrentSeat);
+                                @endphp
+
+                                @if($seat->type === 'aisle')
+                                <div class="w-full aspect-square flex items-center justify-center">
+                                    <div class="w-1 h-1 bg-gray-200 rounded-full"></div>
+                                </div>
+                                @else
+                                <button type="button" wire:click="selectSeat('{{ $seat->seat_number }}')" @disabled($isUnavailable) class="relative w-full aspect-square rounded-2xl flex items-center justify-center text-xs font-black transition-all duration-200 active:scale-90
+            {{ $isBooked ? 'bg-gray-400 text-white cursor-not-allowed' : '' }}
+            {{ ($isSelectedByOthers && !$isMyCurrentSeat) ? 'bg-red-500 text-white cursor-not-allowed shadow-lg shadow-red-200' : '' }}
+            {{ $isMyCurrentSeat ? 'bg-blue-600 text-white ring-4 ring-blue-100 shadow-xl z-10' : '' }}
+            {{ !$isUnavailable && !$isMyCurrentSeat ? 'bg-white text-gray-700 border-2 border-gray-100 hover:border-blue-300 shadow-sm' : '' }}">
+
+                                    {{ $seat->seat_number }}
+
+                                    @if($isMyCurrentSeat)
+                                    <div class="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white"></div>
+                                    @endif
+                                </button>
+                                @endif
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <button wire:click="goStep(4)" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">
                 Lanjut ke Pembayaran
             </button>
