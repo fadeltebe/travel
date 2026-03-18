@@ -1,5 +1,5 @@
 <?php
-use function Livewire\Volt\{state, computed, updated};
+use function Livewire\Volt\{state, computed, updated, on};
 use App\Models\Booking;
 use App\Models\Passenger;
 use App\Models\Schedule;
@@ -18,7 +18,7 @@ state([
     'booker_phone'        => '',
     'booker_email'        => '',
     'booker_is_passenger' => true,
-    'passengers'          => [],
+    'passengers'          => [['name' => '', 'phone' => '', 'id_card_number' => '', 'seat_number' => '', 'is_booker' => false]],
     'total_cargo'         => 0,
     'cargo_fee'           => 0,
     'cargo_cod_fee'       => 0,
@@ -31,6 +31,28 @@ state([
     'selecting_for_index' => null, // Menyimpan indeks penumpang yang sedang pilih kursi
     'selected_seats'      => [],   // Cache kursi yang sedang dipilih di sesi ini
 ]);
+
+// 1. Saat komponen pertama kali dimuat, ambil data dari session jika ada
+on(['mount' => function () {
+    if (session()->has('booking_draft')) {
+        $draft = session('booking_draft');
+        foreach ($draft as $key => $value) {
+            $this->{$key} = $value;
+        }
+    }
+}]);
+
+// 2. Setiap kali ada data yang berubah, simpan ke session
+updated(function () {
+    session(['booking_draft' => [
+        'step' => $this->step,
+        'schedule_id' => $this->schedule_id,
+        'booker_name' => $this->booker_name,
+        'booker_phone' => $this->booker_phone,
+        'passengers' => $this->passengers,
+        'agent_id' => $this->agent_id,
+    ]]);
+});
 
 // --- Lifecycle Hooks (Watchers) ---
 
@@ -165,42 +187,44 @@ $totalPrice = computed(function () {
 // --- Actions ---
 
 $goStep = function ($to) {
+    // Tombol Kembali (Back) - Tanpa Validasi
+    if ($to < $this->step) {
+        $this->step = $to;
+        return;
+    }
+
+    // Validasi Lanjut ke Step 2 (Pilih Jadwal)
     if ($to === 2) {
-        $this->validate(['schedule_id' => 'required|exists:schedules,id'], [], ['schedule_id' => 'jadwal']);
+        $this->validate(['schedule_id' => 'required'], [], ['schedule_id' => 'Jadwal']);
     }
     
+    // Validasi Lanjut ke Step 3 (Data Penumpang)
     if ($to === 3) {
         $this->validate([
-            'booker_name'  => 'required|string|max:255',
-            'booker_phone' => 'required|string|max:50',
-            'agent_id'     => 'required|exists:agents,id',
-        ], [], [
-            'booker_name'  => 'nama pemesan',
-            'booker_phone' => 'telepon pemesan',
-            'agent_id'     => 'agen',
+            'booker_name'  => 'required|min:3',
+            'booker_phone' => 'required',
         ]);
-
-        // Logika Penumpang Otomatis Berdasarkan Toggle
+        
+        // Sinkronisasi otomatis pemesan sebagai penumpang pertama jika toggle aktif
         if ($this->booker_is_passenger) {
-            // Pasang data pemesan di index pertama
-            $this->passengers[0] = [
-                'name'           => $this->booker_name,
-                'phone'          => $this->booker_phone,
-                'id_card_number' => $this->passengers[0]['id_card_number'] ?? '',
-                'is_booker'      => true,
-            ];
-        } else {
-            // Jika toggle mati, hapus data pemesan dari daftar penumpang jika ada
-            if (isset($this->passengers[0]) && ($this->passengers[0]['is_booker'] ?? false)) {
-                array_shift($this->passengers);
-            }
-            
-            // Jika kosong setelah dihapus, berikan form kosong
-            if (count($this->passengers) === 0) {
-                $this->addPassenger();
-            }
+            $this->passengers[0]['name'] = $this->booker_name;
+            $this->passengers[0]['phone'] = $this->booker_phone;
+            $this->passengers[0]['is_booker'] = true;
         }
     }
+
+    // VALIDASI KRUSIAL: Lanjut ke Step 4 (Pembayaran)
+    if ($to === 4) {
+        // Validasi tiap baris penumpang
+        $this->validate([
+            'passengers.*.name'        => 'required|string|min:3',
+            'passengers.*.seat_number'  => 'required', // WAJIB PILIH KURSI
+        ], [
+            'passengers.*.name.required'        => 'Nama penumpang harus diisi',
+            'passengers.*.seat_number.required' => 'Semua penumpang wajib pilih kursi',
+        ]);
+    }
+
     $this->step = $to;
     $this->dispatch('scroll-to-top');
 };
@@ -567,9 +591,15 @@ $toggleSeat = function ($seatNumber) {
                 </div>
             </div>
 
-            <button wire:click="goStep(4)" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">
-                Lanjut ke Pembayaran
-            </button>
+            <div class="flex justify-between gap-4 mt-8">
+                <button type="button" wire:click="goStep(2)" class="px-6 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold">
+                    Kembali
+                </button>
+
+                <button type="button" wire:click="goStep(4)" class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold flex-1">
+                    Lanjut ke Pembayaran
+                </button>
+            </div>
         </div>
         @endif
 
