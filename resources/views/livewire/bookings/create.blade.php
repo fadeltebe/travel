@@ -1,5 +1,5 @@
 <?php
-use function Livewire\Volt\{state, computed, updated, on};
+use function Livewire\Volt\{state, computed, updated};
 use App\Models\Booking;
 use App\Models\Passenger;
 use App\Models\Schedule;
@@ -18,7 +18,7 @@ state([
     'booker_phone'        => '',
     'booker_email'        => '',
     'booker_is_passenger' => true,
-    'passengers'          => [['name' => '', 'phone' => '', 'id_card_number' => '', 'seat_number' => '', 'is_booker' => false]],
+    'passengers'          => [],
     'total_cargo'         => 0,
     'cargo_fee'           => 0,
     'cargo_cod_fee'       => 0,
@@ -31,52 +31,6 @@ state([
     'selecting_for_index' => null, // Menyimpan indeks penumpang yang sedang pilih kursi
     'selected_seats'      => [],   // Cache kursi yang sedang dipilih di sesi ini
 ]);
-
-// Gunakan boot atau mount untuk mengisi data dari session
-on(['mount' => function () {
-    $draft = session('booking_draft');
-    
-    if ($draft) {
-        // Isi state satu per satu dari session
-        $this->step                = $draft['step'] ?? 1;
-        $this->schedule_id         = $draft['schedule_id'] ?? '';
-        $this->booker_name         = $draft['booker_name'] ?? '';
-        $this->booker_phone        = $draft['booker_phone'] ?? '';
-        $this->booker_is_passenger = $draft['booker_is_passenger'] ?? true;
-        $this->passengers          = $draft['passengers'] ?? [['name' => '', 'phone' => '', 'id_card_number' => '', 'seat_number' => '', 'is_booker' => false]];
-        $this->agent_id            = $draft['agent_id'] ?? '';
-    }
-}]);
-
-// Simpan ke session setiap kali ada perubahan pada properti apapun (*)
-updated(['*' => function () {
-    session(['booking_draft' => [
-        'step'                => $this->step,
-        'schedule_id'         => $this->schedule_id,
-        'booker_name'         => $this->booker_name,
-        'booker_phone'        => $this->booker_phone,
-        'booker_is_passenger' => $this->booker_is_passenger,
-        'passengers'          => $this->passengers,
-        'agent_id'            => $this->agent_id,
-        'payment_method'      => $this->payment_method,
-    ]]);
-}]);
-
-// Hanya simpan jika data-data krusial ini berubah
-updated([
-    'passengers' => fn() => $this->syncSession(),
-    'step'       => fn() => $this->syncSession(),
-    'schedule_id'=> fn() => $this->syncSession(),
-]);
-
-// Buat fungsi bantuan (helper) di dalam Volt
-$syncSession = function () {
-    session(['booking_draft' => [
-        'step'        => $this->step,
-        'passengers'  => $this->passengers,
-
-        ]]);
-};
 
 // --- Lifecycle Hooks (Watchers) ---
 
@@ -211,44 +165,42 @@ $totalPrice = computed(function () {
 // --- Actions ---
 
 $goStep = function ($to) {
-    // Tombol Kembali (Back) - Tanpa Validasi
-    if ($to < $this->step) {
-        $this->step = $to;
-        return;
-    }
-
-    // Validasi Lanjut ke Step 2 (Pilih Jadwal)
     if ($to === 2) {
-        $this->validate(['schedule_id' => 'required'], [], ['schedule_id' => 'Jadwal']);
+        $this->validate(['schedule_id' => 'required|exists:schedules,id'], [], ['schedule_id' => 'jadwal']);
     }
     
-    // Validasi Lanjut ke Step 3 (Data Penumpang)
     if ($to === 3) {
         $this->validate([
-            'booker_name'  => 'required|min:3',
-            'booker_phone' => 'required',
+            'booker_name'  => 'required|string|max:255',
+            'booker_phone' => 'required|string|max:50',
+            'agent_id'     => 'required|exists:agents,id',
+        ], [], [
+            'booker_name'  => 'nama pemesan',
+            'booker_phone' => 'telepon pemesan',
+            'agent_id'     => 'agen',
         ]);
-        
-        // Sinkronisasi otomatis pemesan sebagai penumpang pertama jika toggle aktif
+
+        // Logika Penumpang Otomatis Berdasarkan Toggle
         if ($this->booker_is_passenger) {
-            $this->passengers[0]['name'] = $this->booker_name;
-            $this->passengers[0]['phone'] = $this->booker_phone;
-            $this->passengers[0]['is_booker'] = true;
+            // Pasang data pemesan di index pertama
+            $this->passengers[0] = [
+                'name'           => $this->booker_name,
+                'phone'          => $this->booker_phone,
+                'id_card_number' => $this->passengers[0]['id_card_number'] ?? '',
+                'is_booker'      => true,
+            ];
+        } else {
+            // Jika toggle mati, hapus data pemesan dari daftar penumpang jika ada
+            if (isset($this->passengers[0]) && ($this->passengers[0]['is_booker'] ?? false)) {
+                array_shift($this->passengers);
+            }
+            
+            // Jika kosong setelah dihapus, berikan form kosong
+            if (count($this->passengers) === 0) {
+                $this->addPassenger();
+            }
         }
     }
-
-    // VALIDASI KRUSIAL: Lanjut ke Step 4 (Pembayaran)
-    if ($to === 4) {
-        // Validasi tiap baris penumpang
-        $this->validate([
-            'passengers.*.name'        => 'required|string|min:3',
-            'passengers.*.seat_number'  => 'required', // WAJIB PILIH KURSI
-        ], [
-            'passengers.*.name.required'        => 'Nama penumpang harus diisi',
-            'passengers.*.seat_number.required' => 'Semua penumpang wajib pilih kursi',
-        ]);
-    }
-
     $this->step = $to;
     $this->dispatch('scroll-to-top');
 };
@@ -309,8 +261,6 @@ $save = function () {
             ]);
         }
     });
-
-    session()->forget('booking_draft');
 
     session()->flash('success', 'Booking berhasil disimpan.');
     return $this->redirect(route('schedules.index'), navigate: true);
@@ -617,18 +567,9 @@ $toggleSeat = function ($seatNumber) {
                 </div>
             </div>
 
-            {{-- Tombol Navigasi di Bagian Bawah Form --}}
-            <div class="flex items-center justify-between gap-4 mt-8">
-                @if($step > 1)
-                <button type="button" wire:click="goStep({{ $step - 1 }})" class="flex-1 py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-all">
-                    Kembali
-                </button>
-                @endif
-
-                <button type="button" wire:click="goStep({{ $step + 1 }})" class="flex-[2] py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
-                    {{ $step === 3 ? 'Lanjut ke Pembayaran' : 'Lanjutkan' }}
-                </button>
-            </div>
+            <button wire:click="goStep(4)" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">
+                Lanjut ke Pembayaran
+            </button>
         </div>
         @endif
 
