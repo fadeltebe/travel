@@ -125,7 +125,7 @@ $schedules = computed(function () {
                 $isSuperAdmin = auth()->user()->canViewAll();
 
                 $statusConfig = [
-                'scheduled' => ['class' => 'bg-gray-500', 'label' => 'Dijadwalkan', 'animate' => false],
+                'scheduled' => ['class' => 'bg-yellow-500', 'label' => 'Dijadwalkan', 'animate' => false],
                 'ongoing' => ['class' => 'bg-emerald-500', 'label' => 'Diperjalanan', 'animate' => true],
                 'completed' => ['class' => 'bg-blue-500', 'label' => 'Tiba', 'animate' => false],
                 'cancelled' => ['class' => 'bg-red-500', 'label' => 'Dibatalkan', 'animate' => false],

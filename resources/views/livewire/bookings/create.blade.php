@@ -165,13 +165,23 @@ $totalPrice = computed(function () {
 // --- Actions ---
 
 $goStep = function ($to) {
-    if ($to === 2) {
-        $this->validate(['schedule_id' => 'required|exists:schedules,id'], [], ['schedule_id' => 'jadwal']);
+    // 1. Lewati validasi jika user menekan tombol "Kembali"
+    if ($to < $this->step) {
+        $this->step = $to;
+        return;
     }
     
+    // VALIDASI STEP 2: Sebelum lanjut ke Pengisian Data Penumpang (Step 3)
+    if ($to === 2) {
+        $this->validate([
+            'schedule_id' => 'required|exists:schedules,id',
+        ], [], ['schedule_id' => 'Jadwal']);
+    }
+
+    // VALIDASI STEP 3: Sebelum lanjut ke Detail Penumpang & Kursi
     if ($to === 3) {
         $this->validate([
-            'booker_name'  => 'required|string|max:255',
+            'booker_name'  => 'required|string|max:255|min:3',
             'booker_phone' => 'required|string|max:50',
             'agent_id'     => 'required|exists:agents,id',
         ], [], [
@@ -180,31 +190,48 @@ $goStep = function ($to) {
             'agent_id'     => 'agen',
         ]);
 
-        // Logika Penumpang Otomatis Berdasarkan Toggle
+        // LOGIKA SINKRONISASI PEMESAN -> PENUMPANG
         if ($this->booker_is_passenger) {
-            // Pasang data pemesan di index pertama
-            $this->passengers[0] = [
-                'name'           => $this->booker_name,
-                'phone'          => $this->booker_phone,
-                'id_card_number' => $this->passengers[0]['id_card_number'] ?? '',
-                'is_booker'      => true,
-            ];
+            // Pastikan array passengers memiliki index 0
+            if (!isset($this->passengers[0])) {
+                $this->addPassenger();
+            }
+            // Paksa index pertama mengikuti data pemesan
+            $this->passengers[0]['name'] = $this->booker_name;
+            $this->passengers[0]['phone'] = $this->booker_phone;
+            $this->passengers[0]['is_booker'] = true;
         } else {
-            // Jika toggle mati, hapus data pemesan dari daftar penumpang jika ada
+            // Jika toggle mati dan penumpang pertama adalah "is_booker", bersihkan datanya
             if (isset($this->passengers[0]) && ($this->passengers[0]['is_booker'] ?? false)) {
-                array_shift($this->passengers);
+                $this->passengers[0]['name'] = '';
+                $this->passengers[0]['phone'] = '';
+                $this->passengers[0]['is_booker'] = false;
             }
             
-            // Jika kosong setelah dihapus, berikan form kosong
+            // Jika kosong, berikan satu form kosong
             if (count($this->passengers) === 0) {
                 $this->addPassenger();
             }
         }
     }
+
+    // VALIDASI STEP 4: Sebelum lanjut ke Pembayaran (CEK KELENGKAPAN DATA)
+    if ($to === 4) {
+        $this->validate([
+            'passengers' => 'required|array|min:1',
+            'passengers.*.name' => 'required|string|min:3',
+            'passengers.*.seat_number' => 'required|string', // WAJIB PILIH KURSI
+        ], [
+            'passengers.*.name.required' => 'Nama penumpang harus diisi.',
+            'passengers.*.name.min' => 'Nama penumpang ke-:index+1 minimal 3 karakter.',
+            'passengers.*.seat_number.required' => 'Penumpang ke-:index+1 belum memilih kursi.',
+        ]);
+    }
+
+    // Jika semua validasi di atas lolos, update step
     $this->step = $to;
     $this->dispatch('scroll-to-top');
 };
-
 $addPassenger = function () {
     $this->passengers[] = ['name' => '', 'phone' => '', 'id_card_number' => '', 'is_booker' => false];
 };
@@ -570,10 +597,29 @@ $toggleSeat = function ($seatNumber) {
                         </div>
                     </div>
                 </div>
+            </template>
 
-                <button wire:click="goStep(4)" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">
-                    Lanjut ke Pembayaran
-                </button>
+            @if ($errors->has('passengers.*'))
+            <div class="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
+                <div class="flex">
+                    <x-heroicon-s-exclamation-triangle class="w-5 h-5 text-red-500" />
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700 font-bold">Data belum lengkap:</p>
+                        <ul class="list-disc list-inside text-xs text-red-600 mt-1">
+                            @foreach ($errors->all() as $error)
+                            @if(str_contains($error, 'penumpang'))
+                            <li>{{ $error }}</li>
+                            @endif
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            <button wire:click="goStep(4)" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">
+                Lanjut ke Pembayaran
+            </button>
         </div>
         @endif
 
