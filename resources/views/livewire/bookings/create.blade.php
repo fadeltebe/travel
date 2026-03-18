@@ -48,8 +48,8 @@ on(['mount' => function () {
     }
 }]);
 
-// Simpan ke session setiap kali ada perubahan pada state apapun
-updated(function ($value, $key) {
+// Simpan ke session setiap kali ada perubahan pada properti apapun (*)
+updated(['*' => function () {
     session(['booking_draft' => [
         'step'                => $this->step,
         'schedule_id'         => $this->schedule_id,
@@ -60,7 +60,23 @@ updated(function ($value, $key) {
         'agent_id'            => $this->agent_id,
         'payment_method'      => $this->payment_method,
     ]]);
-});
+}]);
+
+// Hanya simpan jika data-data krusial ini berubah
+updated([
+    'passengers' => fn() => $this->syncSession(),
+    'step'       => fn() => $this->syncSession(),
+    'schedule_id'=> fn() => $this->syncSession(),
+]);
+
+// Buat fungsi bantuan (helper) di dalam Volt
+$syncSession = function () {
+    session(['booking_draft' => [
+        'step'        => $this->step,
+        'passengers'  => $this->passengers,
+
+        ]]);
+};
 
 // --- Lifecycle Hooks (Watchers) ---
 
@@ -601,13 +617,16 @@ $toggleSeat = function ($seatNumber) {
                 </div>
             </div>
 
-            <div class="flex justify-between gap-4 mt-8">
-                <button type="button" wire:click="goStep(2)" class="px-6 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold">
+            {{-- Tombol Navigasi di Bagian Bawah Form --}}
+            <div class="flex items-center justify-between gap-4 mt-8">
+                @if($step > 1)
+                <button type="button" wire:click="goStep({{ $step - 1 }})" class="flex-1 py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-all">
                     Kembali
                 </button>
+                @endif
 
-                <button type="button" wire:click="goStep(4)" class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold flex-1">
-                    Lanjut ke Pembayaran
+                <button type="button" wire:click="goStep({{ $step + 1 }})" class="flex-[2] py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
+                    {{ $step === 3 ? 'Lanjut ke Pembayaran' : 'Lanjutkan' }}
                 </button>
             </div>
         </div>
