@@ -56,20 +56,21 @@ $cargos = computed(function () {
 
             {{-- Search Bar --}}
             <div class="mt-4 relative z-10 w-full">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                {{-- <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400" />
-                </div>
-                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari kode resi, penerima, atau barang..." class="w-full pl-10 pr-4 py-3 rounded-xl border-none shadow-sm text-sm text-gray-800 focus:ring-2 focus:ring-orange-300">
+                </div> --}}
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="    Cari kode resi, penerima, atau barang..." class="w-full pl-10 pr-4 py-3 rounded-xl border-none shadow-sm text-sm text-gray-800 focus:ring-2 focus:ring-orange-300">
             </div>
         </div>
 
         {{-- Content --}}
-        <div class="px-4 -mt-5 space-y-4 pb-24 relative z-20">
+        <div class="px-4 -mt-4 space-y-4 pb-24">
+
             {{-- Status Filter --}}
-            <div class="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 overflow-x-auto custom-scrollbar">
-                <div class="flex justify-center gap-2 min-w-max">
+            <div class="bg-white rounded-2xl p-2 shadow-sm border border-gray-100">
+                <div class="grid grid-cols-3 gap-2">
                     @foreach(['' => 'Semua', 'not_received' => 'Belum Diambil', 'received' => 'Sudah Diambil'] as $val => $label)
-                    <button wire:click="$set('filterStatus', '{{ $val }}')" class="px-5 py-2 text-xs font-bold rounded-xl transition-all duration-200 {{ $filterStatus === $val ? 'bg-orange-500 text-white shadow-md' : 'bg-gray-50 text-gray-500 hover:bg-gray-100' }}">
+                    <button wire:click="$set('filterStatus', '{{ $val }}')" class="px-5 py-2 text-xs mt-3 font-bold rounded-xl transition-all duration-200 {{ $filterStatus === $val ? 'bg-orange-500 text-white shadow-md' : 'bg-gray-50 text-gray-500 hover:bg-gray-100' }}">
                         {{ $label }}
                     </button>
                     @endforeach
