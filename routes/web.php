@@ -42,10 +42,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('cargo.create');
 
 
-    // Cargo (placeholder)
-    Route::get('/cargo', function () {
-        return 'Coming soon';
-    })->name('cargo.index');
+    Volt::route('/cargo', 'cargos.index')
+        ->name('cargo.index');
 
     // Profile (bawaan Breeze)
     Volt::route('/profile', 'profile')
