@@ -133,107 +133,22 @@ new class extends Component {
 
         {{-- STEP 1: JADWAL --}}
         @if($step === 1)
-        <div class="space-y-4">
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                <label class="block text-sm font-bold text-gray-800 mb-3">Pilih Jadwal Keberangkatan Bus</label>
-                <div class="space-y-3 overflow-y-auto pr-2 custom-scrollbar" style="max-height: 400px;">
-                    @forelse($schedules as $schedule)
-                    <label class="relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all {{ $schedule_id == $schedule->id ? 'border-blue-500 bg-blue-50' : 'border-gray-100 bg-gray-50' }}">
-                        <input type="radio" wire:model.live="schedule_id" value="{{ $schedule->id }}" class="sr-only">
-                        <div class="flex justify-between items-start">
-                            <span class="text-sm font-bold text-gray-900">{{ $schedule->route->originAgent->city }} → {{ $schedule->route->destinationAgent->city }}</span>
-                            <span class="text-[10px] px-2 py-0.5 bg-orange-500 text-white rounded font-bold uppercase">{{ $schedule->bus->name }}</span>
-                        </div>
-                        <div class="mt-2 flex items-center gap-3 text-[10px] text-gray-500 font-medium">
-                            <span class="flex items-center gap-1"><x-heroicon-o-calendar class="w-3.5 h-3.5" /> {{ $schedule->departure_date->format('d M Y') }}</span>
-                            <span class="flex items-center gap-1"><x-heroicon-o-clock class="w-3.5 h-3.5" /> {{ substr($schedule->departure_time, 0, 5) }}</span>
-                        </div>
-                    </label>
-                    @empty
-                    <p class="text-center text-sm text-gray-500 py-10">Jadwal tidak tersedia.</p>
-                    @endforelse
-                </div>
-            </div>
-            <button wire:click="goStep(2)" class="w-full py-4 bg-orange-500 text-white rounded-2xl font-bold shadow-lg">Lanjut: Data Pengirim</button>
-        </div>
+        @include('livewire.bookings.partials.cargo-step1-jadwal')
         @endif
 
         {{-- STEP 2: KONTAK --}}
         @if($step === 2)
-        <div class="space-y-4">
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
-                <h2 class="font-bold text-gray-900 text-sm uppercase tracking-wider">Data Pengirim</h2>
-                <input type="text" wire:model="sender_name" class="w-full px-4 py-3 rounded-xl border-gray-200 text-sm" placeholder="Nama Pengirim">
-                <input type="tel" wire:model="sender_phone" class="w-full px-4 py-3 rounded-xl border-gray-200 text-sm" placeholder="Nomor WA Pengirim">
-            </div>
-
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
-                <h2 class="font-bold text-gray-900 text-sm uppercase tracking-wider text-orange-600">Data Penerima</h2>
-                <input type="text" wire:model="receiver_name" class="w-full px-4 py-3 rounded-xl border-gray-200 text-sm" placeholder="Nama Penerima">
-                <input type="tel" wire:model="receiver_phone" class="w-full px-4 py-3 rounded-xl border-gray-200 text-sm" placeholder="Nomor WA Penerima">
-                <textarea wire:model="pickup_address" class="w-full px-4 py-3 rounded-xl border-gray-200 text-sm" placeholder="Alamat Detail (Opsional)"></textarea>
-            </div>
-            <button wire:click="goStep(3)" class="w-full py-4 bg-orange-500 text-white rounded-2xl font-bold shadow-lg">Lanjut: Detail Barang</button>
-        </div>
+        @include('livewire.bookings.partials.cargo-step2-kontak')
         @endif
 
         {{-- STEP 3: BARANG --}}
         @if($step === 3)
-        <div class="space-y-4">
-            <div class="flex justify-between items-center px-1">
-                <h2 class="font-bold text-gray-900">Daftar Barang</h2>
-                <button wire:click="addItem" class="text-orange-500 text-sm font-bold flex items-center gap-1">
-                    <x-heroicon-o-plus-circle class="w-5 h-5" /> Tambah
-                </button>
-            </div>
-
-            @foreach($items as $index => $item)
-            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3 relative">
-                @if(count($items) > 1)
-                <button wire:click="removeItem({{ $index }})" class="absolute top-4 right-4 text-red-400"><x-heroicon-o-trash class="w-5 h-5" /></button>
-                @endif
-                <input type="text" wire:model="items.{{ $index }}.description" class="w-full px-4 py-2 rounded-lg border-gray-200 text-sm font-bold" placeholder="Deskripsi Barang">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-400 uppercase">Berat (Kg)</label>
-                        <input type="number" wire:model="items.{{ $index }}.weight" class="w-full px-4 py-2 rounded-lg border-gray-200 text-sm">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-400 uppercase">Biaya Kirim (Rp)</label>
-                        <input type="number" wire:model="items.{{ $index }}.price" class="w-full px-4 py-2 rounded-lg border-gray-200 text-sm font-black text-orange-500">
-                    </div>
-                </div>
-            </div>
-            @endforeach
-            <button wire:click="goStep(4)" class="w-full py-4 bg-orange-500 text-white rounded-2xl font-bold shadow-lg">Lanjut: Pembayaran</button>
-        </div>
+        @include('livewire.bookings.partials.cargo-step3-barang')
         @endif
 
         {{-- STEP 4: FINAL --}}
         @if($step === 4)
-        <div class="space-y-4">
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4 text-center">
-                <span class="text-xs font-bold text-gray-400 uppercase">Total Tagihan</span>
-                <h2 class="text-4xl font-black text-orange-500">Rp{{ number_format($this->totalBill, 0, ',', '.') }}</h2>
-            </div>
-
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
-                <div class="grid grid-cols-2 gap-2">
-                    <button wire:click="$set('payment_type', 'origin')" class="py-3 text-xs font-bold rounded-xl border-2 {{ $payment_type == 'origin' ? 'border-orange-500 bg-blue-50 text-orange-500' : 'border-gray-50 text-gray-400' }}">Bayar di Sini</button>
-                    <button wire:click="$set('payment_type', 'destination')" class="py-3 text-xs font-bold rounded-xl border-2 {{ $payment_type == 'destination' ? 'border-orange-600 bg-orange-50 text-orange-600' : 'border-gray-50 text-gray-400' }}">Bayar di Tujuan (COD)</button>
-                </div>
-
-                <div class="grid grid-cols-3 gap-2">
-                    @foreach(['cash' => 'Tunai', 'transfer' => 'TF', 'qris' => 'QRIS'] as $v => $l)
-                    <button wire:click="$set('payment_method', '{{ $v }}')" class="py-2 text-[10px] font-bold rounded-lg border {{ $payment_method == $v ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-400' }}">{{ $l }}</button>
-                    @endforeach
-                </div>
-
-                <button wire:click="save" class="w-full py-4 bg-green-600 text-white rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2">
-                    <x-heroicon-o-check-badge class="w-6 h-6" /> Simpan & Selesai
-                </button>
-            </div>
-        </div>
+        @include('livewire.bookings.partials.cargo-step4-pembayaran')
         @endif
     </div>
 </div>
