@@ -10,6 +10,7 @@ class Cargo extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'tracking_code',
         'booking_id',
         'origin_agent_id',
         'destination_agent_id',

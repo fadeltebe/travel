@@ -43,7 +43,11 @@ $markAsReceived = function () {
                 </a>
                 <div>
                     <h1 class="text-xl font-bold text-gray-900">Detail Cargo</h1>
-                    <p class="text-xs text-gray-500">{{ $cargo->booking->booking_code ?? 'N/A' }}</p>
+                    <div class="flex items-center gap-2">
+                        <p class="text-xs text-gray-500">Resi: <span class="font-bold text-gray-800">{{ $cargo->tracking_code ?? 'N/A' }}</span></p>
+                        <span class="text-gray-300">|</span>
+                        <p class="text-[10px] text-gray-400">Ref: {{ $cargo->booking->booking_code ?? '-' }}</p>
+                    </div>
                 </div>
             </div>
 

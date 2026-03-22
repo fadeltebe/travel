@@ -114,6 +114,7 @@ new class extends Component {
                 // Loop & simpan setiap barang ke tabel cargos
                 foreach ($this->items as $item) {
                     Cargo::create([
+                        'tracking_code' => $item['code'],
                         'booking_id' => $booking->id,
                         'origin_agent_id' => $schedule->route->origin_agent_id,
                         'destination_agent_id' => $schedule->route->destination_agent_id,

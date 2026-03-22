@@ -15,6 +15,7 @@ $cargos = computed(function () {
         ->when($this->search, function ($query) {
             $query->where('description', 'like', '%' . $this->search . '%')
                   ->orWhere('recipient_name', 'like', '%' . $this->search . '%')
+                  ->orWhere('tracking_code', 'like', '%' . $this->search . '%')
                   ->orWhereHas('booking', function($q) {
                       $q->where('booking_code', 'like', '%' . $this->search . '%');
                   });
@@ -115,7 +116,7 @@ $cargos = computed(function () {
                                 <x-heroicon-o-calendar class="w-3 h-3" />
                                 {{ $cargo->created_at->format('d M y') }}
                                 <span class="text-gray-300">|</span>
-                                <span class="font-black text-gray-800">{{ $cargo->booking->booking_code ?? 'N/A' }}</span>
+                                <span class="font-black text-gray-800">{{ $cargo->tracking_code ?? 'N/A' }}</span>
                             </p>
                         </div>
                     </div>

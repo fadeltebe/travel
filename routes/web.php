@@ -8,6 +8,10 @@ Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
+// ── Lacak Resi (Publik) ──────────────
+Volt::route('/cek-resi', 'cargos.track')
+    ->name('cargo.track');
+
 // ── Auth Routes (dari Breeze) ──────────────
 require __DIR__ . '/auth.php';
 
