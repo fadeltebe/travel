@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('booking_id')->constrained()->cascadeOnDelete();
             $table->string('name'); // Nama penumpang
+            $table->enum('gender', ['male', 'female']); // Jenis kelamin
+            $table->enum('passenger_type', ['balita', 'anak-anak', 'dewasa'])->default('dewasa'); // Kategori usia
             $table->string('id_card_number')->nullable(); // NIK/KTP
             $table->string('phone')->nullable(); // Nomor telepon penumpang
             $table->string('seat_number')->nullable(); // Nomor kursi: A1, B2, etc

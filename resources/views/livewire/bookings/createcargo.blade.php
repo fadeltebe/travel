@@ -127,7 +127,7 @@ new class extends Component {
         {{-- Progress Bar --}}
         <div class="flex gap-2">
             @foreach([1,2,3,4] as $s)
-            <div class="flex-1 h-1.5 rounded-full {{ $step >= $s ? 'bg-blue-600' : 'bg-gray-200' }}"></div>
+            <div class="flex-1 h-1.5 rounded-full {{ $step >= $s ? 'bg-orange-500' : 'bg-gray-200' }}"></div>
             @endforeach
         </div>
 
@@ -142,7 +142,7 @@ new class extends Component {
                         <input type="radio" wire:model.live="schedule_id" value="{{ $schedule->id }}" class="sr-only">
                         <div class="flex justify-between items-start">
                             <span class="text-sm font-bold text-gray-900">{{ $schedule->route->originAgent->city }} → {{ $schedule->route->destinationAgent->city }}</span>
-                            <span class="text-[10px] px-2 py-0.5 bg-blue-600 text-white rounded font-bold uppercase">{{ $schedule->bus->name }}</span>
+                            <span class="text-[10px] px-2 py-0.5 bg-orange-500 text-white rounded font-bold uppercase">{{ $schedule->bus->name }}</span>
                         </div>
                         <div class="mt-2 flex items-center gap-3 text-[10px] text-gray-500 font-medium">
                             <span class="flex items-center gap-1"><x-heroicon-o-calendar class="w-3.5 h-3.5" /> {{ $schedule->departure_date->format('d M Y') }}</span>
@@ -154,7 +154,7 @@ new class extends Component {
                     @endforelse
                 </div>
             </div>
-            <button wire:click="goStep(2)" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg">Lanjut: Data Pengirim</button>
+            <button wire:click="goStep(2)" class="w-full py-4 bg-orange-500 text-white rounded-2xl font-bold shadow-lg">Lanjut: Data Pengirim</button>
         </div>
         @endif
 
@@ -173,7 +173,7 @@ new class extends Component {
                 <input type="tel" wire:model="receiver_phone" class="w-full px-4 py-3 rounded-xl border-gray-200 text-sm" placeholder="Nomor WA Penerima">
                 <textarea wire:model="pickup_address" class="w-full px-4 py-3 rounded-xl border-gray-200 text-sm" placeholder="Alamat Detail (Opsional)"></textarea>
             </div>
-            <button wire:click="goStep(3)" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg">Lanjut: Detail Barang</button>
+            <button wire:click="goStep(3)" class="w-full py-4 bg-orange-500 text-white rounded-2xl font-bold shadow-lg">Lanjut: Detail Barang</button>
         </div>
         @endif
 
@@ -182,7 +182,7 @@ new class extends Component {
         <div class="space-y-4">
             <div class="flex justify-between items-center px-1">
                 <h2 class="font-bold text-gray-900">Daftar Barang</h2>
-                <button wire:click="addItem" class="text-blue-600 text-sm font-bold flex items-center gap-1">
+                <button wire:click="addItem" class="text-orange-500 text-sm font-bold flex items-center gap-1">
                     <x-heroicon-o-plus-circle class="w-5 h-5" /> Tambah
                 </button>
             </div>
@@ -200,12 +200,12 @@ new class extends Component {
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-gray-400 uppercase">Biaya Kirim (Rp)</label>
-                        <input type="number" wire:model="items.{{ $index }}.price" class="w-full px-4 py-2 rounded-lg border-gray-200 text-sm font-black text-blue-600">
+                        <input type="number" wire:model="items.{{ $index }}.price" class="w-full px-4 py-2 rounded-lg border-gray-200 text-sm font-black text-orange-500">
                     </div>
                 </div>
             </div>
             @endforeach
-            <button wire:click="goStep(4)" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg">Lanjut: Pembayaran</button>
+            <button wire:click="goStep(4)" class="w-full py-4 bg-orange-500 text-white rounded-2xl font-bold shadow-lg">Lanjut: Pembayaran</button>
         </div>
         @endif
 
@@ -214,12 +214,12 @@ new class extends Component {
         <div class="space-y-4">
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4 text-center">
                 <span class="text-xs font-bold text-gray-400 uppercase">Total Tagihan</span>
-                <h2 class="text-4xl font-black text-blue-600">Rp{{ number_format($this->totalBill, 0, ',', '.') }}</h2>
+                <h2 class="text-4xl font-black text-orange-500">Rp{{ number_format($this->totalBill, 0, ',', '.') }}</h2>
             </div>
 
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
                 <div class="grid grid-cols-2 gap-2">
-                    <button wire:click="$set('payment_type', 'origin')" class="py-3 text-xs font-bold rounded-xl border-2 {{ $payment_type == 'origin' ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-50 text-gray-400' }}">Bayar di Sini</button>
+                    <button wire:click="$set('payment_type', 'origin')" class="py-3 text-xs font-bold rounded-xl border-2 {{ $payment_type == 'origin' ? 'border-orange-500 bg-blue-50 text-orange-500' : 'border-gray-50 text-gray-400' }}">Bayar di Sini</button>
                     <button wire:click="$set('payment_type', 'destination')" class="py-3 text-xs font-bold rounded-xl border-2 {{ $payment_type == 'destination' ? 'border-orange-600 bg-orange-50 text-orange-600' : 'border-gray-50 text-gray-400' }}">Bayar di Tujuan (COD)</button>
                 </div>
 

@@ -12,6 +12,8 @@ class Passenger extends Model
     protected $fillable = [
         'booking_id',
         'name',
+        'gender',
+        'passenger_type',
         'id_card_number',
         'phone',
         'seat_number',

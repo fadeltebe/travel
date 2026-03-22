@@ -5,7 +5,7 @@ use App\Models\Schedule;
 state([
     'filterYear'   => now()->year,
     'filterMonth'  => now()->month,
-    'filterStatus' => '',
+    'filterStatus' => '', // Isi: '', 'departure', atau 'arrival'
 ]);
 
 $schedules = computed(function () {
@@ -14,27 +14,40 @@ $schedules = computed(function () {
     return Schedule::query()
         ->with(['route.originAgent', 'route.destinationAgent', 'bus', 'driver'])
         
-        // 1. Perhitungan Otomatis (Database Side)
-        ->withSum('bookings as total_passengers_sum', 'total_passengers')
+        ->addSelect(['total_passengers_sum' => \App\Models\Passenger::query()
+            ->selectRaw('COUNT(*)')
+            ->whereNull('passengers.deleted_at')
+            ->whereIn('passengers.booking_id', function ($q) {
+                $q->select('id')->from('bookings')
+                  ->whereColumn('bookings.schedule_id', 'schedules.id')
+                  ->whereNull('bookings.deleted_at');
+            })
+        ])
         ->withSum('bookings as total_cargo_sum', 'total_cargo')
         ->withSum('bookings as total_ticket_revenue', 'total_price')
         ->withSum('bookings as total_cargo_revenue', 'cargo_fee')
 
-        // 2. Filter Hak Akses Agen (Logika Sederhana)
-        ->when(!$user->canViewAll(), function($query) use ($user) {
+        // Filter Hak Akses & Arah Perjalanan (MODIFIKASI DI SINI)
+        ->where(function($query) use ($user) {
             $query->whereHas('route', function ($q) use ($user) {
-                // Tampilkan jika agen saya adalah ASAL atau TUJUAN
-                $q->where('origin_agent_id', $user->agent_id)
-                  ->orWhere('destination_agent_id', $user->agent_id);
+                if ($this->filterStatus === 'departure') {
+                    // Filter: Hanya yang berangkat dari agen saya
+                    $q->where('origin_agent_id', $user->agent_id);
+                } elseif ($this->filterStatus === 'arrival') {
+                    // Filter: Hanya yang menuju ke agen saya
+                    $q->where('destination_agent_id', $user->agent_id);
+                } else {
+                    // Semua: Asal ATAU Tujuan adalah agen saya (Logika lama)
+                    $q->where('origin_agent_id', $user->agent_id)
+                      ->orWhere('destination_agent_id', $user->agent_id);
+                }
             });
         })
 
-        // 3. Filter Waktu & Status
         ->whereYear('departure_date', (int) $this->filterYear)
         ->whereMonth('departure_date', (int) $this->filterMonth)
-        ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
+        // Hapus filter status lama: ->when($this->filterStatus, ...) 
 
-        // 4. Urutan
         ->orderBy('departure_date', 'desc')
         ->orderBy('departure_time', 'desc')
         ->get();
@@ -90,28 +103,20 @@ $schedules = computed(function () {
         <div class="px-4 -mt-4 space-y-4 pb-24">
 
             {{-- Status Filter --}}
-            <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100">
-                <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-
-                    {{-- Status Filter --}}
-                    <div class="flex gap-2 overflow-x-auto mt-3 pb-1 scrollbar-none">
-                        @foreach([
-                        '' => 'Semua',
-                        'scheduled' => 'Dijadwalkan',
-                        'ongoing' => 'Diperjalanan',
-                        'completed' => 'Tiba',
-                        'cancelled' => 'Dibatalkan',
-                        ] as $value => $label)
-                        <button wire:click="$set('filterStatus', '{{ $value }}')" class="shrink-0 text-xs font-medium px-3 py-1.5 rounded-full
-                                   transition-colors
-                                   {{ $filterStatus === $value
-                                       ? 'bg-primary-800 text-white'
-                                       : 'bg-gray-100 text-gray-500' }}">
-                            {{ $label }}
-                        </button>
-                        @endforeach
-                    </div>
-
+            <div class="bg-white rounded-2xl p-2 shadow-sm border border-gray-100">
+                <div class="grid grid-cols-3 gap-2">
+                    @foreach([
+                    '' => 'Semua',
+                    'departure' => 'Keberangkatan',
+                    'arrival' => 'Kedatangan',
+                    ] as $value => $label)
+                    <button wire:click="$set('filterStatus', '{{ $value }}')" class="text-[11px] font-bold py-2.5 mt-3 rounded-xl transition-all duration-200
+                {{ $filterStatus === $value
+                    ? 'bg-blue-600 text-white shadow-md' 
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">
+                        {{ $label }}
+                    </button>
+                    @endforeach
                 </div>
             </div>
 
@@ -135,15 +140,15 @@ $schedules = computed(function () {
 
                 <a href="{{ route('schedules.show', $schedule) }}" class="block bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md active:bg-gray-50 transition-all overflow-hidden relative">
 
-                    {{-- Badge Arah (Hanya tampil untuk Admin Agen) --}}
+                    {{-- Badge Arah --}}
                     @if(!$isSuperAdmin)
                     <div class="absolute top-0 right-0 flex flex-col items-end">
-                        {{-- Badge 1: Arah --}}
+                        {{-- Biru untuk Keluar, Emerald untuk Masuk --}}
                         <span class="text-[10px] font-bold px-3 py-1 rounded-bl-lg text-white {{ $isDeparture ? 'bg-blue-600' : 'bg-emerald-600' }}">
                             {{ $isDeparture ? 'KEBERANGKATAN' : 'KEDATANGAN' }}
                         </span>
 
-                        {{-- Badge 2: Status (Tepat di bawah Badge Arah) --}}
+                        {{-- Status Operasional (Tetap menggunakan status asli database) --}}
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-bl-md text-[9px] font-bold text-white shadow-sm {{ $status['class'] }}">
                             @if($status['animate'])
                             <span class="w-1 h-1 rounded-full bg-white animate-ping"></span>

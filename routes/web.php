@@ -34,11 +34,11 @@ Route::middleware(['auth'])->group(function () {
 
     //Bookings
     // Route untuk Booking Penumpang (Wizard 4 step)
-    Volt::route('/bookings/create', 'bookings.create')
+    Volt::route('/bookings/create', 'bookings.createpassenger')
         ->name('bookings.create');
 
     // Route untuk Kirim Barang (Quick Add Cargo)
-    Volt::route('/cargo/create', 'bookings.quick-add-cargo')
+    Volt::route('/cargo/create', 'bookings.createcargo')
         ->name('cargo.create');
 
 
