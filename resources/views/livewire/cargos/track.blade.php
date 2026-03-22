@@ -22,9 +22,16 @@ $searchCargo = function () {
 ?>
 
 <div>
-    {{-- Kita custom layernya agar cocok jadi halaman publik / guest --}}
-    <x-guest-layout>
-        <div class="min-h-screen bg-gray-50/50 flex flex-col items-center pt-10 pb-20 px-4 relative overflow-hidden">
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>Lacak Resi Kargo</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="antialiased">
+    <div class="min-h-screen bg-gray-50/50 flex flex-col items-center pt-10 pb-20 px-4 relative overflow-x-hidden">
             {{-- Hiasan Latar --}}
             <div class="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-orange-500/10 to-transparent pointer-events-none"></div>
 
@@ -40,16 +47,18 @@ $searchCargo = function () {
                 </div>
 
                 {{-- Kotak Pencarian --}}
-                <div class="bg-white p-2 rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 mb-8 transition-all focus-within:ring-4 focus-within:ring-orange-500/20">
-                    <form wire:submit="searchCargo" class="flex items-center">
-                        <div class="pl-4 pr-2 text-gray-400">
-                            <x-heroicon-o-magnifying-glass class="w-6 h-6" />
+                <div class="mb-8">
+                    <form wire:submit="searchCargo" class="flex flex-col gap-3">
+                        <div class="bg-white p-2 rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 flex items-center transition-all focus-within:ring-4 focus-within:ring-orange-500/20">
+                            <div class="pl-4 pr-2 text-gray-400">
+                                <x-heroicon-o-magnifying-glass class="w-6 h-6" />
+                            </div>
+                            <input type="text" wire:model="trackingCode" placeholder="Misal: CRG-XYZ12" 
+                                class="flex-1 w-full bg-transparent border-none focus:ring-0 text-gray-800 font-bold tracking-wider placeholder:font-normal placeholder:text-gray-400 py-4 uppercase"
+                                autocomplete="off">
                         </div>
-                        <input type="text" wire:model="trackingCode" placeholder="Misal: CRG-XYZ12" 
-                            class="flex-1 w-full bg-transparent border-none focus:ring-0 text-gray-800 font-bold tracking-wider placeholder:font-normal placeholder:text-gray-400 py-4 uppercase"
-                            autocomplete="off">
-                        <button type="submit" class="bg-gray-900 text-white font-bold py-3 px-6 rounded-xl hover:bg-orange-500 transition-colors shadow-md transform active:scale-95 ml-2 whitespace-nowrap">
-                            Lacak
+                        <button type="submit" class="w-full bg-gray-900 text-white font-bold py-4 px-6 rounded-2xl hover:bg-orange-500 transition-colors shadow-lg transform active:scale-[0.98]">
+                            Lacak Sekarang
                         </button>
                     </form>
                 </div>
@@ -175,5 +184,6 @@ $searchCargo = function () {
                 to { opacity: 1; transform: translate3d(0, 0, 0); }
             }
         </style>
-    </x-guest-layout>
+    </body>
+</html>
 </div>
