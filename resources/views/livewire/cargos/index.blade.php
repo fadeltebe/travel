@@ -20,7 +20,11 @@ $cargos = computed(function () {
                   });
         })
         ->when($this->filterStatus, function ($query) {
-            $query->where('status', $this->filterStatus);
+            if ($this->filterStatus === 'received') {
+                $query->where('status', 'received');
+            } elseif ($this->filterStatus === 'not_received') {
+                $query->where('status', '!=', 'received');
+            }
         })
         ->when(!$user->canViewAll(), function ($query) use ($user) {
             // Untuk agen biasa, hanya melihat cargo di mana mereka adalah origin atau destination
@@ -45,15 +49,17 @@ $cargos = computed(function () {
                 <h2 class="text-2xl font-bold">Daftar Cargo</h2>
 
                 {{-- Tombol Tambah --}}
-                <a href="{{ route('cargo.create') }}" wire:navigate class="flex items-center justify-center w-10 h-10 rounded-xl bg-white/40 backdrop-blur-sm hover:bg-white/60 transition-colors">
+                {{-- <a href="{{ route('cargo.create') }}" wire:navigate class="flex items-center justify-center w-10 h-10 rounded-xl bg-white/40 backdrop-blur-sm hover:bg-white/60 transition-colors">
                     <x-heroicon-o-plus class="w-6 h-6 text-white" />
-                </a>
+                </a> --}}
             </div>
 
             {{-- Search Bar --}}
-            <div class="mt-4 relative z-10">
-                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari kode resi, penerima, atau barang..." class="w-full pl-10 pr-4 py-3 rounded-xl border-none shadow-inner text-sm text-gray-800 focus:ring-2 focus:ring-orange-300">
-                <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" />
+            <div class="mt-4 relative z-10 w-full">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400" />
+                </div>
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari kode resi, penerima, atau barang..." class="w-full pl-10 pr-4 py-3 rounded-xl border-none shadow-sm text-sm text-gray-800 focus:ring-2 focus:ring-orange-300">
             </div>
         </div>
 
@@ -61,9 +67,9 @@ $cargos = computed(function () {
         <div class="px-4 -mt-5 space-y-4 pb-24 relative z-20">
             {{-- Status Filter --}}
             <div class="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 overflow-x-auto custom-scrollbar">
-                <div class="flex gap-2 min-w-max">
-                    @foreach(['' => 'Semua', 'pending' => 'Pending', 'in_transit' => 'Perjalanan', 'arrived' => 'Tiba', 'received' => 'Diterima'] as $val => $label)
-                    <button wire:click="$set('filterStatus', '{{ $val }}')" class="px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 {{ $filterStatus === $val ? 'bg-orange-500 text-white shadow-md' : 'bg-gray-50 text-gray-500 hover:bg-gray-100' }}">
+                <div class="flex justify-center gap-2 min-w-max">
+                    @foreach(['' => 'Semua', 'not_received' => 'Belum Diambil', 'received' => 'Sudah Diambil'] as $val => $label)
+                    <button wire:click="$set('filterStatus', '{{ $val }}')" class="px-5 py-2 text-xs font-bold rounded-xl transition-all duration-200 {{ $filterStatus === $val ? 'bg-orange-500 text-white shadow-md' : 'bg-gray-50 text-gray-500 hover:bg-gray-100' }}">
                         {{ $label }}
                     </button>
                     @endforeach
@@ -74,15 +80,15 @@ $cargos = computed(function () {
             <div class="space-y-3">
                 @forelse($this->cargos as $cargo)
                 @php
-                    $statusConfig = [
-                        'pending'    => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-700', 'label' => 'Pending'],
-                        'in_transit' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-700', 'label' => 'Perjalanan'],
-                        'arrived'    => ['bg' => 'bg-emerald-100', 'text' => 'text-emerald-700', 'label' => 'Tiba'],
-                        'received'   => ['bg' => 'bg-gray-100', 'text' => 'text-gray-700', 'label' => 'Diterima'],
-                    ];
-                    $st = $statusConfig[$cargo->status] ?? $statusConfig['pending'];
+                $statusConfig = [
+                'pending' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-700', 'label' => 'Pending'],
+                'in_transit' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-700', 'label' => 'Perjalanan'],
+                'arrived' => ['bg' => 'bg-emerald-100', 'text' => 'text-emerald-700', 'label' => 'Tiba'],
+                'received' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-700', 'label' => 'Diterima'],
+                ];
+                $st = $statusConfig[$cargo->status] ?? $statusConfig['pending'];
                 @endphp
-                <div class="block bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all overflow-hidden relative">
+                <a href="{{ route('cargo.show', $cargo->id) }}" class="block bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all overflow-hidden relative">
                     {{-- Status di Kanan Atas --}}
                     <div class="absolute top-0 right-0 flex flex-col items-end">
                         {{-- Status Pengambilan --}}
@@ -132,7 +138,7 @@ $cargos = computed(function () {
                             Rp{{ number_format($cargo->fee, 0, ',', '.') }}
                         </span>
                     </div>
-                </div>
+                </a>
                 @empty
                 <div class="bg-white rounded-xl p-8 shadow-sm border border-dashed border-gray-300 text-center">
                     <x-heroicon-o-cube class="w-10 h-10 text-gray-300 mx-auto mb-3" />
