@@ -82,43 +82,55 @@ $cargos = computed(function () {
                     ];
                     $st = $statusConfig[$cargo->status] ?? $statusConfig['pending'];
                 @endphp
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <span class="text-xs font-black text-gray-900">{{ $cargo->booking->booking_code ?? 'N/A' }}</span>
-                            <p class="text-[10px] text-gray-500 mt-0.5">{{ $cargo->created_at->format('d M Y H:i') }}</p>
-                        </div>
-                        <span class="px-2 py-1 rounded text-[9px] font-bold uppercase {{ $st['bg'] }} {{ $st['text'] }}">
-                            {{ $st['label'] }}
+                <div class="block bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all overflow-hidden relative">
+                    {{-- Status di Kanan Atas --}}
+                    <div class="absolute top-0 right-0 flex flex-col items-end">
+                        {{-- Status Pengambilan --}}
+                        <span class="text-[9px] font-bold px-3 py-1 rounded-bl-lg text-white shadow-sm {{ $cargo->status === 'received' ? 'bg-emerald-600' : 'bg-blue-600' }}">
+                            {{ $cargo->status === 'received' ? 'SUDAH DIAMBIL' : 'BELUM DIAMBIL' }}
+                        </span>
+                        {{-- Status Pembayaran --}}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-bl-md text-[8px] font-bold text-white shadow-sm {{ $cargo->is_paid ? 'bg-emerald-500' : 'bg-red-500' }}">
+                            {{ $cargo->is_paid ? 'LUNAS' : 'BELUM LUNAS' }}
                         </span>
                     </div>
 
-                    <div class="flex items-center gap-2 mb-3 bg-gray-50 p-2 rounded-lg">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-[10px] text-gray-500 uppercase font-bold">Asal</p>
-                            <p class="text-sm font-bold text-gray-900 truncate">{{ $cargo->originAgent->city ?? '-' }}</p>
+                    {{-- Baris 1: Rute & Waktu --}}
+                    <div class="flex items-start gap-3 p-3 pb-2 pr-24">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-orange-50">
+                            <x-heroicon-o-cube class="w-4 h-4 text-orange-600" />
                         </div>
-                        <x-heroicon-o-arrow-right class="w-4 h-4 text-gray-400 shrink-0" />
-                        <div class="flex-1 min-w-0 text-right">
-                            <p class="text-[10px] text-gray-500 uppercase font-bold">Tujuan</p>
-                            <p class="text-sm font-bold text-gray-900 truncate">{{ $cargo->destinationAgent->city ?? '-' }}</p>
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold text-gray-900 leading-tight">
+                                {{ $cargo->originAgent->city ?? '-' }} → {{ $cargo->destinationAgent->city ?? '-' }}
+                            </p>
+                            <p class="text-[10px] text-gray-500 font-semibold mt-0.5 flex items-center gap-1">
+                                <x-heroicon-o-calendar class="w-3 h-3" />
+                                {{ $cargo->created_at->format('d M y') }}
+                                <span class="text-gray-300">|</span>
+                                <span class="font-black text-gray-800">{{ $cargo->booking->booking_code ?? 'N/A' }}</span>
+                            </p>
                         </div>
                     </div>
 
-                    <div class="flex justify-between items-end border-t border-gray-100 pt-3">
-                        <div class="space-y-1 w-2/3">
-                            <p class="text-xs font-bold text-gray-800 truncate">{{ $cargo->description }}</p>
-                            <p class="text-[10px] text-gray-500">{{ $cargo->weight_kg }} Kg &bull; {{ $cargo->quantity }} Koli</p>
-                            <p class="text-[10px] text-gray-500 flex items-center gap-1 mt-1 truncate">
-                                <x-heroicon-o-user class="w-3 h-3 shrink-0" /> {{ $cargo->recipient_name }}
-                            </p>
+                    {{-- Baris 2: Detail Barang (Compact) --}}
+                    <div class="px-3 pb-2 flex items-center justify-between text-[10px]">
+                        <div class="text-gray-600 truncate mr-2">
+                            <b>{{ $cargo->description }}</b> ({{ $cargo->weight_kg }}Kg, {{ $cargo->quantity }}Koli)
                         </div>
-                        <div class="text-right w-1/3">
-                            <span class="text-[9px] font-bold uppercase {{ $cargo->is_paid ? 'text-emerald-600' : 'text-red-500' }}">
-                                {{ $cargo->is_paid ? 'LUNAS' : 'BELUM BAYAR' }}
-                            </span>
-                            <p class="text-sm font-black text-orange-500 mt-0.5">Rp{{ number_format($cargo->fee, 0, ',', '.') }}</p>
+                        <div class="flex items-center gap-1 text-gray-500 shrink-0">
+                            <x-heroicon-o-user class="w-3 h-3" /> {{ $cargo->recipient_name }}
                         </div>
+                    </div>
+
+                    {{-- Baris 3: Tracking & Harga --}}
+                    <div class="px-3 pb-2 pt-2 flex items-center justify-between gap-2 border-t border-gray-50 mt-1 bg-gray-50/50">
+                        <div class="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded {{ $st['bg'] }} {{ $st['text'] }}">
+                            {{ $st['label'] }}
+                        </div>
+                        <span class="text-sm font-black text-orange-500">
+                            Rp{{ number_format($cargo->fee, 0, ',', '.') }}
+                        </span>
                     </div>
                 </div>
                 @empty
