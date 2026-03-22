@@ -27,6 +27,7 @@
             </button>
 
             {{-- Avatar + Dropdown --}}
+            @auth
             <div class="relative" x-data="{ open: false }">
 
                 {{-- Avatar Button --}}
@@ -87,6 +88,7 @@
 
                 </div>
             </div>
+            @endauth
 
         </div>
     </div>
