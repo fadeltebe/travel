@@ -45,7 +45,7 @@ new class extends Component {
     public function addItem()
     {
         $this->items[] = [
-            'code' => 'CRG-' . strtoupper(Str::random(5)),
+            'code' => 'CRG-' . strtoupper(\Illuminate\Support\Str::random(5)),
             'description' => '',
             'qty' => 1,
             'weight' => 1,
@@ -90,9 +90,47 @@ new class extends Component {
 
         try {
             DB::transaction(function () {
-                // Logika simpan ke table cargos dan cargo_items Anda di sini
-                // Contoh:
-                // $cargo = Cargo::create([...]);
+                // Ambil jadwal untuk relasi agent
+                $schedule = Schedule::with('route')->findOrFail($this->schedule_id);
+
+                // Buat Booking Induk untuk merekap tagihan
+                $booking = \App\Models\Booking::create([
+                    'schedule_id' => $this->schedule_id,
+                    'agent_id' => auth()->user()->agent_id ?? 1,
+                    'user_id' => auth()->id() ?? 1,
+                    'booker_name' => $this->sender_name,
+                    'booker_phone' => $this->sender_phone,
+                    'total_passengers' => 0,
+                    'total_cargo' => collect($this->items)->sum('qty'),
+                    'subtotal_price' => 0,
+                    'cargo_fee' => $this->totalBill,
+                    'total_price' => $this->totalBill,
+                    'payment_status' => $this->payment_status,
+                    'payment_method' => $this->payment_method,
+                    'paid_at' => $this->payment_status === 'paid' ? now() : null,
+                    'status' => 'confirmed',
+                ]);
+
+                // Loop & simpan setiap barang ke tabel cargos
+                foreach ($this->items as $item) {
+                    Cargo::create([
+                        'booking_id' => $booking->id,
+                        'origin_agent_id' => $schedule->route->origin_agent_id,
+                        'destination_agent_id' => $schedule->route->destination_agent_id,
+                        'description' => $item['description'],
+                        'weight_kg' => (float) ($item['weight'] ?? 1),
+                        'quantity' => (int) ($item['qty'] ?? 1),
+                        'fee' => (float) ($item['price'] ?? 0),
+                        'recipient_name' => $this->receiver_name,
+                        'recipient_phone' => $this->receiver_phone,
+                        'dropoff_address' => $this->pickup_address, // di UI sebagai alamat opsional penerima
+                        'payment_type' => $this->payment_type, // origin atau destination (COD)
+                        'payment_method' => $this->payment_method,
+                        'is_paid' => $this->payment_status === 'paid',
+                        'paid_at' => $this->payment_status === 'paid' ? now() : null,
+                        'status' => 'pending',
+                    ]);
+                }
             });
 
             session()->flash('success', 'Data Cargo berhasil disimpan!');
