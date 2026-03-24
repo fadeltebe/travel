@@ -133,7 +133,7 @@ $markAsReceived = function () {
                     <x-heroicon-s-chat-bubble-left-right class="w-6 h-6" />
                     <span class="text-[10px] uppercase tracking-wider font-black">WA Pengirim</span>
                 </a>
-                <a href="{{ route('cargo.print', $cargo->tracking_code) }}" class="flex flex-col items-center justify-center gap-1.5 bg-white text-gray-700 py-3.5 rounded-2xl font-bold border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors active:scale-95">
+                <a href="{{ route('cargo.print', $cargo) }}" class="flex flex-col items-center justify-center gap-1.5 bg-white text-gray-700 py-3.5 rounded-2xl font-bold border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors active:scale-95">
                     <x-heroicon-s-printer class="w-6 h-6" />
                     <span class="text-[10px] uppercase tracking-wider font-black">Cetak Resi</span>
                 </a>

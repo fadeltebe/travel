@@ -70,4 +70,15 @@ class Cargo extends Model
     {
         return $this->hasOne(CargoReceipt::class);
     }
+
+    public function getRouteKeyName()
+    {
+        // Gunakan tracking_code untuk rute jika ada, jika tidak fallback ke ID (untuk data lama)
+        return $this->tracking_code ? 'tracking_code' : 'id';
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('tracking_code', $value)->orWhere('id', $value)->firstOrFail();
+    }
 }

@@ -114,7 +114,7 @@ $getQrCode = function() {
                 CETAK SEKARANG
             </button>
             <div style="margin-top: 8px;">
-                <a href="{{ route('cargo.show', $cargo->tracking_code) }}" style="color: #666; text-decoration: underline; font-size: 11px;">Kembali ke Detail</a>
+                <a href="{{ route('cargo.show', $cargo) }}" style="color: #666; text-decoration: underline; font-size: 11px;">Kembali ke Detail</a>
             </div>
         </div>
     </div>

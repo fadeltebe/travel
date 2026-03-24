@@ -48,9 +48,9 @@ Route::middleware(['auth'])->group(function () {
 
     Volt::route('/cargo', 'cargos.index')
         ->name('cargo.index');
-    Volt::route('/cargo/{cargo:tracking_code}', 'cargos.show')
+    Volt::route('/cargo/{cargo}', 'cargos.show')
         ->name('cargo.show');
-    Volt::route('/cargo/{cargo:tracking_code}/print', 'cargos.print')
+    Volt::route('/cargo/{cargo}/print', 'cargos.print')
         ->name('cargo.print');
 
     // Profile (bawaan Breeze)
