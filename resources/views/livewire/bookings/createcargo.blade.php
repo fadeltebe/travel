@@ -44,8 +44,9 @@ new class extends Component {
 
     public function addItem()
     {
+        // Format: CRG + TahunBulan + 8 Karakter Acak (Contoh: CRG2603A8X9K2P4)
         $this->items[] = [
-            'code' => 'CRG-' . strtoupper(\Illuminate\Support\Str::random(5)),
+            'code' => 'CRG' . date('ym') . strtoupper(\Illuminate\Support\Str::random(8)),
             'item_name' => '',
             'description' => '',
             'qty' => 1,

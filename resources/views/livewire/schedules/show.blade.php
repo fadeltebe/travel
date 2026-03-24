@@ -5,11 +5,16 @@ use App\Models\Schedule;
 state([
     'scheduleModel' => function () {
         $param = request()->route('schedule');
-        if ($param instanceof Schedule) {
-            $param->load(['route.originAgent', 'route.destinationAgent', 'bus', 'driver']);
-            return $param;
+        $schedule = ($param instanceof Schedule) ? $param : Schedule::with(['route.originAgent', 'route.destinationAgent', 'bus', 'driver'])->findOrFail($param);
+        
+        // Otorisasi: Mencegah agen melihat jadwal cabang lain
+        $user = auth()->user();
+        if (!$user->canViewAll() && $schedule->route->origin_agent_id !== $user->agent_id && $schedule->route->destination_agent_id !== $user->agent_id) {
+            abort(403, 'AKSES DITOLAK: Jadwal ini tidak terdaftar untuk agen Anda.');
         }
-        return Schedule::with(['route.originAgent', 'route.destinationAgent', 'bus', 'driver'])->findOrFail($param);
+
+        $schedule->loadMissing(['route.originAgent', 'route.destinationAgent', 'bus', 'driver']);
+        return $schedule;
     },
 ]);
 ?>

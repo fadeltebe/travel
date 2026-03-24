@@ -90,7 +90,7 @@ $cargos = computed(function () {
                 ];
                 $st = $statusConfig[$cargo->status] ?? $statusConfig['pending'];
                 @endphp
-                <a href="{{ route('cargo.show', $cargo->id) }}" class="block bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all overflow-hidden relative">
+                <a href="{{ route('cargo.show', $cargo->tracking_code) }}" class="block bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all overflow-hidden relative">
                     {{-- Status di Kanan Atas --}}
                     <div class="absolute top-0 right-0 flex flex-col items-end">
                         {{-- Status Pengambilan --}}
