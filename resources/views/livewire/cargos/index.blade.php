@@ -60,7 +60,7 @@ $cargos = computed(function () {
                 {{-- <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400" />
                 </div> --}}
-                <input type="text" wire:model.live.debounce.300ms="search" placeholder="    Cari kode resi, penerima, atau barang..." class="w-full pl-10 pr-4 py-3 rounded-xl border-none shadow-sm text-sm text-gray-800 focus:ring-2 focus:ring-orange-300">
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari kode resi, penerima, atau barang..." class="w-full pl-10 pr-4 py-3 rounded-xl border-none shadow-sm text-sm text-gray-800 focus:ring-2 focus:ring-orange-300">
             </div>
         </div>
 
