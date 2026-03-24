@@ -114,9 +114,10 @@ $search = function () {
                     <div class="relative z-10">
                         <div class="flex justify-between items-start mb-10">
                             <div>
-                                <span class="text-[10px] font-black bg-orange-500 px-3 py-1 rounded-full uppercase tracking-widest">Kargo Resmi</span>
-                                <h2 class="text-3xl font-black mt-3 tracking-tighter italic">{{ $cargo->tracking_code }}</h2>
-                                <p class="text-xs text-gray-400 mt-1">{{ $cargo->created_at->format('d F Y • H:i') }}</p>
+                                <span class="text-[10px] font-black bg-orange-500 px-3 py-1 rounded-full uppercase tracking-widest">{{ $cargo->tracking_code}}</span>
+                                <h2 class="text-3xl font-black mt-3 tracking-tighter">{{ $cargo->item_name }}</h2>
+                                <p class="text-xs italic mt-1">{{ $cargo->description }}</p>
+
                             </div>
                             <div class="text-right">
                                 <x-heroicon-s-qr-code class="w-16 h-16 text-white opacity-20" />
@@ -125,12 +126,12 @@ $search = function () {
 
                         <div class="grid grid-cols-2 gap-6 bg-white/5 p-6 rounded-3xl border border-white/10">
                             <div>
-                                <p class="text-[9px] text-gray-500 font-black uppercase tracking-widest mb-1">Pengirim</p>
+                                <p class="text-[9px] text-white font-black uppercase tracking-widest mb-1">Pengirim :</p>
                                 <p class="font-bold text-sm truncate uppercase">{{ $cargo->booking->booker_name ?? 'N/A' }}</p>
                                 <p class="text-[10px] text-orange-400 font-bold uppercase">{{ $cargo->originAgent->city ?? '-' }}</p>
                             </div>
                             <div>
-                                <p class="text-[9px] text-gray-500 font-black uppercase tracking-widest mb-1">Penerima</p>
+                                <p class="text-[9px] text-white font-black uppercase tracking-widest mb-1">Penerima :</p>
                                 <p class="font-bold text-sm truncate uppercase">{{ $cargo->recipient_name }}</p>
                                 <p class="text-[10px] text-orange-400 font-bold uppercase">{{ $cargo->destinationAgent->city ?? '-' }}</p>
                             </div>
@@ -202,15 +203,6 @@ $search = function () {
                     @php
                     $waText = urlencode("Halo, cek status paket saya dengan Nomor Resi: " . $cargo->tracking_code . "\nStatus: " . strtoupper($cargo->status) . "\nLacak di sini: " . url()->current() . "?trackingCode=" . $cargo->tracking_code);
                     @endphp
-                    <a href="https://wa.me/?text={{ $waText }}" target="_blank" class="flex flex-col items-center justify-center gap-2 bg-emerald-500 text-white p-5 rounded-[2rem] shadow-lg hover:bg-emerald-600 transition-all active:scale-95">
-                        <x-heroicon-s-chat-bubble-left-right class="w-6 h-6" />
-                        <span class="text-[9px] font-black tracking-widest uppercase">WhatsApp Share</span>
-                    </a>
-
-                    <button onclick="window.print()" class="flex flex-col items-center justify-center gap-2 bg-white text-gray-900 p-5 rounded-[2rem] shadow-lg border border-gray-100 hover:bg-gray-50 transition-all active:scale-95">
-                        <x-heroicon-s-printer class="w-6 h-6" />
-                        <span class="text-[9px] font-black tracking-widest uppercase">Cetak Resi</span>
-                    </button>
                 </div>
             </div>
             @endif

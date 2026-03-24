@@ -51,32 +51,32 @@ $markAsReceived = function () {
                 </div>
             </div>
 
-            {{-- Card Info Status --}}
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-white p-4 rounded-2xl shadow-sm border {{ $cargo->status === 'received' ? 'border-emerald-200 bg-emerald-50' : 'border-blue-200 bg-blue-50' }}">
-                    <p class="text-xs text-gray-500 font-semibold mb-1">Status Pengambilan</p>
-                    <h3 class="font-black {{ $cargo->status === 'received' ? 'text-emerald-700' : 'text-blue-700' }}">
-                        {{ $cargo->status === 'received' ? 'SUDAH DIAMBIL' : 'BELUM DIAMBIL' }}
-                    </h3>
-                </div>
-                <div class="bg-white p-4 rounded-2xl shadow-sm border {{ $cargo->is_paid ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50' }}">
-                    <p class="text-xs text-gray-500 font-semibold mb-1">Status Pembayaran</p>
-                    <h3 class="font-black {{ $cargo->is_paid ? 'text-emerald-700' : 'text-red-600' }}">
-                        {{ $cargo->is_paid ? 'LUNAS' : 'BELUM LUNAS' }}
-                    </h3>
-                </div>
-            </div>
 
             {{-- Detail Kargo --}}
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4 relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                     <x-heroicon-s-cube class="w-24 h-24" />
                 </div>
+
+                {{-- Data Barang di Atas --}}
+                <div class="pb-3 border-b border-gray-100">
+                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Nama Barang / Kemasan</p>
+                    <p class="text-lg text-gray-900 font-bold uppercase">{{ $cargo->item_name ?? 'BARANG KARGO' }}</p>
+                    <p class="text-sm text-gray-600 leading-snug mt-1">{{ $cargo->description }}</p>
+                    <p class="text-xs text-orange-500 font-bold mt-2">{{ $cargo->weight_kg }} Kg &bull; {{ $cargo->quantity }} Koli</p>
+                </div>
                 
-                <div>
-                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Penerima</p>
-                    <p class="font-bold text-gray-900">{{ $cargo->recipient_name }}</p>
-                    <p class="text-sm text-gray-600 flex items-center gap-1 mt-0.5"><x-heroicon-o-phone class="w-3.5 h-3.5" /> {{ $cargo->recipient_phone ?? '-' }}</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Pengirim</p>
+                        <p class="font-bold text-gray-900">{{ $cargo->booking->booker_name }}</p>
+                        <p class="text-sm text-gray-600 flex items-center gap-1 mt-0.5"><x-heroicon-o-phone class="w-3.5 h-3.5" /> {{ $cargo->booking->booker_phone ?? '-' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Penerima</p>
+                        <p class="font-bold text-gray-900">{{ $cargo->recipient_name }}</p>
+                        <p class="text-sm text-gray-600 flex items-center gap-1 mt-0.5"><x-heroicon-o-phone class="w-3.5 h-3.5" /> {{ $cargo->recipient_phone ?? '-' }}</p>
+                    </div>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4 pt-3 border-t border-gray-100">
@@ -89,27 +89,48 @@ $markAsReceived = function () {
                         <p class="text-sm font-black text-orange-500">Rp{{ number_format($cargo->fee, 0, ',', '.') }}</p>
                     </div>
                 </div>
-
-                <div class="pt-3 border-t border-gray-100">
-                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Barang</p>
-                    <p class="text-sm text-gray-800 font-semibold">{{ $cargo->description }}</p>
-                    <p class="text-xs text-gray-500 mt-1">{{ $cargo->weight_kg }} Kg &bull; {{ $cargo->quantity }} Koli</p>
-                </div>
             </div>
 
-            {{-- Tombol Aksi --}}
-            <div class="space-y-3">
-                @if(!$cargo->is_paid)
-                <button wire:click="markAsPaid" wire:confirm="Anda yakin ingin menandai kargo ini sebagai LUNAS?" class="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold shadow-lg shadow-emerald-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                    <x-heroicon-o-banknotes class="w-6 h-6" /> Tandai Lunas
+            {{-- Tombol Status Aksi --}}
+            <div class="space-y-3 print:hidden">
+                @if($cargo->is_paid)
+                <button disabled class="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 opacity-90 cursor-not-allowed">
+                    <x-heroicon-s-check-circle class="w-6 h-6" /> LUNAS
+                </button>
+                @else
+                <button wire:click="markAsPaid" wire:confirm="Anda yakin tagihan telah dibayar dan ingin menandai kargo ini sebagai LUNAS?" class="w-full py-4 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-bold shadow-lg shadow-red-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    <x-heroicon-o-x-circle class="w-6 h-6" /> BELUM LUNAS
                 </button>
                 @endif
 
-                @if($cargo->status !== 'received')
-                <button wire:click="markAsReceived" wire:confirm="Anda yakin barang sudah diambil penerima?" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                    <x-heroicon-o-check-badge class="w-6 h-6" /> Tandai Sudah Diambil
+                @if($cargo->status === 'received')
+                <button disabled class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 opacity-90 cursor-not-allowed">
+                    <x-heroicon-s-check-badge class="w-6 h-6" /> SUDAH DIAMBIL
+                </button>
+                @else
+                <button wire:click="markAsReceived" wire:confirm="Anda yakin barang sudah diambil penerima?" class="w-full py-4 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-bold shadow-lg shadow-red-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    <x-heroicon-o-archive-box-x-mark class="w-6 h-6" /> BELUM DIAMBIL
                 </button>
                 @endif
+            </div>
+
+            {{-- Tombol Utilities (WA & Cetak) --}}
+            <div class="grid grid-cols-2 gap-3 mt-4 print:hidden">
+                @php
+                    $waMsg = urlencode("Halo, ini informasi titipan kargo Anda dari " . ($cargo->originAgent->city ?? 'agen asal') . ".\n\nNomor Resi: *" . $cargo->tracking_code . "*\nBarang: " . ($cargo->item_name ?? 'Paket') . "\nStatus: *" . strtoupper($cargo->status === 'received' ? 'Sudah Diambil' : 'Dalam Proses') . "*\n\nLacak paket Anda di: " . url('/cek-resi') . "?trackingCode=" . $cargo->tracking_code);
+                    $phone = $cargo->booking->booker_phone ?? '';
+                    if (str_starts_with($phone, '0')) {
+                        $phone = '62' . substr($phone, 1);
+                    }
+                @endphp
+                <a href="https://wa.me/{{ $phone }}?text={{ $waMsg }}" target="_blank" class="flex flex-col items-center justify-center gap-1.5 bg-emerald-50 text-emerald-700 py-3.5 rounded-2xl font-bold border border-emerald-200 shadow-sm hover:bg-emerald-100 transition-colors active:scale-95">
+                    <x-heroicon-s-chat-bubble-left-right class="w-6 h-6" />
+                    <span class="text-[10px] uppercase tracking-wider font-black">WA Pengirim</span>
+                </a>
+                <a href="{{ route('cargo.print', $cargo->id) }}" class="flex flex-col items-center justify-center gap-1.5 bg-white text-gray-700 py-3.5 rounded-2xl font-bold border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors active:scale-95">
+                    <x-heroicon-s-printer class="w-6 h-6" />
+                    <span class="text-[10px] uppercase tracking-wider font-black">Cetak Resi</span>
+                </a>
             </div>
 
         </div>

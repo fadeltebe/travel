@@ -14,6 +14,7 @@ class Cargo extends Model
         'booking_id',
         'origin_agent_id',
         'destination_agent_id',
+        'item_name',
         'description',
         'weight_kg',
         'quantity',

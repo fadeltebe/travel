@@ -46,6 +46,7 @@ new class extends Component {
     {
         $this->items[] = [
             'code' => 'CRG-' . strtoupper(\Illuminate\Support\Str::random(5)),
+            'item_name' => '',
             'description' => '',
             'qty' => 1,
             'weight' => 1,
@@ -84,6 +85,7 @@ new class extends Component {
             'sender_name' => 'required|min:3',
             'sender_phone' => 'required',
             'receiver_name' => 'required',
+            'items.*.item_name' => 'required',
             'items.*.description' => 'required',
             'items.*.price' => 'required|numeric|min:0',
         ]);
@@ -118,6 +120,7 @@ new class extends Component {
                         'booking_id' => $booking->id,
                         'origin_agent_id' => $schedule->route->origin_agent_id,
                         'destination_agent_id' => $schedule->route->destination_agent_id,
+                        'item_name' => $item['item_name'],
                         'description' => $item['description'],
                         'weight_kg' => (float) ($item['weight'] ?? 1),
                         'quantity' => (int) ($item['qty'] ?? 1),
