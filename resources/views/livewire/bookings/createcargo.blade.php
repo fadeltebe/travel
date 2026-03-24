@@ -62,14 +62,40 @@ new class extends Component {
 
     public function goStep($step)
     {
-        // Validasi sederhana sebelum pindah step
-        if ($step == 2 && !$this->schedule_id) {
-            $this->dispatch('notify', message: 'Pilih jadwal terlebih dahulu', type: 'error');
-            return;
+        try {
+            if ($step == 2) {
+                if (!$this->schedule_id) {
+                    $this->dispatch('notify', message: 'Pilih jadwal terlebih dahulu', type: 'error');
+                    return;
+                }
+            } elseif ($step == 3) {
+                $this->validate([
+                    'sender_name' => 'required|min:3',
+                    'sender_phone' => 'required',
+                    'receiver_name' => 'required',
+                ]);
+            } elseif ($step == 4) {
+                $this->validate([
+                    'items.*.item_name' => 'required',
+                    'items.*.description' => 'required',
+                    'items.*.price' => 'required|numeric|min:0',
+                ], [
+                    'items.*.item_name.required' => 'Semua Nama Barang harus diisi',
+                    'items.*.description.required' => 'Semua Keterangan Isi harus diisi',
+                    'items.*.price.required' => 'Semua Biaya Kirim harus diisi (minimal 0)',
+                ]);
+                
+                if (collect($this->items)->sum('price') <= 0) {
+                    $this->dispatch('notify', message: 'Total tagihan tidak boleh Rp0', type: 'error');
+                }
+            }
+            
+            $this->step = $step;
+            $this->dispatch('scroll-to-top');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->dispatch('notify', message: 'Mohon lengkapi semua data wajib pada form ini dengan benar.', type: 'error');
+            throw $e;
         }
-        
-        $this->step = $step;
-        $this->dispatch('scroll-to-top');
     }
 
     // Hitung Total Otomatis
@@ -80,15 +106,20 @@ new class extends Component {
 
     public function save()
     {
-        $this->validate([
-            'schedule_id' => 'required',
-            'sender_name' => 'required|min:3',
-            'sender_phone' => 'required',
-            'receiver_name' => 'required',
-            'items.*.item_name' => 'required',
-            'items.*.description' => 'required',
-            'items.*.price' => 'required|numeric|min:0',
-        ]);
+        try {
+            $this->validate([
+                'schedule_id' => 'required',
+                'sender_name' => 'required|min:3',
+                'sender_phone' => 'required',
+                'receiver_name' => 'required',
+                'items.*.item_name' => 'required',
+                'items.*.description' => 'required',
+                'items.*.price' => 'required|numeric|min:0',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->dispatch('notify', message: 'Validasi Gagal! Pastikan semua formulir sudah diisi di langkah sebelumnya.', type: 'error');
+            return;
+        }
 
         try {
             DB::transaction(function () {
