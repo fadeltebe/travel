@@ -1,8 +1,9 @@
 <?php
-use function Livewire\Volt\{state};
+use function Livewire\Volt\{state, computed};
 use App\Models\Schedule;
 
 state([
+    'activeTab' => 'details',
     'scheduleModel' => function () {
         $param = request()->route('schedule');
         $schedule = ($param instanceof Schedule) ? $param : Schedule::with(['route.originAgent', 'route.destinationAgent', 'bus', 'driver'])->findOrFail($param);
@@ -17,6 +18,18 @@ state([
         return $schedule;
     },
 ]);
+
+$passengers = computed(function () {
+    return \App\Models\Passenger::whereHas('booking', function ($q) {
+        $q->where('schedule_id', $this->scheduleModel->id);
+    })->with('booking')->get();
+});
+
+$cargos = computed(function () {
+    return \App\Models\Cargo::whereHas('booking', function ($q) {
+        $q->where('schedule_id', $this->scheduleModel->id);
+    })->with('booking')->get();
+});
 ?>
 
 <div>
@@ -40,6 +53,29 @@ state([
                 </div>
             </div>
 
+            {{-- Tabs --}}
+            <div class="flex items-center p-1.5 bg-gray-200/50 rounded-2xl mb-4 mt-2">
+                <button wire:click="$set('activeTab', 'details')" class="{{ $activeTab == 'details' ? 'bg-white shadow text-gray-900 pointer-events-none' : 'text-gray-500 hover:text-gray-700' }} flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 text-xs font-bold rounded-xl transition-all">
+                    <x-heroicon-s-calendar class="w-5 h-5 {{ $activeTab == 'details' ? 'text-primary-600' : '' }}" /> Detail
+                </button>
+                <button wire:click="$set('activeTab', 'passengers')" class="{{ $activeTab == 'passengers' ? 'bg-white shadow text-gray-900 pointer-events-none' : 'text-gray-500 hover:text-gray-700' }} flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 text-xs font-bold rounded-xl transition-all relative">
+                    <x-heroicon-s-users class="w-5 h-5 {{ $activeTab == 'passengers' ? 'text-emerald-600' : '' }}" /> Penumpang
+                    @if($this->passengers->count() > 0)
+                    <span class="absolute top-2 right-4 flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    @endif
+                </button>
+                <button wire:click="$set('activeTab', 'cargos')" class="{{ $activeTab == 'cargos' ? 'bg-white shadow text-gray-900 pointer-events-none' : 'text-gray-500 hover:text-gray-700' }} flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 text-xs font-bold rounded-xl transition-all relative">
+                    <x-heroicon-s-cube class="w-5 h-5 {{ $activeTab == 'cargos' ? 'text-orange-500' : '' }}" /> Kargo
+                    @if($this->cargos->count() > 0)
+                    <span class="absolute top-2 right-4 w-2 h-2 rounded-full bg-orange-500"></span>
+                    @endif
+                </button>
+            </div>
+
+            @if($activeTab === 'details')
             {{-- Status Badge --}}
             <div>
                 @if($scheduleModel->status === 'active')
@@ -178,6 +214,92 @@ state([
                     Edit Jadwal
                 </a>
             </div> -->
+
+            @elseif($activeTab === 'passengers')
+                <div class="space-y-3 mt-4">
+                    @forelse($this->passengers as $passenger)
+                    <a href="{{ route('passengers.show', $passenger) }}" class="block bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all overflow-hidden relative">
+                        <div class="flex items-start gap-3 p-3 pb-2 pr-24">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-emerald-50 border border-emerald-100">
+                                <x-heroicon-s-user class="w-5 h-5 text-emerald-600" />
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-gray-900 leading-tight">
+                                    {{ $passenger->name }}
+                                </p>
+                                <p class="text-[10px] text-gray-500 font-semibold mt-0.5 flex items-center gap-1">
+                                    <x-heroicon-o-device-phone-mobile class="w-3 h-3" />
+                                    {{ $passenger->phone ?? '-' }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="absolute top-0 right-0 flex flex-col items-end">
+                            <span class="text-[9px] font-bold px-3 py-1 rounded-bl-lg text-white shadow-sm {{ $passenger->booking->payment_status === 'paid' ? 'bg-emerald-500' : 'bg-red-500' }}">
+                                {{ $passenger->booking->payment_status === 'paid' ? 'LUNAS' : 'BELUM LUNAS' }}
+                            </span>
+                        </div>
+                        <div class="px-3 pb-2 flex items-center justify-between text-[10px] border-t border-gray-50 pt-2 bg-gray-50/50">
+                            <div class="text-gray-600 truncate mr-2 font-bold flex items-center gap-1">
+                                <x-heroicon-o-ticket class="w-3 h-3 text-emerald-600" />
+                                Booking: {{ $passenger->booking->booking_code ?? '-' }}
+                            </div>
+                            <div class="flex items-center gap-1 text-emerald-700 font-black shrink-0 px-2 py-0.5 bg-emerald-100 rounded-md">
+                                KURSI: {{ $passenger->seat_number ?? 'N/A' }}
+                            </div>
+                        </div>
+                    </a>
+                    @empty
+                    <div class="text-center py-10 bg-white rounded-2xl shadow-sm border border-gray-100">
+                        <x-heroicon-o-users class="w-8 h-8 text-gray-300 mx-auto" />
+                        <p class="text-gray-500 font-semibold text-sm mt-2">Tidak ada data penumpang di rute ini.</p>
+                    </div>
+                    @endforelse
+                </div>
+
+            @elseif($activeTab === 'cargos')
+                <div class="space-y-3 mt-4">
+                    @forelse($this->cargos as $cargo)
+                    <a href="{{ route('cargo.show', $cargo) }}" class="block bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all overflow-hidden relative">
+                        <div class="absolute top-0 right-0 flex flex-col items-end">
+                            <span class="text-[9px] font-bold px-3 py-1 rounded-bl-lg text-white shadow-sm {{ $cargo->status === 'received' ? 'bg-emerald-600' : 'bg-blue-600' }}">
+                                {{ $cargo->status === 'received' ? 'SUDAH DIAMBIL' : 'BELUM DIAMBIL' }}
+                            </span>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-bl-md text-[8px] font-bold text-white shadow-sm {{ $cargo->is_paid ? 'bg-emerald-500' : 'bg-red-500' }}">
+                                {{ $cargo->is_paid ? 'LUNAS' : 'BELUM LUNAS' }}
+                            </span>
+                        </div>
+
+                        <div class="flex items-start gap-3 p-3 pb-2 pr-24">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-orange-50">
+                                <x-heroicon-o-cube class="w-4 h-4 text-orange-600" />
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-gray-900 leading-tight">
+                                    {{ $cargo->description }} ({{ $cargo->weight_kg }}Kg)
+                                </p>
+                                <p class="text-[10px] text-gray-500 font-semibold mt-0.5 flex items-center gap-1">
+                                    Resi: <span class="font-black text-gray-800">{{ $cargo->tracking_code ?? 'N/A' }}</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="px-3 pb-2 pt-2 flex items-center justify-between gap-2 border-t border-gray-50 mt-1 bg-gray-50/50">
+                            <div class="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded bg-orange-100 text-orange-700">
+                                Biaya: Rp{{ number_format($cargo->fee, 0, ',', '.') }}
+                            </div>
+                            <div class="flex items-center gap-1 text-[10px] text-gray-500 shrink-0">
+                                <x-heroicon-o-user class="w-3 h-3" /> {{ $cargo->recipient_name }}
+                            </div>
+                        </div>
+                    </a>
+                    @empty
+                    <div class="text-center py-10 bg-white rounded-2xl shadow-sm border border-gray-100">
+                        <x-heroicon-o-cube class="w-8 h-8 text-gray-300 mx-auto" />
+                        <p class="text-gray-500 font-semibold text-sm mt-2">Tidak ada data kargo di rute ini.</p>
+                    </div>
+                    @endforelse
+                </div>
+            @endif
 
             {{-- FAB Edit Jadwal (kanan bawah, orange) --}}
             <a href="{{ route('schedules.edit', $scheduleModel) }}" class="fixed right-4 z-40 w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg active:scale-95 transition-transform border-2 border-white/30" style="bottom: calc(72px + env(safe-area-inset-bottom)); background: linear-gradient(135deg, #F57C00, #FF9800); box-shadow: 0 4px 20px rgba(245,124,0,0.45);" title="Edit jadwal">

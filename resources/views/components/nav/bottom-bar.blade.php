@@ -9,7 +9,7 @@
         <div></div>
 
         <x-nav.bottom-item route="cargo.index" label="Cargo" icon="cube" />
-        <x-nav.bottom-item route="profile.edit" label="Profil" icon="user" />
+        <x-nav.bottom-item route="passengers.index" label="Penumpang" icon="users" />
 
     </div>
 </nav>
