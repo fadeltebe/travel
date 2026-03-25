@@ -207,22 +207,22 @@ new class extends Component {
 
         {{-- STEP 1: JADWAL --}}
         @if($step === 1)
-        @include('livewire.bookings.partials.cargo-step1-jadwal')
+        @include('livewire.bookings.partials.cargo.step1-jadwal')
         @endif
 
         {{-- STEP 2: KONTAK --}}
         @if($step === 2)
-        @include('livewire.bookings.partials.cargo-step2-kontak')
+        @include('livewire.bookings.partials.cargo.step2-kontak')
         @endif
 
         {{-- STEP 3: BARANG --}}
         @if($step === 3)
-        @include('livewire.bookings.partials.cargo-step3-barang')
+        @include('livewire.bookings.partials.cargo.step3-barang')
         @endif
 
         {{-- STEP 4: FINAL --}}
         @if($step === 4)
-        @include('livewire.bookings.partials.cargo-step4-pembayaran')
+        @include('livewire.bookings.partials.cargo.step4-pembayaran')
         @endif
     </div>
 </div>

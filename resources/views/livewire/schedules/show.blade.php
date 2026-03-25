@@ -61,16 +61,17 @@ $cargos = computed(function () {
                 <button wire:click="$set('activeTab', 'passengers')" class="{{ $activeTab == 'passengers' ? 'bg-white shadow text-gray-900 pointer-events-none' : 'text-gray-500 hover:text-gray-700' }} flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 text-xs font-bold rounded-xl transition-all relative">
                     <x-heroicon-s-users class="w-5 h-5 {{ $activeTab == 'passengers' ? 'text-emerald-600' : '' }}" /> Penumpang
                     @if($this->passengers->count() > 0)
-                    <span class="absolute top-2 right-4 flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    <span class="absolute top-1.5 right-2 inline-flex items-center justify-center min-w-[16px] h-4 text-[9px] font-black text-white bg-emerald-500 rounded-full px-1 shadow-sm">
+                        {{ $this->passengers->count() }}
                     </span>
                     @endif
                 </button>
                 <button wire:click="$set('activeTab', 'cargos')" class="{{ $activeTab == 'cargos' ? 'bg-white shadow text-gray-900 pointer-events-none' : 'text-gray-500 hover:text-gray-700' }} flex-1 flex flex-col items-center justify-center gap-1.5 py-2.5 text-xs font-bold rounded-xl transition-all relative">
                     <x-heroicon-s-cube class="w-5 h-5 {{ $activeTab == 'cargos' ? 'text-orange-500' : '' }}" /> Kargo
                     @if($this->cargos->count() > 0)
-                    <span class="absolute top-2 right-4 w-2 h-2 rounded-full bg-orange-500"></span>
+                    <span class="absolute top-1.5 right-2 inline-flex items-center justify-center min-w-[16px] h-4 text-[9px] font-black text-white bg-orange-500 rounded-full px-1 shadow-sm">
+                        {{ $this->cargos->count() }}
+                    </span>
                     @endif
                 </button>
             </div>
