@@ -12,6 +12,12 @@ Route::get('/', function () {
 Volt::route('/cek-resi', 'cargos.track')
     ->name('cargo.track');
 
+// ── HTML Thermal Receipt (Public for Printer App) ──
+Route::get('/receipt/cargo/{tracking_code}', function ($tracking_code) {
+    $cargo = \App\Models\Cargo::with(['booking', 'originAgent', 'destinationAgent'])->where('tracking_code', $tracking_code)->firstOrFail();
+    return view('cargos.receipt', compact('cargo'));
+})->name('cargo.receipt_html');
+
 // ── Auth Routes (dari Breeze) ──────────────
 require __DIR__ . '/auth.php';
 
@@ -52,59 +58,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('cargo.show');
         
     Route::get('/cargo/{cargo}/print', function (\App\Models\Cargo $cargo) {
-        $cargo->load(['booking', 'originAgent', 'destinationAgent']);
-
-        $centerText = function ($text, $width = 32) {
-            $text = trim($text);
-            if (strlen($text) >= $width) return $text;
-            $padding = (int) floor(($width - strlen($text)) / 2);
-            return str_repeat(' ', max(0, $padding)) . $text;
-        };
-
-        $bPad = function ($left, $right, $width = 32) {
-            $space = $width - strlen($left) - strlen($right);
-            if ($space < 1) $space = 1;
-            return $left . str_repeat(' ', $space) . $right;
-        };
-
-        $text = $centerText("KARGO RESMI") . "\n";
-        $text .= $centerText($cargo->originAgent->city ?? 'Agen') . "\n";
-        $text .= str_repeat('-', 32) . "\n";
+        $receiptUrl = route('cargo.receipt_html', $cargo->tracking_code);
+        $encodedUrl = $receiptUrl; // No need to urlencode standard Http protocols for rawbt detection
+        $intentUrl = "intent:$encodedUrl#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
         
-        $text .= $centerText("Resi: " . $cargo->tracking_code) . "\n";
-        $text .= $centerText($cargo->created_at->format('d/m/Y H:i') . ' WIB') . "\n";
-        $text .= str_repeat('-', 32) . "\n";
-
-        $text .= "PENGIRIM:\n";
-        $text .= ($cargo->booking->booker_name ?? '-') . "\n";
-        $text .= ($cargo->booking->booker_phone ?? '-') . "\n";
-        $text .= "\n";
-        
-        $text .= "PENERIMA:\n";
-        $text .= ($cargo->recipient_name ?? '-') . "\n";
-        $text .= ($cargo->recipient_phone ?? '-') . "\n";
-        $text .= "TUJUAN: " . strtoupper($cargo->destinationAgent->city ?? '-') . "\n";
-        $text .= str_repeat('-', 32) . "\n";
-
-        $text .= strtoupper($cargo->item_name ?? 'PAKET') . "\n";
-        $text .= ($cargo->description ?? '-') . "\n";
-        $text .= $bPad("Berat:", $cargo->weight_kg . " KG") . "\n";
-        $text .= $bPad("Koli:", $cargo->quantity . " BOX") . "\n";
-        $text .= str_repeat('-', 32) . "\n";
-
-        $text .= $bPad("TOTAL:", "Rp" . number_format($cargo->fee, 0, ',', '.')) . "\n\n";
-
-        $status = $cargo->is_paid ? 'LUNAS' : 'BELUM LUNAS';
-        $text .= $centerText("[ " . $status . " ]") . "\n";
-        
-        $text .= str_repeat('-', 32) . "\n";
-        $text .= $centerText("Harap simpan resi ini sebagai") . "\n";
-        $text .= $centerText("bukti pengambilan barang.") . "\n";
-        $text .= "\n\n\n";
-
-        $encodedText = urlencode($text);
-        $intentUrl = "intent:$encodedText#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
-
         return redirect()->away($intentUrl);
     })->name('cargo.print');
 
