@@ -6,11 +6,12 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 layout('layouts.blank');
 
-state(['cargo' => null]);
+state(['cargo' => null, 'company' => null]);
 
 mount(function (Cargo $cargo) {
     // Memastikan relasi termuat
     $this->cargo = $cargo->load(['booking', 'originAgent', 'destinationAgent']);
+    $this->company = \App\Models\Company::first();
 });
 
 ?>
@@ -37,12 +38,16 @@ mount(function (Cargo $cargo) {
             body { background: #f3f4f6; display: flex; justify-content: center; padding: 20px; }
             .thermal-receipt { background: #fff; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
         }
+
+        @media print {
+            .print\:hidden { display: none !important; }
+        }
     </style>
 
     <div class="thermal-receipt">
         <div class="text-center mb-1">
-            <div class="font-black" style="font-size: 14px;">KARGO RESMI</div>
-            <div style="font-size: 9px;">{{ $cargo->originAgent->city ?? 'Agen' }}</div>
+            <div class="font-black" style="font-size: 14px;">{{ strtoupper($company->name ?? 'KARGO RESMI') }}</div>
+            <div style="font-size: 9px;">{{ $company->phone ?? 'Agen' }}</div>
         </div>
         
         <div class="divider"></div>
