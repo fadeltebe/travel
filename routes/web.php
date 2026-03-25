@@ -50,63 +50,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('cargo.index');
     Volt::route('/cargo/{cargo}', 'cargos.show')
         ->name('cargo.show');
-        
-    Route::get('/cargo/{cargo}/print', function (\App\Models\Cargo $cargo) {
-        $cargo->load(['booking', 'originAgent', 'destinationAgent']);
-
-        $center = function ($text, $width = 32) {
-            $text = trim($text);
-            if (strlen($text) >= $width) return $text;
-            $padding = (int) floor(($width - strlen($text)) / 2);
-            return str_repeat(' ', max(0, $padding)) . $text;
-        };
-
-        $bPad = function ($left, $right, $width = 32) {
-            $space = $width - strlen($left) - strlen($right);
-            if ($space < 1) $space = 1;
-            return $left . str_repeat(' ', $space) . $right;
-        };
-
-        // Header
-        $text = $center("KARGO RESMI") . "\n";
-        $text .= $center($cargo->originAgent->city ?? 'Agen') . "\n";
-        $text .= str_repeat('-', 32) . "\n";
-        
-        // Memaksa RawBT untuk memproses tag QRCode (Fitur Native RawBT)
-        $trackUrl = url('/cek-resi?trackingCode=' . $cargo->tracking_code);
-        $text .= "<qrcode>{$trackUrl}</qrcode>\n";
-        
-        $text .= $center("Resi: " . $cargo->tracking_code) . "\n";
-        $text .= $center($cargo->created_at->format('d/m/Y H:i') . ' WIB') . "\n";
-        $text .= str_repeat('-', 32) . "\n";
-
-        // Detail Kompak
-        $text .= "PENGIRIM: " . ($cargo->booking->booker_name ?? '-') . " (" . ($cargo->booking->booker_phone ?? '-') . ")\n";
-        $text .= "PENERIMA: " . ($cargo->recipient_name ?? '-') . " (" . ($cargo->recipient_phone ?? '-') . ")\n";
-        $text .= "TUJUAN: " . strtoupper($cargo->destinationAgent->city ?? '-') . "\n";
-        $text .= str_repeat('-', 32) . "\n";
-
-        $text .= strtoupper($cargo->item_name ?? 'PAKET') . "\n";
-        if (!empty($cargo->description)) {
-            $text .= ($cargo->description) . "\n";
-        }
-        $text .= "Brt: " . $cargo->weight_kg . " KG | Koli: " . $cargo->quantity . " BOX\n";
-        $text .= str_repeat('-', 32) . "\n";
-
-        $text .= $bPad("TOTAL:", "Rp" . number_format($cargo->fee, 0, ',', '.')) . "\n";
-
-        $status = $cargo->is_paid ? 'LUNAS' : 'BELUM LUNAS';
-        $text .= $center("[ " . $status . " ]") . "\n";
-        
-        $text .= str_repeat('-', 32) . "\n";
-        $text .= $center("Harap simpan resi ini sebagai") . "\n";
-        $text .= $center("bukti pengambilan barang.") . "\n\n\n";
-
-        $encodedText = urlencode($text);
-        $intentUrl = "intent:$encodedText#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
-
-        return redirect()->away($intentUrl);
-    })->name('cargo.print');
+    Volt::route('/cargo/{cargo}/print', 'cargos.print')
+        ->name('cargo.print');
 
     // Passengers
     Volt::route('/passengers', 'passengers.index')
