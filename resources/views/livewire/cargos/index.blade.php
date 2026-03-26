@@ -119,7 +119,7 @@ $cargos = computed(function () {
                                 <x-heroicon-o-cube class="w-4 h-4 text-orange-600" />
                             </div>
                             <div class="min-w-0">
-                                <p class="text-xs text-gray-900 leading-tight">
+                                <p class="text-xs text-gray-900 leading-tight font-bold">
                                     {{ $cargo->tracking_code ?? 'N/A' }}
                                 </p>
                                 <p class="text-[10px] text-gray-500 font-semibold mt-0.5 flex items-center gap-1">
