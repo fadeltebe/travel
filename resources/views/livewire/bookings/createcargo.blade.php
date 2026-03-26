@@ -33,9 +33,25 @@ new class extends Component {
     // Computed Property untuk Jadwal (Solusi Error PropertyNotFound)
     public function with(): array
     {
+        $user = auth()->user();
+
         return [
             'schedules' => Schedule::with(['route.originAgent', 'route.destinationAgent', 'bus'])
                 ->where('departure_date', '>=', now()->toDateString())
+                
+                // MAGISNYA GLOBAL SCOPE: 
+                // Di titik ini, Laravel SEBENARNYA sudah otomatis membuang jadwal 
+                // agen kota lain. Anda tidak perlu khawatir data bocor.
+
+                // LOGIKA KHUSUS FORM CARGO:
+                // Walaupun sudah difilter oleh Global Scope (bisa melihat Origin & Destination),
+                // untuk KIRIM barang, agen wajib bertindak sebagai PENGIRIM (Origin).
+                ->when($user->role === 'admin_agen', function ($query) use ($user) {
+                    $query->whereHas('route', function ($q) use ($user) {
+                        $q->where('origin_agent_id', $user->agent_id);
+                    });
+                })
+                
                 ->orderBy('departure_date')
                 ->orderBy('departure_time')
                 ->get(),
@@ -125,13 +141,17 @@ new class extends Component {
         try {
             DB::transaction(function () {
                 // Ambil jadwal untuk relasi agent
-                $schedule = Schedule::with('route')->findOrFail($this->schedule_id);
+                $schedule = Schedule::with('route')
+                    ->when($user->role === 'admin_agen', function ($query) use ($user) {
+                        $query->whereHas('route', fn($q) => $q->where('origin_agent_id', $user->agent_id));
+                    })
+                    ->findOrFail($this->schedule_id);
 
                 // Buat Booking Induk untuk merekap tagihan
                 $booking = \App\Models\Booking::create([
-                    'schedule_id' => $this->schedule_id,
-                    'agent_id' => auth()->user()->agent_id ?? 1,
-                    'user_id' => auth()->id() ?? 1,
+                    'schedule_id' => $schedule->id,
+                    'agent_id' => $user->agent_id ?? 1,
+                    'user_id' => $user->id,
                     'booker_name' => $this->sender_name,
                     'booker_phone' => $this->sender_phone,
                     'total_passengers' => 0,
@@ -172,6 +192,9 @@ new class extends Component {
             session()->flash('success', 'Data Cargo berhasil disimpan!');
             return $this->redirect(route('cargo.index'), navigate: true);
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Error ini otomatis terpanggil jika user memanipulasi ID jadwal
+            $this->dispatch('notify', message: 'Akses Ditolak: Jadwal tidak valid atau bukan milik agen Anda.', type: 'error');
         } catch (\Exception $e) {
             $this->dispatch('notify', message: 'Gagal menyimpan: ' . $e->getMessage(), type: 'error');
         }

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Scopes\ScheduleAccessScope;
 
 class Schedule extends Model
 {
@@ -37,6 +38,16 @@ class Schedule extends Model
             'updated_at'      => 'datetime',
             'deleted_at'      => 'datetime',
         ];
+    }
+
+    /**
+     * The "booted" method of the model.
+     * Otomatis dijalankan Laravel saat model Schedule dipanggil.
+     */
+    protected static function booted(): void
+    {
+        // Aktifkan kacamata filter otomatis!
+        static::addGlobalScope(new ScheduleAccessScope);
     }
 
     // ── Relationships ──────────────────────
