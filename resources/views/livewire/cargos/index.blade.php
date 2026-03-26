@@ -116,7 +116,7 @@ $cargos = computed(function () {
                                 <x-heroicon-o-cube class="w-4 h-4 text-orange-600" />
                             </div>
                             <div class="min-w-0">
-                                <p class="text-xs font-bold text-gray-900 leading-tight">
+                                <p class="text-xs text-gray-900 leading-tight">
                                     <b>{{ $cargo->item_name }}</b> ({{ $cargo->description }})
                                 </p>
                                 <p class="text-[10px] text-gray-500 font-semibold mt-0.5 flex items-center gap-1">
@@ -137,9 +137,6 @@ $cargos = computed(function () {
                             <div class="text-gray-600 truncate mr-2">
                                 <span class="font-black text-gray-800">{{ $cargo->tracking_code ?? 'N/A' }}</span>
                             </div>
-                            <div class="flex items-center gap-1 text-gray-500 shrink-0">
-                                <x-heroicon-o-user class="w-3 h-3" /> {{ $cargo->recipient_name }}
-                            </div>
                         </div>
 
                         {{-- Baris 3: Tracking & Harga --}}
@@ -148,6 +145,9 @@ $cargos = computed(function () {
                             <div
                                 class="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded {{ $st['bg'] }} {{ $st['text'] }}">
                                 {{ $st['label'] }}
+                            </div>
+                            <div class="text-gray-500">
+                                {{ $cargo->recipient_name }} | ({{ $cargo->recipient_phone }})
                             </div>
                             <span class="font-black text-orange-500">
                                 Rp{{ number_format($cargo->fee, 0, ',', '.') }}
