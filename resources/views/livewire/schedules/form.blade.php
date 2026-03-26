@@ -46,24 +46,13 @@ mount(function (int $scheduleId = null) {
     }
 });
 
-// 2. TAMBAHKAN KODE INI: Auto-fill saat dropdown dipilih
+// 2. Auto-fill saat dropdown dipilih
 updated([
     'route_id' => function ($value) {
-        if ($value) {
-            // Jika rute dipilih, cari harganya dan isi otomatis ke input price
-            $this->price = RouteModel::find($value)?->base_price ?? '';
-        } else {
-            $this->price = '';
-        }
+        $this->price = $value ? (RouteModel::find($value)?->base_price ?? '') : '';
     },
-
     'bus_id' => function ($value) {
-        if ($value) {
-            // Jika bus dipilih, cari total kursinya dan isi otomatis
-            $this->available_seats = Bus::find($value)?->total_seats ?? '';
-        } else {
-            $this->available_seats = '';
-        }
+        $this->available_seats = $value ? (Bus::find($value)?->total_seats ?? '') : '';
     },
 ]);
 

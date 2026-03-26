@@ -1,15 +1,61 @@
 <?php
-use function Livewire\Volt\{state,computed};
+use function Livewire\Volt\{state, computed};
 use App\Models\Schedule;
+use App\Models\Booking;
+use App\Models\Passenger;
+use App\Models\Cargo;
+use Illuminate\Database\Eloquent\Builder;
+
 state([
-'filterDate' => now()->format('Y-m-d'),
+    'filterDate' => now()->format('Y-m-d'),
 ]);
 
-$schedules = computed(function () {
-    return Schedule::query()
-        ->with('route.originAgent', 'route.destinationAgent', 'bus', 'driver')
-        ->latest()
-        ->get();
+$metrics = computed(function () {
+    $user = auth()->user();
+    $date = $this->filterDate;
+
+    // 1. Jadwal Berangkat Hari Ini
+    $schedulesQuery = Schedule::whereDate('departure_date', $date);
+    
+    // 2. Booking Terjadwal Hari Ini
+    $bookingsQuery = Booking::whereHas('schedule', function (Builder $q) use ($date) {
+        $q->whereDate('departure_date', $date);
+    });
+
+    // 3. Penumpang Berangkat Hari Ini
+    $passengersQuery = Passenger::whereHas('booking.schedule', function (Builder $q) use ($date) {
+        $q->whereDate('departure_date', $date);
+    });
+
+    // 4. Cargo Diterima Hari Ini
+    $cargosQuery = Cargo::whereDate('created_at', $date);
+
+    // Terapkan Filter Berdasarkan Role Agen
+    if (!$user->canViewAll()) {
+        $agentId = $user->agent_id;
+        
+        $schedulesQuery->whereHas('route', function(Builder $q) use ($agentId) {
+            $q->where('origin_agent_id', $agentId)->orWhere('destination_agent_id', $agentId);
+        });
+
+        $bookingsQuery->where('agent_id', $agentId);
+
+        $passengersQuery->whereHas('booking', function (Builder $q) use ($agentId) {
+            $q->where('agent_id', $agentId);
+        });
+
+        $cargosQuery->where(function ($q) use ($agentId) {
+            $q->where('origin_agent_id', $agentId)
+              ->orWhere('destination_agent_id', $agentId);
+        });
+    }
+
+    return [
+        'schedules' => $schedulesQuery->count(),
+        'bookings'  => $bookingsQuery->count(),
+        'passengers'=> $passengersQuery->count(),
+        'cargos'    => $cargosQuery->count(),
+    ];
 });
 
 ?>
@@ -32,7 +78,7 @@ $schedules = computed(function () {
                         {{ auth()->user()->role->label() }}
                     </span>
                     <span class="text-blue-200 text-xs">
-                        {{ now()->isoFormat('dddd, D MMM Y') }}
+                        {{ now()->locale('id')->translatedFormat('d F Y') }}
                     </span>
                 </div>
             </div>
@@ -71,7 +117,7 @@ $schedules = computed(function () {
                             </span>
                         </a>
 
-                        <a href="#" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
+                        <a href="{{ route('reports.index') }}" class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
                             <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background: #F3E5F5">
                                 <x-heroicon-o-chart-bar class="w-6 h-6 text-purple-700" />
                             </div>
@@ -97,7 +143,7 @@ $schedules = computed(function () {
                                 </div>
                                 <div>
                                     <p class="text-[11px] text-gray-400">Jadwal</p>
-                                    <p class="text-xl font-bold text-gray-800 leading-tight">{{ $this->schedules->count() }}</p>
+                                    <p class="text-xl font-bold text-gray-800 leading-tight">{{ $this->metrics['schedules'] }}</p>
                                 </div>
                             </div>
                         </div>
@@ -109,7 +155,7 @@ $schedules = computed(function () {
                                 </div>
                                 <div>
                                     <p class="text-[11px] text-gray-400">Booking</p>
-                                    <p class="text-xl font-bold text-gray-800 leading-tight">0</p>
+                                    <p class="text-xl font-bold text-gray-800 leading-tight">{{ $this->metrics['bookings'] }}</p>
                                 </div>
                             </div>
                         </div>
@@ -121,7 +167,7 @@ $schedules = computed(function () {
                                 </div>
                                 <div>
                                     <p class="text-[11px] text-gray-400">Penumpang</p>
-                                    <p class="text-xl font-bold text-gray-800 leading-tight">0</p>
+                                    <p class="text-xl font-bold text-gray-800 leading-tight">{{ $this->metrics['passengers'] }}</p>
                                 </div>
                             </div>
                         </div>
@@ -133,7 +179,7 @@ $schedules = computed(function () {
                                 </div>
                                 <div>
                                     <p class="text-[11px] text-gray-400">Cargo</p>
-                                    <p class="text-xl font-bold text-gray-800 leading-tight">0</p>
+                                    <p class="text-xl font-bold text-gray-800 leading-tight">{{ $this->metrics['cargos'] }}</p>
                                 </div>
                             </div>
                         </div>

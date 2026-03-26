@@ -77,28 +77,34 @@ $cargos = computed(function () {
             </div>
 
             @if($activeTab === 'details')
-            {{-- Status Badge --}}
-            <div>
-                @if($scheduleModel->status === 'active')
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium" style="background: rgba(16, 185, 129, 0.12); color: #059669;">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    Aktif
-                </span>
-                @else
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
-                    <span class="w-2 h-2 rounded-full bg-gray-400"></span>
-                    Nonaktif
-                </span>
-                @endif
-            </div>
+            {{-- Tombol Laporan Perjalanan (Manifest) --}}
+            <a href="{{ route('schedules.manifest', $scheduleModel) }}" target="_blank" class="flex items-center justify-center gap-2 w-full py-3.5 mb-4 rounded-xl text-sm font-bold text-white shadow-sm hover:opacity-90 active:scale-[0.98] transition-all" style="background: linear-gradient(135deg, #10B981, #059669);">
+                <x-heroicon-s-printer class="w-5 h-5"/>
+                Cetak Laporan Perjalanan
+            </a>
 
             {{-- Route Card (BRImo / theme style) --}}
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                <div class="flex items-center gap-2 mb-3">
-                    <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #1d4ed8, #6366f1);">
-                        <x-heroicon-o-map-pin class="w-4 h-4 text-white" />
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #1d4ed8, #6366f1);">
+                            <x-heroicon-o-map-pin class="w-4 h-4 text-white" />
+                        </div>
+                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Rute</span>
                     </div>
-                    <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Rute</span>
+
+                    {{-- Status Badge Pindahan --}}
+                    @if($scheduleModel->status === 'scheduled' || $scheduleModel->status === 'ongoing')
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase" style="background: rgba(16, 185, 129, 0.12); color: #059669;">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Aktif
+                    </span>
+                    @else
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-gray-100 text-gray-600">
+                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                        Nonaktif
+                    </span>
+                    @endif
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="flex-1 min-w-0">

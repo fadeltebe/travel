@@ -22,6 +22,10 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('/dashboard', 'dashboard.index')
         ->name('dashboard');
 
+    // Reports
+    Volt::route('/reports', 'reports.index')
+        ->name('reports.index');
+
     // Agents
     Volt::route('/agents', 'agents.index')
         ->name('agents.index');
@@ -35,6 +39,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('schedules.edit');
     Volt::route('/schedules/{schedule}', 'schedules.show')
         ->name('schedules.show');
+    Volt::route('/schedules/{schedule}/manifest', 'schedules.manifest')
+        ->name('schedules.manifest');
 
     //Bookings
     // Route untuk Booking Penumpang (Wizard 4 step)
