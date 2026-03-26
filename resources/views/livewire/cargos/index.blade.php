@@ -73,7 +73,7 @@ $cargos = computed(function () {
             {{-- Status Filter --}}
             <div class="bg-white rounded-2xl p-2 shadow-sm border border-gray-100">
                 <div class="grid grid-cols-3 gap-2">
-                    @foreach (['' => 'Semua', 'not_received' => 'Belum Diambil', 'received' => 'Sudah Diambil'] as $val => $label)
+                    @foreach (['' => 'Semua', 'not_received' => 'Belum Diterima', 'received' => 'Diterima'] as $val => $label)
                         <button wire:click="$set('filterStatus', '{{ $val }}')"
                             class="px-5 py-2 text-xs mt-3 font-bold rounded-xl transition-all duration-200 {{ $filterStatus === $val ? 'bg-orange-500 text-white shadow-md' : 'bg-gray-50 text-gray-500 hover:bg-gray-100' }}">
                             {{ $label }}
@@ -120,12 +120,13 @@ $cargos = computed(function () {
                                     <b>{{ $cargo->item_name }}</b> ({{ $cargo->description }})
                                 </p>
                                 <p class="text-[10px] text-gray-500 font-semibold mt-0.5 flex items-center gap-1">
-                                    <x-heroicon-o-calendar class="w-3 h-3" />
+                                    <x-heroicon-o-map-pin class="w-3 h-3" />
 
                                     {{ $cargo->originAgent->city ?? '-' }} →
                                     {{ $cargo->destinationAgent->city ?? '-' }}
 
                                     <span class="text-gray-300">|</span>
+                                    <x-heroicon-o-calendar class="w-3 h-3" />
                                     {{ $cargo->created_at->format('d M y') }}
 
                                 </p>
@@ -147,7 +148,7 @@ $cargos = computed(function () {
                                 {{ $st['label'] }}
                             </div>
                             <div class="text-xs text-gray-500">
-                                {{ $cargo->recipient_name }} | ({{ $cargo->recipient_phone }})
+                                {{ $cargo->recipient_name }} • ({{ $cargo->recipient_phone }})
                             </div>
                             <span class="font-black text-orange-500">
                                 Rp{{ number_format($cargo->fee, 0, ',', '.') }}
