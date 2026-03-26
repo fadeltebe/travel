@@ -146,7 +146,7 @@ $cargos = computed(function () {
                                 class="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded {{ $st['bg'] }} {{ $st['text'] }}">
                                 {{ $st['label'] }}
                             </div>
-                            <div class="text-gray-500">
+                            <div class="text-xs text-gray-500">
                                 {{ $cargo->recipient_name }} | ({{ $cargo->recipient_phone }})
                             </div>
                             <span class="font-black text-orange-500">
