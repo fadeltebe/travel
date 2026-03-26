@@ -117,11 +117,7 @@ $cargos = computed(function () {
                             </div>
                             <div class="min-w-0">
                                 <p class="text-xs font-bold text-gray-900 leading-tight">
-
-                                    {{ $cargo->item_name }}</b> ({{ $cargo->description }}Koli)
-
-                                    {{ $cargo->originAgent->city ?? '-' }} →
-                                    {{ $cargo->destinationAgent->city ?? '-' }}
+                                    <b>{{ $cargo->item_name }}</b> ({{ $cargo->description }})
                                 </p>
                                 <p class="text-[10px] text-gray-500 font-semibold mt-0.5 flex items-center gap-1">
                                     <x-heroicon-o-calendar class="w-3 h-3" />
