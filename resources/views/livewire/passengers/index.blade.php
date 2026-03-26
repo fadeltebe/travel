@@ -1,7 +1,10 @@
 <?php
-use function Livewire\Volt\{state, computed};
+use function Livewire\Volt\{state, computed, uses};
+use Livewire\WithPagination;
 use App\Models\Passenger;
 use Illuminate\Database\Eloquent\Builder;
+
+uses(WithPagination::class);
 
 state([
     'search' => '',
@@ -29,7 +32,7 @@ $passengers = computed(function () {
                   });
         })
         ->latest()
-        ->get();
+        ->paginate(20);
 });
 ?>
 
@@ -46,7 +49,7 @@ $passengers = computed(function () {
 
             {{-- Search Bar --}}
             <div class="mt-4 relative z-10 w-full">
-                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari nama, no hp, atau kode booking..." class="w-full pl-10 pr-4 py-3 rounded-xl border-none shadow-sm text-sm text-gray-800 focus:ring-2 focus:ring-emerald-300">
+                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Cari nama, no hp, atau kode booking..." class="w-full pl-10 pr-4 py-3 rounded-xl border-none shadow-sm text-sm text-gray-800 focus:ring-2 focus:ring-emerald-300">
             </div>
         </div>
 
@@ -88,6 +91,9 @@ $passengers = computed(function () {
                         <div class="text-gray-600 truncate mr-2 font-bold flex items-center gap-1">
                             <x-heroicon-o-map-pin class="w-3 h-3 text-emerald-600" />
                             {{ $passenger->booking->schedule->route->originAgent->city ?? '-' }} → {{ $passenger->booking->schedule->route->destinationAgent->city ?? '-' }}
+                            <span class="text-gray-300 mx-1">|</span>
+                            <x-heroicon-o-calendar class="w-3 h-3 text-emerald-600" />
+                            {{ \Carbon\Carbon::parse($passenger->booking->schedule->departure_date)->locale('id')->translatedFormat('d F Y') }}
                         </div>
                         <div class="flex items-center gap-1 text-emerald-700 font-black shrink-0 px-2 py-0.5 bg-emerald-100 rounded-md">
                             KURSI: {{ $passenger->seat_number ?? 'N/A' }}
@@ -104,6 +110,10 @@ $passengers = computed(function () {
                 @endforelse
             </div>
             
+            {{-- Pagination --}}
+            <div class="mt-4">
+                {{ $this->passengers->links() }}
+            </div>
         </div>
     </x-layouts.app>
 </div>
