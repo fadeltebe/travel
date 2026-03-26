@@ -73,7 +73,7 @@ $cargos = computed(function () {
             {{-- Status Filter --}}
             <div class="bg-white rounded-2xl p-2 shadow-sm border border-gray-100">
                 <div class="grid grid-cols-3 gap-2">
-                    @foreach (['' => 'Semua', 'not_received' => 'Belum Diterima', 'received' => 'Diterima'] as $val => $label)
+                    @foreach (['' => 'Semua', 'not_received' => 'Pending', 'received' => 'Diterima'] as $val => $label)
                         <button wire:click="$set('filterStatus', '{{ $val }}')"
                             class="px-5 py-2 text-xs mt-3 font-bold rounded-xl transition-all duration-200 {{ $filterStatus === $val ? 'bg-orange-500 text-white shadow-md' : 'bg-gray-50 text-gray-500 hover:bg-gray-100' }}">
                             {{ $label }}
