@@ -10,14 +10,14 @@ new class extends Component {
     // State Form
     public $step = 1;
     public $schedule_id;
-    
+
     // Data Pengirim & Penerima
     public $sender_name, $sender_phone;
     public $receiver_name, $receiver_phone, $pickup_address;
-    
+
     // Data Barang (Multiple Items)
     public $items = [];
-    
+
     // Pembayaran
     public $payment_method = 'cash';
     public $payment_status = 'pending';
@@ -38,20 +38,16 @@ new class extends Component {
         return [
             'schedules' => Schedule::with(['route.originAgent', 'route.destinationAgent', 'bus'])
                 ->where('departure_date', '>=', now()->toDateString())
-                
-                // MAGISNYA GLOBAL SCOPE: 
-                // Di titik ini, Laravel SEBENARNYA sudah otomatis membuang jadwal 
-                // agen kota lain. Anda tidak perlu khawatir data bocor.
 
-                // LOGIKA KHUSUS FORM CARGO:
-                // Walaupun sudah difilter oleh Global Scope (bisa melihat Origin & Destination),
-                // untuk KIRIM barang, agen wajib bertindak sebagai PENGIRIM (Origin).
-                ->when($user->role === 'admin_agen', function ($query) use ($user) {
+                // PERBAIKAN DI SINI:
+                // Gunakan logika terbalik. Selama dia bukan super_admin / owner,
+                // dan dia memiliki agent_id, maka kunci hanya di markasnya (Origin).
+                ->when(!in_array($user->role, ['super_admin', 'owner']) && $user->agent_id, function ($query) use ($user) {
                     $query->whereHas('route', function ($q) use ($user) {
                         $q->where('origin_agent_id', $user->agent_id);
                     });
                 })
-                
+
                 ->orderBy('departure_date')
                 ->orderBy('departure_time')
                 ->get(),
@@ -67,7 +63,7 @@ new class extends Component {
             'description' => '',
             'qty' => 1,
             'weight' => 1,
-            'price' => 0
+            'price' => 0,
         ];
     }
 
@@ -92,21 +88,24 @@ new class extends Component {
                     'receiver_name' => 'required',
                 ]);
             } elseif ($step == 4) {
-                $this->validate([
-                    'items.*.item_name' => 'required',
-                    'items.*.description' => 'required',
-                    'items.*.price' => 'required|numeric|min:0',
-                ], [
-                    'items.*.item_name.required' => 'Semua Nama Barang harus diisi',
-                    'items.*.description.required' => 'Semua Keterangan Isi harus diisi',
-                    'items.*.price.required' => 'Semua Biaya Kirim harus diisi (minimal 0)',
-                ]);
-                
+                $this->validate(
+                    [
+                        'items.*.item_name' => 'required',
+                        'items.*.description' => 'required',
+                        'items.*.price' => 'required|numeric|min:0',
+                    ],
+                    [
+                        'items.*.item_name.required' => 'Semua Nama Barang harus diisi',
+                        'items.*.description.required' => 'Semua Keterangan Isi harus diisi',
+                        'items.*.price.required' => 'Semua Biaya Kirim harus diisi (minimal 0)',
+                    ],
+                );
+
                 if (collect($this->items)->sum('price') <= 0) {
                     $this->dispatch('notify', message: 'Total tagihan tidak boleh Rp0', type: 'error');
                 }
             }
-            
+
             $this->step = $step;
             $this->dispatch('scroll-to-top');
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -142,7 +141,7 @@ new class extends Component {
             DB::transaction(function () {
                 // Ambil jadwal untuk relasi agent
                 $schedule = Schedule::with('route')
-                    ->when($user->role === 'admin_agen', function ($query) use ($user) {
+                    ->when(!in_array($user->role, ['super_admin', 'owner']) && $user->agent_id, function ($query) use ($user) {
                         $query->whereHas('route', fn($q) => $q->where('origin_agent_id', $user->agent_id));
                     })
                     ->findOrFail($this->schedule_id);
@@ -191,7 +190,6 @@ new class extends Component {
 
             session()->flash('success', 'Data Cargo berhasil disimpan!');
             return $this->redirect(route('cargo.index'), navigate: true);
-
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             // Error ini otomatis terpanggil jika user memanipulasi ID jadwal
             $this->dispatch('notify', message: 'Akses Ditolak: Jadwal tidak valid atau bukan milik agen Anda.', type: 'error');
@@ -206,14 +204,16 @@ new class extends Component {
 
         {{-- Header & Progress --}}
         <div class="flex items-center gap-3">
-            @if($step > 1)
-            <button type="button" wire:click="goStep({{ $step - 1 }})" class="w-10 h-10 rounded-xl flex items-center justify-center border border-gray-200 bg-white shadow-sm active:scale-90 transition-transform">
-                <x-heroicon-o-arrow-left class="w-5 h-5 text-gray-600" />
-            </button>
+            @if ($step > 1)
+                <button type="button" wire:click="goStep({{ $step - 1 }})"
+                    class="w-10 h-10 rounded-xl flex items-center justify-center border border-gray-200 bg-white shadow-sm active:scale-90 transition-transform">
+                    <x-heroicon-o-arrow-left class="w-5 h-5 text-gray-600" />
+                </button>
             @else
-            <a href="{{ route('dashboard') }}" wire:navigate class="w-10 h-10 rounded-xl flex items-center justify-center border border-gray-200 bg-white shadow-sm">
-                <x-heroicon-o-arrow-left class="w-5 h-5 text-gray-600" />
-            </a>
+                <a href="{{ route('dashboard') }}" wire:navigate
+                    class="w-10 h-10 rounded-xl flex items-center justify-center border border-gray-200 bg-white shadow-sm">
+                    <x-heroicon-o-arrow-left class="w-5 h-5 text-gray-600" />
+                </a>
             @endif
             <div>
                 <h1 class="text-xl font-bold text-gray-900">Kirim Paket (Cargo)</h1>
@@ -223,29 +223,29 @@ new class extends Component {
 
         {{-- Progress Bar --}}
         <div class="flex gap-2">
-            @foreach([1,2,3,4] as $s)
-            <div class="flex-1 h-1.5 rounded-full {{ $step >= $s ? 'bg-orange-500' : 'bg-gray-200' }}"></div>
+            @foreach ([1, 2, 3, 4] as $s)
+                <div class="flex-1 h-1.5 rounded-full {{ $step >= $s ? 'bg-orange-500' : 'bg-gray-200' }}"></div>
             @endforeach
         </div>
 
         {{-- STEP 1: JADWAL --}}
-        @if($step === 1)
-        @include('livewire.bookings.partials.cargo.step1-jadwal')
+        @if ($step === 1)
+            @include('livewire.bookings.partials.cargo.step1-jadwal')
         @endif
 
         {{-- STEP 2: KONTAK --}}
-        @if($step === 2)
-        @include('livewire.bookings.partials.cargo.step2-kontak')
+        @if ($step === 2)
+            @include('livewire.bookings.partials.cargo.step2-kontak')
         @endif
 
         {{-- STEP 3: BARANG --}}
-        @if($step === 3)
-        @include('livewire.bookings.partials.cargo.step3-barang')
+        @if ($step === 3)
+            @include('livewire.bookings.partials.cargo.step3-barang')
         @endif
 
         {{-- STEP 4: FINAL --}}
-        @if($step === 4)
-        @include('livewire.bookings.partials.cargo.step4-pembayaran')
+        @if ($step === 4)
+            @include('livewire.bookings.partials.cargo.step4-pembayaran')
         @endif
     </div>
 </div>
