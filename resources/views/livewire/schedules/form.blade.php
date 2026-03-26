@@ -1,66 +1,109 @@
 <?php
-use function Livewire\Volt\{state, computed, mount};
+use function Livewire\Volt\{state, computed, mount, updated};
 use App\Models\Route as RouteModel;
 use App\Models\Bus;
 use App\Models\User;
 use App\Models\Schedule;
 
 state([
-    'scheduleId'      => null,
-    'route_id'        => '',
-    'bus_id'          => '',
-    'driver_id'       => '',
-    'departure_date'  => '',
-    'departure_time'  => '',
-    'arrival_date'    => '',
-    'arrival_time'    => '',
-    'price'           => '',
+    'scheduleId' => null,
+    'route_id' => '',
+    'bus_id' => '',
+    'driver_id' => '',
+    'departure_date' => '',
+    'departure_time' => '',
+    'arrival_date' => '',
+    'arrival_time' => '',
+    'price' => '',
     'available_seats' => '',
-    'status'          => 'scheduled',
-    'isEdit'          => false,
+    'status' => 'scheduled',
+    'isEdit' => false,
 ]);
 
 mount(function (int $scheduleId = null) {
     if ($scheduleId) {
         $schedule = Schedule::findOrFail($scheduleId);
-        $this->scheduleId      = $schedule->id;
-        $this->route_id        = $schedule->route_id;
-        $this->bus_id          = $schedule->bus_id;
-        $this->driver_id       = $schedule->driver_id;
-        $this->departure_date  = $schedule->departure_date->format('Y-m-d');
-        $this->departure_time  = $schedule->departure_time;
-        $this->arrival_date    = $schedule->arrival_date?->format('Y-m-d');
-        $this->arrival_time    = $schedule->arrival_time;
-        $this->price           = $schedule->price;
+        $this->scheduleId = $schedule->id;
+        $this->route_id = $schedule->route_id;
+        $this->bus_id = $schedule->bus_id;
+        $this->driver_id = $schedule->driver_id;
+        $this->departure_date = $schedule->departure_date->format('Y-m-d');
+        // PERBAIKAN DI SINI: Parse format waktunya menjadi H:i (Tanpa detik)
+        $this->departure_time = $schedule->departure_time ? \Carbon\Carbon::parse($schedule->departure_time)->format('H:i') : '';
+        $this->arrival_date = $schedule->arrival_date ? $schedule->arrival_date->format('Y-m-d') : '';
+        // PERBAIKAN DI SINI: Sama seperti departure_time
+        $this->arrival_time = $schedule->arrival_time ? \Carbon\Carbon::parse($schedule->arrival_time)->format('H:i') : '';
+        $this->price = $schedule->price;
         $this->available_seats = $schedule->available_seats;
-        $this->status          = $schedule->status;
-        $this->isEdit          = true;
+        $this->status = $schedule->status;
+        $this->isEdit = true;
+    } else {
+        // NILAI DEFAULT UNTUK TAMBAH DATA BARU
+        $this->departure_date = now()->format('Y-m-d'); // Tanggal hari ini
+        $this->arrival_date = now()->format('Y-m-d'); // Tanggal hari ini
+        $this->departure_time = '08:00'; // Jam 8 pagi
+        $this->arrival_time = '17:00'; // Jam 5 sore
     }
 });
 
+// 2. TAMBAHKAN KODE INI: Auto-fill saat dropdown dipilih
+updated([
+    'route_id' => function ($value) {
+        if ($value) {
+            // Jika rute dipilih, cari harganya dan isi otomatis ke input price
+            $this->price = RouteModel::find($value)?->base_price ?? '';
+        } else {
+            $this->price = '';
+        }
+    },
+
+    'bus_id' => function ($value) {
+        if ($value) {
+            // Jika bus dipilih, cari total kursinya dan isi otomatis
+            $this->available_seats = Bus::find($value)?->total_seats ?? '';
+        } else {
+            $this->available_seats = '';
+        }
+    },
+]);
+
 $routes = computed(function () {
-    return RouteModel::query()
-        ->with('originAgent', 'destinationAgent')
-        ->where('is_active', true)
-        ->get();
+    return RouteModel::query()->with('originAgent', 'destinationAgent')->where('is_active', true)->get();
     // Global scope AgentRouteScope otomatis filter by role
 });
 
-$buses   = computed(fn() => Bus::where('is_active', true)->get());
+$buses = computed(fn() => Bus::where('is_active', true)->get());
 $drivers = computed(fn() => User::where('role', 'driver')->get());
 
 $submit = function () {
     $validated = $this->validate([
-        'route_id'        => 'required|exists:routes,id',
-        'bus_id'          => 'required|exists:buses,id',
-        'driver_id'       => 'required|exists:users,id',
-        'departure_date'  => 'required|date',
-        'departure_time'  => 'required|date_format:H:i',
-        'arrival_date'    => 'required|date|after_or_equal:departure_date',
-        'arrival_time'    => 'required|date_format:H:i',
-        'price'           => 'required|numeric|min:1',
+        'route_id' => 'required|exists:routes,id',
+        'bus_id' => 'required|exists:buses,id',
+        'driver_id' => 'required|exists:users,id',
+        'departure_date' => 'required|date',
+        'departure_time' => 'required|date_format:H:i',
+        'arrival_date' => 'required|date|after_or_equal:departure_date',
+        // PERBAIKAN DI SINI: Validasi kustom untuk Jam Kedatangan
+        'arrival_time' => [
+            'required',
+            'date_format:H:i',
+            function ($attribute, $value, $fail) {
+                // Pastikan tanggal dan waktu keberangkatan sudah diisi sebelumnya
+                if ($this->departure_date && $this->departure_time && $this->arrival_date) {
+                    // Gabungkan Tanggal + Jam menjadi satu kesatuan waktu
+                    $departure = \Carbon\Carbon::parse($this->departure_date . ' ' . $this->departure_time);
+                    $arrival = \Carbon\Carbon::parse($this->arrival_date . ' ' . $value);
+
+                    // Cek apakah waktu tiba lebih dulu atau sama persis dengan waktu berangkat
+                    if ($arrival->lessThanOrEqualTo($departure)) {
+                        $fail('Waktu kedatangan harus lebih lambat dari waktu keberangkatan.');
+                    }
+                }
+            },
+        ],
+        'price' => 'required|numeric|min:1',
         'available_seats' => 'required|numeric|min:1|max:60',
-        'status'          => 'required|in:scheduled,ongoing,completed,cancelled',
+        'status' => 'required|in:scheduled,ongoing,completed,cancelled',
     ]);
 
     if ($this->isEdit && $this->scheduleId) {
@@ -78,56 +121,62 @@ $submit = function () {
 <form wire:submit="submit" class="space-y-5">
     @csrf
 
-    {{-- Rute --}}
+    {{-- Pilihan Rute --}}
     <div>
-        <label for="route_id" class="block text-sm font-semibold text-gray-700 mb-2">Rute Perjalanan *</label>
-        <select id="route_id" wire:model="route_id" class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+        <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih Rute *</label>
+        <select wire:model.live="route_id" class="w-full px-4 py-3 text-sm rounded-xl border border-gray-200...">
             <option value="">-- Pilih Rute --</option>
-            @foreach($this->routes as $route)
-            <option value="{{ $route->id }}">
-                {{ $route->originAgent->city ?? 'N/A' }} → {{ $route->destinationAgent->city ?? 'N/A' }}
-                ({{ number_format($route->distance_km, 0) }} km)
-            </option>
+            @foreach ($this->routes as $route)
+                <option value="{{ $route->id }}">{{ $route->originAgent->city }} -
+                    {{ $route->destinationAgent->city }}</option>
             @endforeach
         </select>
-        @error('route_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
     </div>
 
-    {{-- Bus --}}
+    {{-- Pilihan Bus --}}
     <div>
-        <label for="bus_id" class="block text-sm font-semibold text-gray-700 mb-2">Bus *</label>
-        <select id="bus_id" wire:model="bus_id" class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+        <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih Armada/Bus *</label>
+        <select wire:model.live="bus_id" class="w-full px-4 py-3 text-sm rounded-xl border border-gray-200...">
             <option value="">-- Pilih Bus --</option>
-            @foreach($this->buses as $bus)
-            <option value="{{ $bus->id }}">{{ $bus->name }} ({{ $bus->plate_number }}) - {{ $bus->total_seats }} kursi</option>
+            @foreach ($this->buses as $bus)
+                <option value="{{ $bus->id }}">{{ $bus->name }} ({{ $bus->plate_number }})</option>
             @endforeach
         </select>
-        @error('bus_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
     </div>
 
     {{-- Driver --}}
     <div>
         <label for="driver_id" class="block text-sm font-semibold text-gray-700 mb-2">Driver *</label>
-        <select id="driver_id" wire:model="driver_id" class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+        <select id="driver_id" wire:model="driver_id"
+            class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
             <option value="">-- Pilih Driver --</option>
-            @foreach($this->drivers as $driver)
-            <option value="{{ $driver->id }}">{{ $driver->name }}</option>
+            @foreach ($this->drivers as $driver)
+                <option value="{{ $driver->id }}">{{ $driver->name }}</option>
             @endforeach
         </select>
-        @error('driver_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+        @error('driver_id')
+            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+        @enderror
     </div>
 
     {{-- Tanggal & Waktu Keberangkatan --}}
     <div class="grid grid-cols-2 gap-3">
         <div>
-            <label for="departure_date" class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Berangkat *</label>
-            <input type="date" id="departure_date" wire:model="departure_date" value="{{ old('departure_date') }}" class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-            @error('departure_date') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+            <label for="departure_date" class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Berangkat
+                *</label>
+            <input type="date" id="departure_date" wire:model="departure_date" value="{{ old('departure_date') }}"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+            @error('departure_date')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
         </div>
         <div>
             <label for="departure_time" class="block text-sm font-semibold text-gray-700 mb-2">Jam Berangkat *</label>
-            <input type="time" id="departure_time" wire:model="departure_time" class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-            @error('departure_time') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+            <input type="time" id="departure_time" wire:model="departure_time"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+            @error('departure_time')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
         </div>
     </div>
 
@@ -135,13 +184,19 @@ $submit = function () {
     <div class="grid grid-cols-2 gap-3">
         <div>
             <label for="arrival_date" class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Tiba *</label>
-            <input type="date" id="arrival_date" wire:model="arrival_date" class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-            @error('arrival_date') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+            <input type="date" id="arrival_date" wire:model="arrival_date"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+            @error('arrival_date')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
         </div>
         <div>
             <label for="arrival_time" class="block text-sm font-semibold text-gray-700 mb-2">Jam Tiba *</label>
-            <input type="time" id="arrival_time" wire:model="arrival_time" class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-            @error('arrival_time') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+            <input type="time" id="arrival_time" wire:model="arrival_time"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+            @error('arrival_time')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
         </div>
     </div>
 
@@ -154,17 +209,19 @@ $submit = function () {
                 Harga per Kursi *
             </label>
             <div class="flex">
-                <span class="flex items-center px-3 bg-gray-100 border border-r-0
+                <span
+                    class="flex items-center px-3 bg-gray-100 border border-r-0
                          border-gray-200 rounded-l-xl text-gray-600 font-semibold
                          text-sm shrink-0">
                     Rp
                 </span>
-                <input type="number" wire:model="price" placeholder="0" class="w-0 flex-1 px-3 py-3 rounded-r-xl border border-gray-200
+                <input type="number" wire:model="price" placeholder="0"
+                    class="w-0 flex-1 px-3 py-3 rounded-r-xl border border-gray-200
                           text-sm focus:outline-none focus:ring-2
                           focus:ring-primary-500 focus:border-transparent">
             </div>
             @error('price')
-            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
             @enderror
         </div>
 
@@ -173,11 +230,12 @@ $submit = function () {
             <label class="block text-sm font-semibold text-gray-700 mb-2">
                 Kursi Tersedia *
             </label>
-            <input type="number" wire:model="available_seats" placeholder="0" min="1" max="60" class="w-full px-3 py-3 rounded-xl border border-gray-200
+            <input type="number" wire:model="available_seats" placeholder="0" min="1" max="60"
+                class="w-full px-3 py-3 rounded-xl border border-gray-200
                       text-sm focus:outline-none focus:ring-2
                       focus:ring-primary-500 focus:border-transparent">
             @error('available_seats')
-            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
             @enderror
         </div>
 
@@ -186,21 +244,26 @@ $submit = function () {
     {{-- Status --}}
     <div>
         <label for="status" class="block text-sm font-semibold text-gray-700 mb-2">Status *</label>
-        <select id="status" wire:model="status" class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+        <select id="status" wire:model="status"
+            class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
             <option value="scheduled">Terjadwal</option>
             <option value="ongoing">Berjalan</option>
             <option value="completed">Selesai</option>
             <option value="cancelled">Dibatalkan</option>
         </select>
-        @error('status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+        @error('status')
+            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+        @enderror
     </div>
 
     {{-- Buttons --}}
     <div class="flex gap-3 pt-5">
-        <a href="{{ route('schedules.index') }}" class="flex-1 px-6 py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors text-center">
+        <a href="{{ route('schedules.index') }}"
+            class="flex-1 px-6 py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors text-center">
             Batal
         </a>
-        <button type="submit" class="flex-1 px-6 py-3 rounded-xl bg-primary-600 text-white
+        <button type="submit"
+            class="flex-1 px-6 py-3 rounded-xl bg-primary-600 text-white
                font-semibold hover:bg-primary-700 transition-colors">
             {{ $isEdit ? 'Perbarui Jadwal' : 'Buat Jadwal' }}
         </button>

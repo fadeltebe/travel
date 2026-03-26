@@ -6,9 +6,23 @@
     {{-- FAB Options --}}
     <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-4" class="fixed bottom-24 inset-x-0 z-50 flex flex-col items-center gap-3 px-6" style="display:none">
 
-        <a href="{{ route('bookings.create') }}" class="w-full max-w-xs flex items-center gap-4 bg-white rounded-2xl px-5 py-4
+        <a href="{{ route('schedules.create') }}" class="w-full max-w-xs flex items-center gap-4 bg-white rounded-2xl px-5 py-4
                   shadow-xl border border-gray-100 active:scale-95 transition-transform">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, #1565C0, #1976D2)">
+                <x-heroicon-o-calendar-days class="w-5 h-5 text-white" />
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-800">Tambah Jadwal</p>
+                <p class="text-xs text-gray-400">Buat jadwal keberangkatan</p>
+            </div>
+            <x-heroicon-o-chevron-right class="w-4 h-4 text-gray-300 ml-auto" />
+        </a>
+        
+        <a href="{{ route('bookings.create') }}" class="w-full max-w-xs flex items-center gap-4 bg-white rounded-2xl px-5 py-4
+                  shadow-xl border border-gray-100 active:scale-95 transition-transform">
+
+                  
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: linear-gradient(160deg, #10B981 0%, #059669 50%, #047857 100%);">
                 <x-heroicon-o-user-plus class="w-5 h-5 text-white" />
             </div>
             <div>
