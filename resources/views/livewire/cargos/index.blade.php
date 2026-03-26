@@ -120,7 +120,7 @@ $cargos = computed(function () {
                             </div>
                             <div class="min-w-0">
                                 <p class="text-xs text-gray-900 leading-tight">
-                                    <b>{{ $cargo->item_name }}</b> ({{ $cargo->description }})
+                                    {{ $cargo->tracking_code ?? 'N/A' }}
                                 </p>
                                 <p class="text-[10px] text-gray-500 font-semibold mt-0.5 flex items-center gap-1">
                                     <x-heroicon-o-map-pin class="w-3 h-3" />
@@ -139,7 +139,9 @@ $cargos = computed(function () {
                         {{-- Baris 2: Detail Barang (Compact) --}}
                         <div class="px-3 pb-2 flex items-center justify-between text-[10px]">
                             <div class="text-gray-600 truncate mr-2">
-                                <span class="font-black text-gray-800">{{ $cargo->tracking_code ?? 'N/A' }}</span>
+                                <span class="font-black text-gray-800">
+                                    <b>{{ $cargo->item_name }}</b> ({{ $cargo->description }})
+                                </span>
                             </div>
                         </div>
 
@@ -166,7 +168,7 @@ $cargos = computed(function () {
                     </div>
                 @endforelse
             </div>
-            
+
             {{-- Pagination --}}
             <div class="mt-4">
                 {{ $this->cargos->links() }}

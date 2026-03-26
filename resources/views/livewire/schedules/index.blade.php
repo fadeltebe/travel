@@ -221,11 +221,11 @@ $schedules = computed(function () {
                                 </span>
                                 <span class="flex items-center gap-1 text-gray-600">
                                     <x-heroicon-o-cube class="w-3.5 h-3.5" />
-                                    <b class="text-gray-900">{{ (int) $schedule->total_cargo_sum }}</b> Barang
+                                    <b class="text-gray-900">{{ (int) $schedule->total_cargo_sum }}</b> Pkt
                                 </span>
                                 <span
                                     class="flex items-center font-bold gap-1 {{ $schedule->available_seats - $schedule->total_passengers_sum <= 2 ? 'text-red-600' : 'text-emerald-600' }}">
-                                    {{ $schedule->available_seats - $schedule->total_passengers_sum }} Kursi Sisa
+                                    {{ $schedule->available_seats - $schedule->total_passengers_sum }} Kursi
                                 </span>
                             </div>
 
