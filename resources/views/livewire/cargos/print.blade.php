@@ -57,10 +57,31 @@ $getQrCodeBase64 = function() {
         .mb-1 { margin-bottom: 4px; }
         .qrcode img { display: block; max-width: 100%; height: auto; }
         
-        /* Hilangkan box shadow saat benar-benar mencetak */
+        /* Hilangkan box shadow dan margin sisa layar saat benar-benar mencetak via Browser */
         @media print {
-            body { padding: 0; background: #fff; }
-            .thermal-receipt { box-shadow: none; width: 100%; max-width: 48mm; padding: 0; }
+            @page {
+                margin: 0;
+                size: auto; /* Kunci agar panjang kertas mengikuti konten */
+            }
+
+            html, body {
+                margin: 0;
+                padding: 0;
+                background: #fff;
+                width: 100%;
+                max-width: 58mm; /* Lebar maksimal kertas */
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            .thermal-receipt { 
+                box-shadow: none; 
+                width: 100%; 
+                max-width: 58mm; 
+                padding: 0; 
+                margin: 0;
+            }
+
             .print\:hidden { display: none !important; }
         }
     </style>
@@ -175,10 +196,15 @@ $getQrCodeBase64 = function() {
             
             try {
                 // Menentukan scale 2 supaya gambar tidak pecah saat dicetak
+                // Membatasi tinggi lebar secara absolut agar tidak mengambil viewport sisa
                 const canvas = await html2canvas(element, { 
                     scale: 2,
                     useCORS: true,
-                    backgroundColor: '#ffffff'
+                    backgroundColor: '#ffffff',
+                    width: element.offsetWidth,
+                    height: element.offsetHeight,
+                    windowWidth: element.offsetWidth,
+                    windowHeight: element.offsetHeight
                 });
                 document.getElementById('loading-indicator').style.display = 'none';
                 return canvas;
