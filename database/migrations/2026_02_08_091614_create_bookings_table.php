@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('booking_code')->unique()->index(); // TRV-20250208-001
             $table->foreignId('schedule_id')->constrained()->cascadeOnDelete();
             $table->foreignId('agent_id')->constrained()->cascadeOnDelete(); // Agen yang input booking
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete(); // User yang input booking
+            $table->foreignId('user_id')->nullable()->constrained();
             $table->foreignId('customer_id')->nullable()->constrained()->nullOnDelete(); // Link ke customer
 
             // Data pemesan
