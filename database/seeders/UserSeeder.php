@@ -24,19 +24,19 @@ class UserSeeder extends Seeder
         // Owner
         User::create([
             'name'      => 'Owner',
-            'email'     => 'owner@sultengexpress.com',
+            'email'     => 'owner@meganjaya.com',
             'password'  => bcrypt('password'),
             'role'      => Role::Owner,
             'agent_id'  => null,
             'is_active' => true,
         ]);
 
-        // Admin per agent
+        // Admin per agent (Palu, Poso, Ampana = 3)
         $agents = Agent::all();
         foreach ($agents as $agent) {
             User::create([
                 'name'      => "Admin {$agent->city}",
-                'email'     => "admin.{$agent->slug}@sultengexpress.com",
+                'email'     => "admin." . strtolower($agent->city) . "@meganjaya.com",
                 'password'  => bcrypt('password'),
                 'role'      => Role::Admin,
                 'agent_id'  => $agent->id,
@@ -44,14 +44,16 @@ class UserSeeder extends Seeder
             ]);
         }
 
-        // Driver
-        User::create([
-            'name'      => 'Budi Santoso',
-            'email'     => 'driver1@sultengexpress.com',
-            'password'  => bcrypt('password'),
-            'role'      => Role::Driver,
-            'agent_id'  => null,
-            'is_active' => true,
-        ]);
+        // Drivers (4 drivers)
+        for ($i = 1; $i <= 4; $i++) {
+            User::create([
+                'name'      => "Driver $i",
+                'email'     => "driver$i@meganjaya.com",
+                'password'  => bcrypt('password'),
+                'role'      => Role::Driver,
+                'agent_id'  => null,
+                'is_active' => true,
+            ]);
+        }
     }
 }

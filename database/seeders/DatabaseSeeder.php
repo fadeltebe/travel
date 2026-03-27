@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
             BusSeeder::class,
             RouteSeeder::class,
             ScheduleSeeder::class,
-            PassengerSeeder::class,
+            // Bookings, Passengers, and Cargos are handled inside ScheduleSeeder orchestrator
         ]);
     }
 }
