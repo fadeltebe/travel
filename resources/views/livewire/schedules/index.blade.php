@@ -188,7 +188,7 @@ $schedules = computed(function () {
                                     </p>
                                     <p class="text-[11px] text-orange-500 font-bold mt-1 flex items-center gap-1">
                                         <x-heroicon-o-calendar class="w-3 h-3" />
-                                        {{ $schedule->departure_date->locale('id')->translatedFormat('d F Y') }}
+                                        {{ $schedule->departure_date->toIndoDayDate() }}
                                         <span class="text-gray-300 mx-1">|</span>
                                         <x-heroicon-o-clock class="w-3 h-3" />
                                         {{ \Carbon\Carbon::parse($schedule->departure_time)->format('H:i') }}
