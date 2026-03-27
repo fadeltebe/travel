@@ -176,9 +176,9 @@ $schedules = computed(function () {
                                 <div
                                     class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 {{ $isDeparture ? 'bg-blue-50' : 'bg-emerald-50' }}">
                                     @if ($isDeparture)
-                                        <x-heroicon-o-paper-airplane class="w-5 h-5 text-blue-600 rotate-45" />
+                                        <x-heroicon-o-arrow-up-right class="w-5 h-5 text-blue-600" />
                                     @else
-                                        <x-heroicon-o-home-modern class="w-5 h-5 text-emerald-600" />
+                                        <x-heroicon-o-arrow-down-left class="w-5 h-5 text-emerald-600" />
                                     @endif
                                 </div>
                                 <div class="min-w-0">
