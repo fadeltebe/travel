@@ -68,6 +68,7 @@ class ScheduleSeeder extends Seeder
                         'booking_code'     => 'TRV-' . $date->format('Ymd') . '-' . strtoupper(Str::random(4)),
                         'schedule_id'      => $schedule->id,
                         'agent_id'         => $route->origin_agent_id,
+                        'user_id'          => null,
                         'booker_name'      => 'Penumpang P' . $b . Str::random(2),
                         'booker_phone'     => '0812' . rand(100000, 999999),
                         'total_passengers' => $numPassengers,
