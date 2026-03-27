@@ -148,89 +148,48 @@ $schedules = computed(function () {
                     @endphp
 
                     <a href="{{ route('schedules.show', $schedule) }}"
-                        class="block bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md active:bg-gray-50 transition-all overflow-hidden relative">
-
-                        {{-- Badge Arah --}}
+                        class="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-primary-200 active:bg-gray-50 transition-all relative overflow-hidden gap-2">
+                        
+                        {{-- Indikator Warna Kiri --}}
                         @if (!$isSuperAdmin)
-                            <div class="absolute top-0 right-0 flex flex-col items-end">
-                                {{-- Biru untuk Keluar, Emerald untuk Masuk --}}
-                                <span
-                                    class="text-[9px] font-bold px-3 py-1 rounded-bl-lg text-white {{ $isDeparture ? 'bg-blue-600' : 'bg-emerald-600' }}">
-                                    {{ $isDeparture ? 'KEBERANGKATAN' : 'KEDATANGAN' }}
-                                </span>
-
-                                {{-- Status Operasional (Tetap menggunakan status asli database) --}}
-                                <span
-                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-bl-md text-[8px] font-bold text-white shadow-sm {{ $status['class'] }}">
-                                    @if ($status['animate'])
-                                        <span class="w-1 h-1 rounded-full bg-white animate-ping"></span>
-                                    @endif
-                                    {{ strtoupper($status['label']) }}
-                                </span>
-                            </div>
+                        <div class="absolute left-0 top-0 bottom-0 w-1 {{ $isDeparture ? 'bg-blue-500' : 'bg-emerald-500' }}"></div>
+                        @else
+                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-gray-300"></div>
                         @endif
 
-                        {{-- Baris 1: Ikon & Rute --}}
-                        <div class="flex items-start justify-between gap-2 p-4 pb-2">
-                            <div class="flex items-center gap-3 min-w-0 flex-1">
-                                <div
-                                    class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 {{ $isDeparture ? 'bg-blue-50' : 'bg-emerald-50' }}">
-                                    @if ($isDeparture)
-                                        <x-heroicon-o-paper-airplane class="w-5 h-5 text-blue-600 rotate-45" />
-                                    @else
-                                        <x-heroicon-o-home-modern class="w-5 h-5 text-emerald-600" />
-                                    @endif
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-sm font-bold text-gray-900 leading-tight">
-                                        {{ $schedule->route->originAgent->city }} →
-                                        {{ $schedule->route->destinationAgent->city }}
-                                    </p>
-                                    <p class="text-[11px] text-orange-500 font-bold mt-1 flex items-center gap-1">
-                                        <x-heroicon-o-calendar class="w-3 h-3" />
-                                        {{ $schedule->departure_date->locale('id')->translatedFormat('d F Y') }}
-                                        <span class="text-gray-300 mx-1">|</span>
-                                        <x-heroicon-o-clock class="w-3 h-3" />
-                                        {{ \Carbon\Carbon::parse($schedule->departure_time)->format('H:i') }}
-                                    </p>
-                                </div>
+                        {{-- Kiri: Ikon, Rute, Jam, Bus --}}
+                        <div class="flex items-center gap-3 pl-1.5 flex-1 min-w-0">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 {{ !$isSuperAdmin ? ($isDeparture ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600') : 'bg-gray-100 text-gray-600' }}">
+                                @if (!$isSuperAdmin && $isDeparture)
+                                    <x-heroicon-s-arrow-up-right class="w-5 h-5" />
+                                @elseif (!$isSuperAdmin && !$isDeparture)
+                                    <x-heroicon-s-arrow-down-left class="w-5 h-5" />
+                                @else
+                                    <x-heroicon-s-map class="w-5 h-5" />
+                                @endif
                             </div>
-
-                            {{-- Space kosong di kanan karena status sudah pindah ke absolute top-right --}}
-                            <div class="w-16"></div>
-                        </div>
-
-                        {{-- Baris 2: Info Bus & Pendapatan --}}
-                        <div class="px-4 pb-2 flex items-center justify-between">
-                            <div class="text-[11px] text-gray-500 italic">
-                                {{ $schedule->bus->name ?? 'N/A' }} ({{ $schedule->bus->plate_number ?? '' }})
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <!-- <span class="text-[10px] text-gray-400 uppercase font-semibold">Estimasi:</span> -->
-
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-gray-900 truncate leading-tight mb-0.5">
+                                    {{ $schedule->route->originAgent->city }} &rarr; {{ $schedule->route->destinationAgent->city }}
+                                </p>
+                                <p class="text-[11px] text-gray-500 flex items-center gap-1.5 truncate">
+                                    <span class="font-bold text-orange-600">{{ $schedule->departure_date->format('d/m/y') }} • {{ \Carbon\Carbon::parse($schedule->departure_time)->format('H:i') }}</span>
+                                    <span class="text-gray-300">|</span>
+                                    <span class="truncate">{{ $schedule->bus->name ?? 'N/A' }} ({{ $schedule->bus->plate_number ?? '-' }})</span>
+                                </p>
                             </div>
                         </div>
 
-                        {{-- Baris 3: Footer Stats --}}
-                        <div
-                            class="px-4 pb-3 pt-2 flex items-center justify-between gap-2 border-t border-gray-50 mt-1 bg-gray-50/50">
-                            <div class="flex items-center gap-3 text-[11px]">
-                                <span class="flex items-center gap-1 text-gray-600">
-                                    <x-heroicon-o-users class="w-3.5 h-3.5" />
-                                    <b class="text-gray-900">{{ (int) $schedule->total_passengers_sum }}</b> Pnp
-                                </span>
-                                <span class="flex items-center gap-1 text-gray-600">
-                                    <x-heroicon-o-cube class="w-3.5 h-3.5" />
-                                    <b class="text-gray-900">{{ (int) $schedule->total_cargo_sum }}</b> Pkt
-                                </span>
-                                <span
-                                    class="flex items-center font-bold gap-1 {{ $schedule->available_seats - $schedule->total_passengers_sum <= 2 ? 'text-red-600' : 'text-emerald-600' }}">
-                                    {{ $schedule->available_seats - $schedule->total_passengers_sum }} Kursi
-                                </span>
+                        {{-- Kanan: Detail & Status --}}
+                        <div class="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 pl-14 sm:pl-0 mt-1 sm:mt-0">
+                            <div class="flex items-center gap-2.5 text-[10px] font-bold text-gray-500">
+                                <span class="flex items-center gap-1" title="Penumpang"><x-heroicon-s-users class="w-3 h-3 text-gray-400"/> {{ (int) $schedule->total_passengers_sum }}</span>
+                                <span class="flex items-center gap-1" title="Kargo"><x-heroicon-s-cube class="w-3 h-3 text-gray-400"/> {{ (int) $schedule->total_cargo_sum }}</span>
+                                <span class="{{ $schedule->available_seats - $schedule->total_passengers_sum <= 2 ? 'text-red-500' : 'text-emerald-500' }}">{{ $schedule->available_seats - $schedule->total_passengers_sum }} Sisa</span>
                             </div>
-
-                            <span class="font-black text-orange-500">
-                                Rp{{ number_format(($schedule->total_ticket_revenue ?? 0) + ($schedule->total_cargo_revenue ?? 0), 0, ',', '.') }}
+                            
+                            <span class="inline-flex items-center px-2 py-1 rounded text-[9px] font-bold text-white shadow-sm {{ $status['class'] }}">
+                                {{ strtoupper($status['label']) }}
                             </span>
                         </div>
                     </a>

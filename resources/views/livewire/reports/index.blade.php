@@ -84,145 +84,144 @@ $metrics = computed(function () {
         'total'    => (clone $cargos)->count(),
     ];
 
+    // --- AGGREGATE REVENUE ---
+    $bookingsPaid = (clone $bookingsQuery)->where('payment_status', 'paid');
+    $passengerRevenue = $bookingsPaid->sum('total_price');
+
+    $cargosPaid = (clone $cargosQuery)->where('is_paid', true);
+    $cargoRevenue = $cargosPaid->sum('fee');
+    
+    $revenueStats = [
+        'passenger' => $passengerRevenue,
+        'cargo'     => $cargoRevenue,
+        'total'     => $passengerRevenue + $cargoRevenue,
+    ];
+
     return [
-        'schedules' => $scheduleStats,
+        'schedules'  => $scheduleStats,
         'passengers' => $passengerStats,
-        'cargos' => $cargoStats
+        'cargos'     => $cargoStats,
+        'revenue'    => $revenueStats,
     ];
 });
 ?>
 
 <div>
     <x-layouts.app title="Laporan Bulanan">
-        <div class="px-4 pt-6 pb-24 space-y-6">
+        <div class="px-4 pb-24 space-y-6">
 
-            {{-- Header & Filter --}}
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-6">
-                <div class="flex flex-col gap-4">
-                    <div>
-                        <h1 class="text-xl font-bold text-gray-800">Laporan Keuangan & Operasional</h1>
-                        <p class="text-xs text-gray-500 mt-1">Rekapitulasi data operasional berbasis bulan</p>
+            {{-- Header, Filter & Revenue Combined --}}
+            <div class="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-2xl p-6 shadow-md text-white flex flex-col relative overflow-hidden mb-6">
+                <div class="absolute -right-12 -top-12 opacity-10"><x-heroicon-s-banknotes class="w-56 h-56 text-black"/></div>
+                
+                <div class="relative z-10">
+                    {{-- Judul & Filter (Atas) --}}
+                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
+                        <div>
+                            <h1 class="text-xl font-bold font-sans">Laporan & Pendapatan</h1>
+                            <p class="text-xs text-emerald-100 mt-0.5">Rekapitulasi operasional berbasis pencarian bulan</p>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <select wire:model.live="selectedMonth" class="flex-1 sm:w-32 px-4 py-2 bg-white/20 border border-white/30 rounded-xl text-sm font-semibold text-white shadow-sm outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm transition-all [&>option]:text-gray-800">
+                                @foreach($this->months as $val => $label)
+                                    <option value="{{ $val }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            <select wire:model.live="selectedYear" class="w-24 px-4 py-2 bg-white/20 border border-white/30 rounded-xl text-sm font-semibold text-white shadow-sm outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm transition-all [&>option]:text-gray-800">
+                                @foreach($this->years as $yr)
+                                    <option value="{{ $yr }}">{{ $yr }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
-                    
-                    <div class="flex gap-3">
-                        <select wire:model.live="selectedMonth" class="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all">
-                            @foreach($this->months as $val => $label)
-                                <option value="{{ $val }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        <select wire:model.live="selectedYear" class="w-28 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all">
-                            @foreach($this->years as $yr)
-                                <option value="{{ $yr }}">{{ $yr }}</option>
-                            @endforeach
-                        </select>
+
+                    {{-- Data Pendapatan (Bawah) --}}
+                    <div>
+                        <h2 class="text-[10px] font-bold text-emerald-100 uppercase tracking-widest mb-1">Total Pendapatan Bersih (Lunas)</h2>
+                        <p class="text-4xl font-black mb-4">Rp {{ number_format($this->metrics['revenue']['total'], 0, ',', '.') }}</p>
+                        
+                        <div class="flex flex-wrap gap-4 pt-4 border-t border-emerald-400/30">
+                            <div class="flex-1 sm:flex-none min-w-[120px]">
+                                <p class="text-[10px] font-bold text-emerald-100 uppercase">Dari Penumpang</p>
+                                <p class="text-lg font-bold">Rp {{ number_format($this->metrics['revenue']['passenger'], 0, ',', '.') }}</p>
+                            </div>
+                            <div class="w-px bg-emerald-400/30 hidden sm:block"></div>
+                            <div class="flex-1 sm:flex-none min-w-[120px]">
+                                <p class="text-[10px] font-bold text-emerald-100 uppercase">Dari Kargo Barang</p>
+                                <p class="text-lg font-bold">Rp {{ number_format($this->metrics['revenue']['cargo'], 0, ',', '.') }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {{-- 1. Rekap Perjalanan --}}
-            <div>
-                <h2 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-md bg-blue-100 flex items-center justify-center text-blue-600"><x-heroicon-s-calendar class="w-3.5 h-3.5"/></div>
-                    REKAP PERJALANAN / JADWAL
-                </h2>
-                <div class="grid grid-cols-1 gap-3">
-                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
-                        <span class="text-xs font-semibold text-gray-500">Total Keberangkatan Bulan Ini</span>
-                        <span class="text-xl font-black text-gray-800">{{ $this->metrics['schedules']['total'] }} <span class="text-xs font-semibold text-gray-400">Jadwal</span></span>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col gap-3 relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 opacity-5"><x-heroicon-s-calendar class="w-32 h-32 text-primary-500"/></div>
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: #E3F2FD">
+                        <x-heroicon-s-calendar class="w-5 h-5 text-primary-800"/>
+                    </div>
+                    <div>
+                        <h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest leading-none mb-1">Rekap Perjalanan</h2>
+                        <p class="text-2xl font-black text-gray-800 leading-none">{{ $this->metrics['schedules']['total'] }} <span class="text-xs font-semibold text-gray-400">Jadwal</span></p>
                     </div>
                 </div>
-                <div class="grid grid-cols-4 gap-2 mt-3 text-center">
-                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 flex flex-col items-center justify-center">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase leading-tight">Terjadwal</p>
-                        <p class="text-lg font-black text-gray-800 mt-1">{{ $this->metrics['schedules']['scheduled'] }}</p>
-                    </div>
-                    <div class="bg-blue-50 rounded-xl p-3 border border-blue-100 flex flex-col items-center justify-center">
-                        <p class="text-[10px] font-bold text-blue-600 uppercase leading-tight">Berjalan</p>
-                        <p class="text-lg font-black text-blue-800 mt-1">{{ $this->metrics['schedules']['ongoing'] }}</p>
-                    </div>
-                    <div class="bg-emerald-50 rounded-xl p-3 border border-emerald-100 flex flex-col items-center justify-center">
-                        <p class="text-[10px] font-bold text-emerald-600 uppercase leading-tight">Selesai</p>
-                        <p class="text-lg font-black text-emerald-800 mt-1">{{ $this->metrics['schedules']['completed'] }}</p>
-                    </div>
-                    <div class="bg-red-50 rounded-xl p-3 border border-red-100 flex flex-col items-center justify-center">
-                        <p class="text-[10px] font-bold text-red-600 uppercase leading-tight">Batal</p>
-                        <p class="text-lg font-black text-red-800 mt-1">{{ $this->metrics['schedules']['cancelled'] }}</p>
-                    </div>
+                <div class="mt-2 pt-3 border-t border-gray-100 flex flex-wrap items-center gap-2 text-sm font-semibold text-gray-600 relative z-10">
+                    <span class="text-gray-500">Terjadwal: <span class="text-gray-800 font-bold">{{ $this->metrics['schedules']['scheduled'] }}</span></span>
+                    <span class="text-gray-300">|</span>
+                    <span class="text-primary-600">Berjalan: <span class="text-primary-800 font-bold">{{ $this->metrics['schedules']['ongoing'] }}</span></span>
+                    <span class="text-gray-300">|</span>
+                    <span class="text-emerald-600">Selesai: <span class="text-emerald-800 font-bold">{{ $this->metrics['schedules']['completed'] }}</span></span>
+                    <span class="text-gray-300">|</span>
+                    <span class="text-red-500">Batal: <span class="text-red-700 font-bold">{{ $this->metrics['schedules']['cancelled'] }}</span></span>
                 </div>
             </div>
 
             {{-- 2. Rekap Penumpang --}}
-            <div class="mt-8">
-                <h2 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-md bg-emerald-100 flex items-center justify-center text-emerald-600"><x-heroicon-s-users class="w-3.5 h-3.5"/></div>
-                    REKAP KEUANGAN PENUMPANG
-                </h2>
-                <div class="grid grid-cols-3 gap-3">
-                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm col-span-1 flex flex-col justify-center">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase">Total Tiket</span>
-                        <span class="text-2xl font-black text-gray-800 mt-1">{{ $this->metrics['passengers']['total'] }}</span>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col gap-3 relative overflow-hidden mt-4">
+                <div class="absolute -right-6 -bottom-6 opacity-5"><x-heroicon-s-users class="w-32 h-32 text-emerald-500"/></div>
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: #E8F5E9">
+                        <x-heroicon-s-users class="w-5 h-5 text-emerald-800"/>
                     </div>
-                    <div class="bg-white p-4 rounded-2xl border border-emerald-100 shadow-sm col-span-2 relative overflow-hidden">
-                        <div class="absolute -right-4 -bottom-4 opacity-10"><x-heroicon-s-banknotes class="w-24 h-24 text-emerald-500"/></div>
-                        <div class="relative z-10">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-[10px] font-bold text-emerald-600 uppercase">Sudah Lunas</span>
-                                <span class="text-lg font-black text-emerald-700">{{ $this->metrics['passengers']['paid'] }} Org</span>
-                            </div>
-                            <div class="w-full bg-emerald-100 rounded-full h-1.5 mb-3">
-                                @php $pctPaidPass = $this->metrics['passengers']['total'] > 0 ? ($this->metrics['passengers']['paid'] / $this->metrics['passengers']['total'] * 100) : 0; @endphp
-                                <div class="bg-emerald-500 h-1.5 rounded-full" style="width: {{ $pctPaidPass }}%"></div>
-                            </div>
-                            
-                            <div class="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
-                                <span class="text-[10px] font-bold text-red-500 uppercase">Belum Lunas</span>
-                                <span class="text-sm font-black text-red-600">{{ $this->metrics['passengers']['unpaid'] }} Org</span>
-                            </div>
-                        </div>
+                    <div>
+                        <h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest leading-none mb-1">Rekap Penumpang</h2>
+                        <p class="text-2xl font-black text-gray-800 leading-none">{{ $this->metrics['passengers']['total'] }} <span class="text-xs font-semibold text-gray-400">Tiket</span></p>
                     </div>
+                </div>
+                <div class="mt-2 pt-3 border-t border-gray-100 flex flex-wrap items-center gap-2 text-sm font-semibold text-gray-600 relative z-10">
+                    <span class="text-emerald-600">Lunas: <span class="text-emerald-800 font-bold">{{ $this->metrics['passengers']['paid'] }}</span></span>
+                    <span class="text-gray-300">|</span>
+                    <span class="text-red-500">Belum Lunas: <span class="text-red-700 font-bold">{{ $this->metrics['passengers']['unpaid'] }}</span></span>
                 </div>
             </div>
 
             {{-- 3. Rekap Kargo --}}
-            <div class="mt-8">
-                <h2 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-md bg-orange-100 flex items-center justify-center text-orange-600"><x-heroicon-s-cube class="w-3.5 h-3.5"/></div>
-                    REKAP KEUANGAN KARGO
-                </h2>
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-                    <div class="flex justify-between items-end mb-4">
-                        <div>
-                            <p class="text-[10px] font-bold text-gray-400 uppercase">Total Paket Dikelola</p>
-                            <p class="text-3xl font-black text-gray-800 mt-1">{{ $this->metrics['cargos']['total'] }} <span class="text-sm text-gray-400 font-semibold">Resi</span></p>
-                        </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col gap-3 relative overflow-hidden mt-4">
+                <div class="absolute -right-6 -bottom-6 opacity-5"><x-heroicon-s-cube class="w-32 h-32 text-orange-500"/></div>
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: #FFF3E0">
+                        <x-heroicon-s-cube class="w-5 h-5 text-orange-800"/>
                     </div>
-                    
-                    <div class="grid grid-cols-2 gap-4 pt-3 border-t border-gray-100">
-                        {{-- Status Pengambilan --}}
-                        <div>
-                            <p class="text-[10px] font-bold text-gray-500 uppercase mb-2">Status Fisik</p>
-                            <div class="flex justify-between items-center bg-gray-50 px-3 py-2.5 rounded-lg mb-2 border border-gray-100">
-                                <span class="text-[11px] font-semibold text-emerald-600">Terambil</span>
-                                <span class="text-base font-black text-gray-800">{{ $this->metrics['cargos']['received'] }}</span>
-                            </div>
-                            <div class="flex justify-between items-center bg-gray-50 px-3 py-2.5 rounded-lg border border-gray-100">
-                                <span class="text-[11px] font-semibold text-blue-600">Pending</span>
-                                <span class="text-base font-black text-gray-800">{{ $this->metrics['cargos']['pending'] }}</span>
-                            </div>
-                        </div>
-                        
-                        {{-- Status Pembayaran --}}
-                        <div>
-                            <p class="text-[10px] font-bold text-gray-500 uppercase mb-2">Keuangan (COD/Tunai)</p>
-                            <div class="flex justify-between items-center bg-emerald-50 px-3 py-2.5 rounded-lg mb-2 border border-emerald-100">
-                                <span class="text-[11px] font-bold text-emerald-700">Lunas</span>
-                                <span class="text-base font-black text-emerald-800">{{ $this->metrics['cargos']['paid'] }}</span>
-                            </div>
-                            <div class="flex justify-between items-center bg-red-50 px-3 py-2.5 rounded-lg border border-red-100">
-                                <span class="text-[11px] font-bold text-red-600">Tertunggak</span>
-                                <span class="text-base font-black text-red-700">{{ $this->metrics['cargos']['unpaid'] }}</span>
-                            </div>
-                        </div>
+                    <div>
+                        <h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest leading-none mb-1">Rekap Kargo</h2>
+                        <p class="text-2xl font-black text-gray-800 leading-none">{{ $this->metrics['cargos']['total'] }} <span class="text-xs font-semibold text-gray-400">Resi</span></p>
+                    </div>
+                </div>
+                <div class="mt-2 pt-3 border-t border-gray-100 flex flex-col gap-2 text-sm font-semibold text-gray-600 relative z-10">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-gray-400 uppercase text-[10px] w-16">Fisik:</span>
+                        <span class="text-emerald-600">Terambil: <span class="font-bold text-emerald-800">{{ $this->metrics['cargos']['received'] }}</span></span>
+                        <span class="text-gray-300">|</span>
+                        <span class="text-primary-600">Pending: <span class="font-bold text-primary-800">{{ $this->metrics['cargos']['pending'] }}</span></span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-gray-400 uppercase text-[10px] w-16">Keuangan:</span>
+                        <span class="text-emerald-600">Lunas: <span class="font-bold text-emerald-800">{{ $this->metrics['cargos']['paid'] }}</span></span>
+                        <span class="text-gray-300">|</span>
+                        <span class="text-red-500">Tertunggak: <span class="font-bold text-red-700">{{ $this->metrics['cargos']['unpaid'] }}</span></span>
                     </div>
                 </div>
             </div>
