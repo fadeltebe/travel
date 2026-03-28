@@ -66,7 +66,7 @@ class AgentScheduleSeeder extends Seeder
 
             // 4. Create Schedules, Bookings, Cargos, Passengers
             $startDate = Carbon::tomorrow();
-            
+
             foreach ($agents as $city => $agent) {
                 $route = $routes[$city];
 
@@ -115,7 +115,7 @@ class AgentScheduleSeeder extends Seeder
                             'payment_type' => 'paid_origin',
                             'is_paid' => true,
                             'status' => 'pending',
-                            'tracking_code' => 'TRK-' . strtoupper(substr($city, 0, 3)) . '-' . $schedule->id . '-' . str_pad($c, 3, '0', STR_PAD_LEFT) . rand(10,99),
+                            'tracking_code' => 'TRK-' . strtoupper(substr($city, 0, 3)) . '-' . $schedule->id . '-' . str_pad($c, 3, '0', STR_PAD_LEFT) . rand(10, 99),
                         ]);
                     }
 
@@ -123,6 +123,12 @@ class AgentScheduleSeeder extends Seeder
                     for ($p = 1; $p <= 10; $p++) {
                         Passenger::create([
                             'booking_id' => $booking->id,
+
+                            // 3 KOLOM BARU YANG WAJIB DIISI:
+                            'ticket_code' => 'TKT-' . date('ym') . '-' . strtoupper(\Illuminate\Support\Str::random(6)),
+                            'status' => 'booked',
+                            'ticket_price' => $route->base_price, // Ambil harga dasar dari rute
+
                             'name' => 'Penumpang ' . $p . ' via ' . $city,
                             'gender' => $p % 2 == 0 ? 'male' : 'female',
                             'passenger_type' => 'dewasa',

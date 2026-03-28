@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Booking;
 use App\Models\Passenger;
+use App\Models\Booking;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str; // Tambahkan ini untuk fungsi Str::random
 
 class PassengerSeeder extends Seeder
 {
@@ -20,20 +21,42 @@ class PassengerSeeder extends Seeder
         }
 
         $maleNames = [
-            'Ahmad Fauzi', 'Budi Santoso', 'Cahyo Wibowo', 'Dimas Prayoga',
-            'Eko Prasetyo', 'Fajar Nugroho', 'Gunawan Setiawan', 'Hendra Wijaya',
-            'Irfan Hakim', 'Joko Susilo',
+            'Ahmad Fauzi',
+            'Budi Santoso',
+            'Cahyo Wibowo',
+            'Dimas Prayoga',
+            'Eko Prasetyo',
+            'Fajar Nugroho',
+            'Gunawan Setiawan',
+            'Hendra Wijaya',
+            'Irfan Hakim',
+            'Joko Susilo',
         ];
 
         $femaleNames = [
-            'Ani Rahmawati', 'Bella Putri', 'Citra Dewi', 'Dina Maharani',
-            'Eka Sari', 'Fitri Handayani', 'Gina Puspita', 'Hani Safitri',
-            'Intan Permata', 'Juliana Sari',
+            'Ani Rahmawati',
+            'Bella Putri',
+            'Citra Dewi',
+            'Dina Maharani',
+            'Eka Sari',
+            'Fitri Handayani',
+            'Gina Puspita',
+            'Hani Safitri',
+            'Intan Permata',
+            'Juliana Sari',
         ];
 
         $childNames = [
-            'Rafi', 'Zahra', 'Aqila', 'Danish', 'Naura',
-            'Azka', 'Keyla', 'Alby', 'Sakha', 'Fatin',
+            'Rafi',
+            'Zahra',
+            'Aqila',
+            'Danish',
+            'Naura',
+            'Azka',
+            'Keyla',
+            'Alby',
+            'Sakha',
+            'Fatin',
         ];
 
         $addresses = [
@@ -48,6 +71,9 @@ class PassengerSeeder extends Seeder
         ];
 
         $seatLetters = ['A', 'B', 'C', 'D'];
+
+        // Status yang mungkin terjadi di lapangan
+        $statuses = ['booked', 'booked', 'boarded', 'boarded', 'cancelled', 'no_show'];
 
         foreach ($bookings as $booking) {
             $passengerCount = rand(1, 4);
@@ -70,13 +96,32 @@ class PassengerSeeder extends Seeder
                 $needDropoff = rand(0, 1) ? true : false;
                 $seatNumber = $seatLetters[array_rand($seatLetters)] . ($i + 1);
 
+                // --- LOGIKA BARU UNTUK TABEL YANG DISEMPURNAKAN ---
+
+                // 1. Buat Kode Tiket Unik (Contoh: TKT-2603-A8X9K2)
+                $ticketCode = 'TKT-' . date('ym') . '-' . strtoupper(Str::random(6));
+
+                // 2. Tentukan Harga Tiket berdasarkan usia (Angka Dummy logis)
+                $ticketPrice = 0;
+                if ($passengerType === 'dewasa') {
+                    $ticketPrice = 150000;
+                } elseif ($passengerType === 'anak-anak') {
+                    $ticketPrice = 100000; // Anak-anak diskon
+                } // Balita = 0 (Gratis)
+
+                // 3. Acak Status
+                $status = $statuses[array_rand($statuses)];
+
                 Passenger::create([
                     'booking_id'      => $booking->id,
+                    'ticket_code'     => $ticketCode,        // <-- Kolom Baru
+                    'status'          => $status,            // <-- Kolom Baru
+                    'ticket_price'    => $ticketPrice,       // <-- Kolom Baru
                     'name'            => $name,
                     'gender'          => $gender,
                     'passenger_type'  => $passengerType,
                     'id_card_number'  => $passengerType === 'dewasa' ? $this->generateNIK() : null,
-                    'phone'           => $passengerType === 'dewasa' ? '08' . rand(1000000000, 9999999999) : null,
+                    'phone'           => $passengerType === 'dewasa' ? '08' . rand(100000000, 999999999) : null,
                     'seat_number'     => $seatNumber,
                     'is_booker'       => $isBooker,
                     'pickup_address'  => $needPickup ? $addresses[array_rand($addresses)] : null,

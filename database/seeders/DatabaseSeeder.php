@@ -15,7 +15,8 @@ class DatabaseSeeder extends Seeder
             BusLayoutSeeder::class,
             BusSeeder::class,
             RouteSeeder::class,
-            ScheduleSeeder::class,
+            AgentScheduleSeeder::class, // Seeder utama untuk Agen, Rute, Jadwal, Booking, Penumpang, dan Kargo
+            ScheduleSeatSeeder::class, // Seeder untuk mengisi kursi pada jadwal
             // Bookings, Passengers, and Cargos are handled inside ScheduleSeeder orchestrator
         ]);
     }

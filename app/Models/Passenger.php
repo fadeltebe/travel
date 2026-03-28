@@ -11,23 +11,35 @@ class Passenger extends Model
 
     protected $fillable = [
         'booking_id',
+        'ticket_code',
+        'status',
         'name',
         'gender',
         'passenger_type',
+        'ticket_price',
         'id_card_number',
         'phone',
         'seat_number',
         'is_booker',
-        'pickup_address',
-        'dropoff_address',
-        'pickup_fee',
-        'dropoff_fee',
         'need_pickup',
+        'pickup_address',
+        'pickup_fee',
         'need_dropoff',
+        'dropoff_address',
+        'dropoff_fee',
     ];
 
     protected $casts = [
+        'name' => 'string',
+        'gender' => 'string',
+        'passenger_type' => 'string',
+        'ticket_price' => 'decimal:2',
+        'id_card_number' => 'string',
+        'phone' => 'string',
+        'seat_number' => 'string',
         'is_booker' => 'boolean',
+        'pickup_address' => 'string',
+        'dropoff_address' => 'string',
         'pickup_fee' => 'decimal:2',
         'dropoff_fee' => 'decimal:2',
         'need_pickup' => 'boolean',
@@ -40,11 +52,6 @@ class Passenger extends Model
     public function booking()
     {
         return $this->belongsTo(Booking::class);
-    }
-
-    public function ticket()
-    {
-        return $this->hasOne(Ticket::class);
     }
 
     public function seatBooking()

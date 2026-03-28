@@ -91,7 +91,16 @@ class ScheduleSeatSeeder extends Seeder
         foreach ($busSeats as $index => $busLayoutSeat) {
             $passenger = Passenger::create([
                 'booking_id' => $booking->id,
+
+                // 3 KOLOM BARU YANG WAJIB DIISI:
+                'ticket_code' => 'TKT-' . date('ym') . '-' . strtoupper(\Illuminate\Support\Str::random(6)),
+                'status' => 'booked',
+                'ticket_price' => 150000,
+
                 'name' => $passengerNames[$index],
+                'gender' => $index % 2 == 0 ? 'male' : 'female', // Tambahkan default gender
+                'passenger_type' => 'dewasa',                    // Tambahkan default tipe
+
                 'id_card_number' => '12345678901234' . ($index + 1),
                 'phone' => '0812345678' . ($index + 1),
                 'seat_number' => $busLayoutSeat->seat_number,

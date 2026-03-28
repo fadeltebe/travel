@@ -71,11 +71,6 @@ class Booking extends Model
         return $this->hasMany(Cargo::class);
     }
 
-    public function tickets()
-    {
-        return $this->hasMany(Ticket::class);
-    }
-
     public function payments()
     {
         return $this->hasMany(Payment::class);
