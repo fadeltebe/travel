@@ -87,56 +87,58 @@ $metrics = computed(function () {
             {{-- Content --}}
             <div class="px-4 -mt-6 space-y-5 pb-4">
 
-                {{-- Quick Actions --}}
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                    <div class="grid grid-cols-4 gap-2 mt-6">
+                @if (auth()->user()->canViewAll())
+                    {{-- Quick Actions --}}
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                        <div class="grid grid-cols-4 gap-2 mt-6">
 
-                        <a href="{{ route('schedules.index') }}"
-                            class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
-                                style="background: #E3F2FD">
-                                <x-heroicon-o-calendar-days class="w-6 h-6 text-primary-800" />
-                            </div>
-                            <span class="text-[11px] font-medium text-gray-600 text-center leading-tight">
-                                Jadwal
-                            </span>
-                        </a>
+                            <a href="{{ route('billings.index') }}"
+                                class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
+                                <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                                    style="background: #E3F2FD">
+                                    <x-heroicon-o-wallet class="w-6 h-6 text-primary-800" />
+                                </div>
+                                <span class="text-[11px] font-medium text-gray-600 text-center leading-tight">
+                                    Token
+                                </span>
+                            </a>
 
-                        <a href="{{ route('agents.index') }}"
-                            class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
-                                style="background: #FFF3E0">
-                                <x-heroicon-o-building-office class="w-6 h-6 text-accent-700" />
-                            </div>
-                            <span class="text-[11px] font-medium text-gray-600 text-center leading-tight">
-                                Agen
-                            </span>
-                        </a>
+                            <a href="{{ route('agents.index') }}"
+                                class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
+                                <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                                    style="background: #FFF3E0">
+                                    <x-heroicon-o-building-office class="w-6 h-6 text-accent-700" />
+                                </div>
+                                <span class="text-[11px] font-medium text-gray-600 text-center leading-tight">
+                                    Agen
+                                </span>
+                            </a>
 
-                        <a href="{{ route('cargo.index') }}"
-                            class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
-                                style="background: #E8F5E9">
-                                <x-heroicon-o-cube class="w-6 h-6 text-green-700" />
-                            </div>
-                            <span class="text-[11px] font-medium text-gray-600 text-center leading-tight">
-                                Cargo
-                            </span>
-                        </a>
+                            <a href="{{ route('reports.index') }}"
+                                class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
+                                <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                                    style="background: #F3E5F5">
+                                    <x-heroicon-o-chart-bar class="w-6 h-6 text-purple-700" />
+                                </div>
+                                <span class="text-[11px] font-medium text-gray-600 text-center leading-tight">
+                                    Laporan
+                                </span>
+                            </a>
 
-                        <a href="{{ route('reports.index') }}"
-                            class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
-                                style="background: #F3E5F5">
-                                <x-heroicon-o-chart-bar class="w-6 h-6 text-purple-700" />
-                            </div>
-                            <span class="text-[11px] font-medium text-gray-600 text-center leading-tight">
-                                Laporan
-                            </span>
-                        </a>
+                            <a href="{{ route('settings.index') }}"
+                                class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
+                                <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                                    style="background: #E8F5E9">
+                                    <x-heroicon-o-cog-8-tooth class="w-6 h-6 text-green-700" />
+                                </div>
+                                <span class="text-[11px] font-medium text-gray-600 text-center leading-tight">
+                                    Pengaturan
+                                </span>
+                            </a>
 
+                        </div>
                     </div>
-                </div>
+                @endif
 
                 {{-- Stats --}}
                 <div>

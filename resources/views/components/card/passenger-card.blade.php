@@ -62,8 +62,8 @@
         </div>
 
         {{-- Kanan: Harga Tiket (Warna Oranye) --}}
-        <span class="font-black text-orange-500 shrink-0 text-xs">
-            Rp{{ number_format($passenger->booking->total_price ?? 0, 0, ',', '.') }}
+        <span class="font-black text-orange-500 shrink-0">
+            Rp{{ number_format($passenger->ticket_price ?? 0, 0, ',', '.') }}
         </span>
     </div>
 </a>
