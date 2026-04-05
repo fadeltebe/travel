@@ -24,21 +24,22 @@ $schedules = computed(function () {
         ])
         ->withSum('bookings as total_cargo_sum', 'total_cargo')
         ->withSum('bookings as total_ticket_revenue', 'total_price')
-        ->withSum('bookings as total_cargo_revenue', 'cargo_fee')
 
-        // Filter Hak Akses & Arah Perjalanan (MODIFIKASI DI SINI)
-        ->where(function ($query) use ($user) {
-            $query->whereHas('route', function ($q) use ($user) {
-                if ($this->filterStatus === 'departure') {
-                    // Filter: Hanya yang berangkat dari agen saya
-                    $q->where('origin_agent_id', $user->agent_id);
-                } elseif ($this->filterStatus === 'arrival') {
-                    // Filter: Hanya yang menuju ke agen saya
-                    $q->where('destination_agent_id', $user->agent_id);
-                } else {
-                    // Semua: Asal ATAU Tujuan adalah agen saya (Logika lama)
-                    $q->where('origin_agent_id', $user->agent_id)->orWhere('destination_agent_id', $user->agent_id);
-                }
+        // Filter Hak Akses & Arah Perjalanan - HANYA berlaku untuk Admin/Driver, bukan Owner/SuperAdmin
+        ->when(!$user->canViewAll(), function ($query) use ($user) {
+            $query->where(function ($q) use ($user) {
+                $q->whereHas('route', function ($route) use ($user) {
+                    if ($this->filterStatus === 'departure') {
+                        // Filter: Hanya yang berangkat dari agen saya
+                        $route->where('origin_agent_id', $user->agent_id);
+                    } elseif ($this->filterStatus === 'arrival') {
+                        // Filter: Hanya yang menuju ke agen saya
+                        $route->where('destination_agent_id', $user->agent_id);
+                    } else {
+                        // Semua: Asal ATAU Tujuan adalah agen saya
+                        $route->where('origin_agent_id', $user->agent_id)->orWhere('destination_agent_id', $user->agent_id);
+                    }
+                });
             });
         })
 
@@ -150,25 +151,23 @@ $schedules = computed(function () {
                     <a href="{{ route('schedules.show', $schedule) }}"
                         class="block bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md active:bg-gray-50 transition-all overflow-hidden relative">
 
-                        {{-- Badge Arah --}}
-                        @if (!$isSuperAdmin)
-                            <div class="absolute top-0 right-0 flex flex-col items-end">
-                                {{-- Biru untuk Keluar, Emerald untuk Masuk --}}
-                                <span
-                                    class="text-[9px] font-bold px-3 py-1 rounded-bl-lg text-white {{ $isDeparture ? 'bg-blue-600' : 'bg-emerald-600' }}">
+                        {{-- Area Top Right: Status & Badge Arah --}}
+                        <div class="absolute top-0 right-0 flex flex-col items-end">
+                            {{-- Status Operasional (Muncul untuk semua role) --}}
+                            <span class="inline-flex items-center gap-1 px-3 py-1 text-[9px] font-bold text-white shadow-sm rounded-bl-lg {{ $status['class'] }}">
+                                @if ($status['animate'])
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping mt-px"></span>
+                                @endif
+                                {{ strtoupper($status['label']) }}
+                            </span>
+
+                            @if (!$isSuperAdmin)
+                                {{-- Badge Arah: Biru untuk Keluar, Emerald untuk Masuk --}}
+                                <span class="text-[8px] font-bold px-2 py-0.5 mt-0.5 text-white shadow-sm rounded-bl-md {{ $isDeparture ? 'bg-blue-600' : 'bg-emerald-600' }}">
                                     {{ $isDeparture ? 'KEBERANGKATAN' : 'KEDATANGAN' }}
                                 </span>
-
-                                {{-- Status Operasional (Tetap menggunakan status asli database) --}}
-                                <span
-                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-bl-md text-[8px] font-bold text-white shadow-sm {{ $status['class'] }}">
-                                    @if ($status['animate'])
-                                        <span class="w-1 h-1 rounded-full bg-white animate-ping"></span>
-                                    @endif
-                                    {{ strtoupper($status['label']) }}
-                                </span>
-                            </div>
-                        @endif
+                            @endif
+                        </div>
 
                         {{-- Baris 1: Ikon & Rute --}}
                         <div class="flex items-start justify-between gap-2 p-4 pb-2">
@@ -229,8 +228,8 @@ $schedules = computed(function () {
                                 </span>
                             </div>
 
-                            <span class="font-black text-orange-500">
-                                Rp{{ number_format(($schedule->total_ticket_revenue ?? 0) + ($schedule->total_cargo_revenue ?? 0), 0, ',', '.') }}
+                            <span class="font-black text-emerald-600">
+                                Rp{{ number_format($schedule->total_ticket_revenue ?? 0, 0, ',', '.') }}
                             </span>
                         </div>
                     </a>

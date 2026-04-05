@@ -16,7 +16,18 @@
             @endforeach
         </div>
 
-        <button wire:click="save" class="w-full py-4 bg-green-600 text-white rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2">
+        @if(!$this->hasEnoughToken)
+            <div class="p-3 bg-red-50 text-red-600 rounded-xl border border-red-100 text-xs font-medium text-center">
+                <x-heroicon-s-exclamation-triangle class="w-5 h-5 inline-block mb-1" /> <br>
+                Saldo Token / Dompet Poin tidak mencukupi untuk memproses {{ count($this->items) }} kargo. <br>
+                Harap isi ulang (Top-Up) token.
+            </div>
+        @endif
+
+        <button wire:click="save" 
+            @disabled(!$this->hasEnoughToken)
+            class="w-full py-4 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed
+            {{ $this->hasEnoughToken ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-500' }}">
             <x-heroicon-o-check-badge class="w-6 h-6" /> Simpan & Selesai
         </button>
     </div>

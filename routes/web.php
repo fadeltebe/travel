@@ -12,6 +12,10 @@ Route::get('/', function () {
 Volt::route('/cek-resi', 'cargos.track')
     ->name('cargo.track');
 
+// ── Webhook Midtrans ───────────
+Route::post('/midtrans/webhook', [\App\Http\Controllers\MidtransWebhookController::class, 'handle'])
+    ->name('midtrans.webhook');
+
 // ── Auth Routes (dari Breeze) ──────────────
 require __DIR__ . '/auth.php';
 
@@ -22,32 +26,18 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('/dashboard', 'dashboard.index')
         ->name('dashboard');
 
+    // Wallets / Billing
+    Volt::route('/wallets', 'wallets.index')
+        ->name('wallets.index');
+
+    Volt::route('/wallets/topup', 'wallets.topup')
+        ->name('wallets.topup');
+
     Volt::route('/billings', 'billings.index')
         ->name('billings.index');
 
     Volt::route('/billings/{billing}', 'billings.show')
         ->name('billings.show');
-
-    Volt::route('/billings/{billing}/print', 'billings.print')
-        ->name('billings.print');
-
-    Volt::route('/billings/{billing}/pay', 'billings.pay')
-        ->name('billings.pay');
-
-    Volt::route('/billings/{billing}/refund', 'billings.refund')
-        ->name('billings.refund');
-
-    Volt::route('/billings/{billing}/cancel', 'billings.cancel')
-        ->name('billings.cancel');
-
-    Volt::route('/billings/{billing}/resend', 'billings.resend')
-        ->name('billings.resend');
-
-    Volt::route('/billings/{billing}/void', 'billings.void')
-        ->name('billings.void');
-
-    Volt::route('/billings/{billing}/capture', 'billings.capture')
-        ->name('billings.capture');
 
     Volt::route('/settings', 'settings.index')
         ->name('settings.index');

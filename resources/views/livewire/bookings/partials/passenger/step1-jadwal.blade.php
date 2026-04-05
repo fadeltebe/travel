@@ -21,7 +21,17 @@
                 </div>
             </div>
             <div class="mt-4 pt-2 bg-white/80 backdrop-blur-sm sticky bottom-0">
-                <button wire:click="goStep(2)" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">
+                @if(!$this->hasEnoughToken)
+                    <div class="p-3 bg-red-50 text-red-600 rounded-xl border border-red-100 text-xs font-medium text-center mb-3">
+                        <x-heroicon-s-exclamation-triangle class="w-5 h-5 inline-block mb-1" /> <br>
+                        Saldo Token / Dompet Poin tidak mencukupi untuk memproses {{ max(1, count($this->passengers)) }} tiket. <br>
+                        Harap isi ulang (Top-Up) token.
+                    </div>
+                @endif
+                <button wire:click="goStep(2)" 
+                    @disabled(!$this->hasEnoughToken)
+                    class="w-full py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed
+                    {{ $this->hasEnoughToken ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-500' }}">
                     Lanjut ke Data Pemesan
                 </button>
             </div>

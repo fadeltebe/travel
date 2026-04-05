@@ -28,37 +28,68 @@ mount(function (int $scheduleId = null) {
         $this->bus_id = $schedule->bus_id;
         $this->driver_id = $schedule->driver_id;
         $this->departure_date = $schedule->departure_date->format('Y-m-d');
-        // PERBAIKAN DI SINI: Parse format waktunya menjadi H:i (Tanpa detik)
         $this->departure_time = $schedule->departure_time ? \Carbon\Carbon::parse($schedule->departure_time)->format('H:i') : '';
         $this->arrival_date = $schedule->arrival_date ? $schedule->arrival_date->format('Y-m-d') : '';
-        // PERBAIKAN DI SINI: Sama seperti departure_time
         $this->arrival_time = $schedule->arrival_time ? \Carbon\Carbon::parse($schedule->arrival_time)->format('H:i') : '';
         $this->price = $schedule->price;
         $this->available_seats = $schedule->available_seats;
         $this->status = $schedule->status;
         $this->isEdit = true;
     } else {
-        // NILAI DEFAULT UNTUK TAMBAH DATA BARU
-        $this->departure_date = now()->format('Y-m-d'); // Tanggal hari ini
-        $this->arrival_date = now()->format('Y-m-d'); // Tanggal hari ini
-        $this->departure_time = '08:00'; // Jam 8 pagi
-        $this->arrival_time = '17:00'; // Jam 5 sore
+        $this->departure_date = now()->format('Y-m-d');
+        $this->arrival_date = now()->format('Y-m-d');
+        $this->departure_time = '08:00';
+        $this->arrival_time = '17:00';
     }
 });
 
-// 2. Auto-fill saat dropdown dipilih
+// ← Auto-fill harga dari base_price rute
+$fillPriceFromRoute = function ($routeId) {
+    if (!$routeId || $this->isEdit) {
+        return;
+    }
+    $route = RouteModel::find($routeId);
+    if ($route) {
+        $this->price = $route->base_price;
+    }
+};
+
+$fillSeatsFromBus = function ($busId) {
+    if (!$busId || $this->isEdit) {
+        return;
+    }
+    $bus = Bus::find($busId);
+    if ($bus) {
+        $this->available_seats = $bus->total_seats;
+    }
+};
+
+// Watcher: Memantau perubahan pada pilihan dropdown secara real-time
 updated([
     'route_id' => function ($value) {
-        $this->price = $value ? (RouteModel::find($value)?->base_price ?? '') : '';
+        if ($value) {
+            $route = RouteModel::find($value);
+            if ($route) {
+                $this->price = $route->base_price;
+            }
+        } else {
+            $this->price = ''; // Kosongkan jika rute tidak dipilih
+        }
     },
     'bus_id' => function ($value) {
-        $this->available_seats = $value ? (Bus::find($value)?->total_seats ?? '') : '';
+        if ($value) {
+            $bus = Bus::find($value);
+            if ($bus) {
+                $this->available_seats = $bus->total_seats;
+            }
+        } else {
+            $this->available_seats = ''; // Kosongkan jika bus tidak dipilih
+        }
     },
 ]);
 
 $routes = computed(function () {
     return RouteModel::query()->with('originAgent', 'destinationAgent')->where('is_active', true)->get();
-    // Global scope AgentRouteScope otomatis filter by role
 });
 
 $buses = computed(fn() => Bus::where('is_active', true)->get());
@@ -72,18 +103,13 @@ $submit = function () {
         'departure_date' => 'required|date',
         'departure_time' => 'required|date_format:H:i',
         'arrival_date' => 'required|date|after_or_equal:departure_date',
-        // PERBAIKAN DI SINI: Validasi kustom untuk Jam Kedatangan
         'arrival_time' => [
             'required',
             'date_format:H:i',
             function ($attribute, $value, $fail) {
-                // Pastikan tanggal dan waktu keberangkatan sudah diisi sebelumnya
                 if ($this->departure_date && $this->departure_time && $this->arrival_date) {
-                    // Gabungkan Tanggal + Jam menjadi satu kesatuan waktu
                     $departure = \Carbon\Carbon::parse($this->departure_date . ' ' . $this->departure_time);
                     $arrival = \Carbon\Carbon::parse($this->arrival_date . ' ' . $value);
-
-                    // Cek apakah waktu tiba lebih dulu atau sama persis dengan waktu berangkat
                     if ($arrival->lessThanOrEqualTo($departure)) {
                         $fail('Waktu kedatangan harus lebih lambat dari waktu keberangkatan.');
                     }
@@ -113,11 +139,15 @@ $submit = function () {
     {{-- Pilihan Rute --}}
     <div>
         <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih Rute *</label>
-        <select wire:model.live="route_id" class="w-full px-4 py-3 text-sm rounded-xl border border-gray-200...">
+        {{-- Gunakan wire:model.live dan hapus wire:change --}}
+        <select wire:model.live="route_id"
+            class="w-full px-4 py-3 text-sm rounded-xl border border-gray-200
+                   focus:outline-none focus:ring-2 focus:ring-primary-500">
             <option value="">-- Pilih Rute --</option>
             @foreach ($this->routes as $route)
-                <option value="{{ $route->id }}">{{ $route->originAgent->city }} -
-                    {{ $route->destinationAgent->city }}</option>
+                <option value="{{ $route->id }}">
+                    {{ $route->originAgent->city }} → {{ $route->destinationAgent->city }}
+                </option>
             @endforeach
         </select>
     </div>
@@ -125,10 +155,15 @@ $submit = function () {
     {{-- Pilihan Bus --}}
     <div>
         <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih Armada/Bus *</label>
-        <select wire:model.live="bus_id" class="w-full px-4 py-3 text-sm rounded-xl border border-gray-200...">
+        {{-- Gunakan wire:model.live dan hapus wire:change --}}
+        <select wire:model.live="bus_id"
+            class="w-full px-4 py-3 text-sm rounded-xl border border-gray-200
+                   focus:outline-none focus:ring-2 focus:ring-primary-500">
             <option value="">-- Pilih Bus --</option>
             @foreach ($this->buses as $bus)
-                <option value="{{ $bus->id }}">{{ $bus->name }} ({{ $bus->plate_number }})</option>
+                <option value="{{ $bus->id }}">
+                    {{ $bus->name }} ({{ $bus->plate_number }})
+                </option>
             @endforeach
         </select>
     </div>

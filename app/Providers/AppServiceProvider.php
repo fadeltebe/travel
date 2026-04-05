@@ -25,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+
         // Memaksa seluruh tanggal di aplikasi menggunakan bahasa Indonesia
         Carbon::setLocale('id');
 

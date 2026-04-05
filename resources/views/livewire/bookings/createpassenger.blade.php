@@ -7,6 +7,7 @@ use App\Models\Agent;
 use App\Models\Customer;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use App\Services\TokenService;
 
 state([
     'step' => 1,
@@ -161,8 +162,8 @@ $schedules = computed(function () {
                 $q->where('origin_agent_id', $user->agent_id);
             });
         })
-        ->orderBy('departure_date', 'asc')
-        ->orderBy('departure_time', 'asc')
+        ->orderBy('departure_date', 'desc')
+        ->orderBy('departure_time', 'desc')
         ->get();
 });
 
@@ -177,16 +178,36 @@ $selectedSchedule = computed(function () {
 });
 
 $subtotalPrice = computed(function () {
-    $schedule = $this->selectedSchedule;
-    $count = count($this->passengers);
-    if (!$schedule || $count === 0) {
+    // Jika belum ada penumpang yang diinput, subtotal adalah 0
+    if (empty($this->passengers)) {
         return 0;
     }
-    return $schedule->price * $count;
+
+    // Menjumlahkan seluruh nilai 'ticket_price' dari array penumpang
+    return collect($this->passengers)->sum(function ($passenger) {
+        // Gunakan (float) untuk memastikan format angka benar
+        // Gunakan ?? 0 sebagai fallback jika ticket_price kosong/belum diisi
+        return (float) ($passenger['ticket_price'] ?? 0);
+    });
 });
 
 $totalPrice = computed(function () {
     return (float) $this->subtotalPrice + (float) ($this->cargo_fee ?: 0) + (float) ($this->pickup_dropoff_fee ?: 0);
+});
+
+$hasEnoughToken = computed(function () {
+    $tokenService = app(\App\Services\TokenService::class);
+    $user = auth()->user();
+
+    $company = \App\Models\Company::first();
+    $companyId = $company->id ?? 1;
+    $agentId = $this->agent_id ?: $user->agent_id ?? 1;
+
+    $tarifPerPenumpang = 1000;
+    $jumlahPenumpang = max(1, count($this->passengers));
+    $totalPotonganToken = $tarifPerPenumpang * $jumlahPenumpang;
+
+    return $tokenService->hasEnoughBalance($companyId, $agentId, $totalPotonganToken);
 });
 
 // --- Actions ---
@@ -198,7 +219,7 @@ $goStep = function ($to) {
         return;
     }
 
-    // VALIDASI STEP 2: Sebelum lanjut ke Pengisian Data Penumpang (Step 3)
+    // VALIDASI STEP 2: Sebelum lanjut ke Pengisian Data Pemesan (sudah di Step 2)
     if ($to === 2) {
         $this->validate(
             [
@@ -211,11 +232,16 @@ $goStep = function ($to) {
 
     // VALIDASI STEP 3: Sebelum lanjut ke Detail Penumpang & Kursi
     if ($to === 3) {
+        // Jika bukan super admin, auto-set agent_id dari user yang logged in
+        if (!$this->can_manage_all_agents && !$this->agent_id) {
+            $this->agent_id = auth()->user()->agent_id;
+        }
+
         $this->validate(
             [
                 'booker_name' => 'required|string|max:255|min:3',
                 'booker_phone' => 'required|string|max:50',
-                'agent_id' => 'required|exists:agents,id',
+                'agent_id' => 'required|integer|exists:agents,id', // Pastikan integer dan ada di DB
             ],
             [],
             [
@@ -227,12 +253,17 @@ $goStep = function ($to) {
 
         // LOGIKA SINKRONISASI PEMESAN -> PENUMPANG
         if ($this->booker_is_passenger) {
+            // Ambil harga dasar dari jadwal yang dipilih
+            $schedule = $this->selectedSchedule;
+            $defaultPrice = $schedule ? $schedule->price : 0;
+
             // Pastikan array passengers memiliki index 0
             if (!isset($this->passengers[0])) {
                 $this->passengers[] = [
                     'name' => '',
                     'gender' => 'male',
                     'passenger_type' => 'dewasa',
+                    'ticket_price' => $defaultPrice,
                     'id_card_number' => '',
                     'phone' => '',
                     'seat_number' => null,
@@ -257,10 +288,14 @@ $goStep = function ($to) {
 
             // Jika kosong, berikan satu slot kosong (tanpa modal)
             if (count($this->passengers) === 0) {
+                $schedule = $this->selectedSchedule;
+                $defaultPrice = $schedule ? $schedule->price : 0;
+
                 $this->passengers[] = [
                     'name' => '',
                     'gender' => 'male',
                     'passenger_type' => 'dewasa',
+                    'ticket_price' => $defaultPrice,
                     'id_card_number' => '',
                     'phone' => '',
                     'seat_number' => null,
@@ -305,6 +340,11 @@ $resetPassengerForm = function () {
     $this->form_need_pickup = false;
     $this->form_need_dropoff = false;
     $this->editingPassengerIndex = null;
+
+    // --- TAMBAHKAN KODE INI ---
+    // Ambil harga jadwal sebagai default saat tambah penumpang baru
+    $schedule = $this->selectedSchedule;
+    $this->form_ticket_price = $schedule ? $schedule->price : 0;
 };
 
 $addPassenger = function () {
@@ -318,6 +358,7 @@ $editPassenger = function ($index) {
     $this->form_name = $p['name'] ?? '';
     $this->form_gender = $p['gender'] ?? 'male';
     $this->form_passenger_type = $p['passenger_type'] ?? 'dewasa';
+    $this->form_ticket_price = $p['ticket_price'] ?? 0;
     $this->form_id_card_number = $p['id_card_number'] ?? '';
     $this->form_phone = $p['phone'] ?? '';
     $this->form_pickup_address = $p['pickup_address'] ?? '';
@@ -379,9 +420,26 @@ $removePassenger = function ($index) {
 };
 
 $save = function () {
-    if (!auth()->user()->canViewAll()) {
-        $this->agent_id = auth()->user()->agent_id;
+    // DEBUG: Log bahwa method dipanggil
+    \Illuminate\Support\Facades\Log::info('Save method called');
+
+    // 1. Panggil TokenService secara manual (Cara paling ampuh di Volt)
+    $tokenService = app(\App\Services\TokenService::class);
+
+    $user = auth()->user();
+
+    if (!$user->canViewAll()) {
+        $this->agent_id = $user->agent_id;
     }
+
+    // DEBUG: Log sebelum validasi
+    \Illuminate\Support\Facades\Log::info('Before validation', [
+        'payment_status' => $this->payment_status,
+        'status' => $this->status,
+        'agent_id' => $this->agent_id,
+        'schedule_id' => $this->schedule_id,
+        'passengers_count' => count($this->passengers ?? []),
+    ]);
 
     $this->validate([
         'payment_status' => 'required|in:pending,paid,refunded',
@@ -391,70 +449,114 @@ $save = function () {
         'passengers.*.name' => 'required|string|max:255',
     ]);
 
-    DB::transaction(function () {
-        $bookingCode = 'BK-' . strtoupper(\Illuminate\Support\Str::random(8));
+    // DEBUG: Log setelah validasi
+    \Illuminate\Support\Facades\Log::info('After validation - validation passed');
 
-        $booking = Booking::create([
-            'booking_code' => $bookingCode,
-            'schedule_id' => $this->schedule_id,
-            'agent_id' => $this->agent_id,
-            'user_id' => auth()->id(),
-            'customer_id' => $this->customer_id ?: null,
-            'booker_name' => $this->booker_name,
-            'booker_phone' => $this->booker_phone,
-            'booker_email' => $this->booker_email ?: null,
-            'total_passengers' => count($this->passengers),
-            'total_cargo' => (int) $this->total_cargo,
-            'subtotal_price' => $this->subtotalPrice,
-            'cargo_fee' => $this->cargo_fee ?: 0,
-            'cargo_cod_fee' => $this->cargo_cod_fee ?: 0,
-            'pickup_dropoff_fee' => $this->pickup_dropoff_fee ?: 0,
-            'total_price' => $this->totalPrice,
-            'payment_status' => $this->payment_status,
-            'payment_method' => $this->payment_method,
-            'status' => $this->status,
-            'notes' => $this->notes,
-        ]);
+    // --- 2. KALKULASI & CEK SALDO TOKEN (Single Company Mode) ---
+    $tarifPerPenumpang = 1000;
+    $jumlahPenumpang = count($this->passengers);
+    $totalPotonganToken = $tarifPerPenumpang * $jumlahPenumpang;
 
-        // Ambil data harga dasar dari Jadwal untuk diisi ke tabel penumpang
-        $schedule = \App\Models\Schedule::find($this->schedule_id);
-        $basePrice = $schedule ? $schedule->price : 0;
+    // Single company - auto-detect company dan agent
+    $company = \App\Models\Company::first();
+    $companyId = $company->id ?? 1;
+    $agentId = $this->agent_id;
 
-        foreach ($this->passengers as $p) {
-            $passengerType = $p['passenger_type'] ?? 'dewasa';
+    // CEK KEAMANAN: Jika Saldo Tidak Cukup
+    if (!$tokenService->hasEnoughBalance($companyId, $agentId, $totalPotonganToken)) {
+        $this->dispatch('notify', message: 'Gagal! Saldo Token tidak mencukupi. Butuh Rp ' . number_format($totalPotonganToken, 0, ',', '.') . ' untuk Top-Up terlebih dahulu.', type: 'error');
+        return;
+    }
+    // --------------------------------------
 
-            // Hitung harga tiket berdasarkan usia
-            $ticketPrice = $basePrice;
-            if ($passengerType === 'anak-anak') {
-                $ticketPrice = $basePrice * 0.75; // Contoh: Anak-anak diskon 25% (Sesuaikan aturan Anda)
-            } elseif ($passengerType === 'balita') {
-                $ticketPrice = 0; // Balita gratis
+    try {
+        // Extract variables before transaction (closure cannot access $this)
+        $scheduleId = $this->schedule_id;
+        $agentIdVal = $this->agent_id;
+        $customerId = $this->customer_id ?: null;
+        $bookerName = $this->booker_name;
+        $bookerPhone = $this->booker_phone;
+        $bookerEmail = $this->booker_email ?: null;
+        $passengers = $this->passengers;
+        $totalCargo = (int) $this->total_cargo;
+        $subtotalPriceVal = $this->subtotalPrice;
+        $cargoFeeVal = $this->cargo_fee ?: 0;
+        $cargoCodFeeVal = $this->cargo_cod_fee ?: 0;
+        $pickupDropoffFeeVal = $this->pickup_dropoff_fee ?: 0;
+        $totalPriceVal = $this->totalPrice;
+        $paymentStatusVal = $this->payment_status;
+        $paymentMethodVal = $this->payment_method;
+        $statusVal = $this->status;
+        $notesVal = $this->notes;
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($tokenService, $companyId, $agentId, $totalPotonganToken, $jumlahPenumpang, $scheduleId, $agentIdVal, $customerId, $bookerName, $bookerPhone, $bookerEmail, $passengers, $totalCargo, $subtotalPriceVal, $cargoFeeVal, $cargoCodFeeVal, $pickupDropoffFeeVal, $totalPriceVal, $paymentStatusVal, $paymentMethodVal, $statusVal, $notesVal) {
+            $bookingCode = 'BK-' . strtoupper(\Illuminate\Support\Str::random(8));
+
+            $booking = \App\Models\Booking::create([
+                'booking_code' => $bookingCode,
+                'schedule_id' => $scheduleId,
+                'agent_id' => $agentIdVal,
+                'user_id' => auth()->id(),
+                'customer_id' => $customerId,
+                'booker_name' => $bookerName,
+                'booker_phone' => $bookerPhone,
+                'booker_email' => $bookerEmail,
+                'total_passengers' => count($passengers),
+                'total_cargo' => $totalCargo,
+                'subtotal_price' => $subtotalPriceVal,
+                'cargo_fee' => $cargoFeeVal,
+                'cargo_cod_fee' => $cargoCodFeeVal,
+                'pickup_dropoff_fee' => $pickupDropoffFeeVal,
+                'total_price' => $totalPriceVal,
+                'payment_status' => $paymentStatusVal,
+                'payment_method' => $paymentMethodVal,
+                'status' => $statusVal,
+                'notes' => $notesVal,
+            ]);
+
+            $schedule = \App\Models\Schedule::find($scheduleId);
+            $basePrice = $schedule ? $schedule->price : 0;
+
+            foreach ($passengers as $p) {
+                $passengerType = $p['passenger_type'] ?? 'dewasa';
+                $ticketPrice = $basePrice;
+                if ($passengerType === 'anak-anak') {
+                    $ticketPrice = $basePrice * 0.75;
+                } elseif ($passengerType === 'balita') {
+                    $ticketPrice = 0;
+                }
+
+                $booking->passengers()->create([
+                    'ticket_code' => 'TKT-' . date('ym') . '-' . strtoupper(\Illuminate\Support\Str::random(6)),
+                    'status' => 'booked',
+                    'ticket_price' => $p['ticket_price'] ?? 0,
+                    'name' => $p['name'],
+                    'gender' => $p['gender'] ?? 'male',
+                    'passenger_type' => $passengerType,
+                    'phone' => $p['phone'] ?? null,
+                    'id_card_number' => $p['id_card_number'] ?? null,
+                    'is_booker' => (bool) ($p['is_booker'] ?? false),
+                    'seat_number' => $p['seat_number'] ?? null,
+                    'pickup_address' => $p['pickup_address'] ?? null,
+                    'dropoff_address' => $p['dropoff_address'] ?? null,
+                    'need_pickup' => (bool) ($p['need_pickup'] ?? false),
+                    'need_dropoff' => (bool) ($p['need_dropoff'] ?? false),
+                ]);
             }
 
-            $booking->passengers()->create([
-                // --- 3 KOLOM BARU YANG WAJIB DIISI ---
-                'ticket_code' => 'TKT-' . date('ym') . '-' . strtoupper(\Illuminate\Support\Str::random(6)),
-                'status' => 'booked',
-                'ticket_price' => $p['ticket_price'] ?? 0,
-                // -------------------------------------
+            // --- 3. EKSEKUSI PEMOTONGAN SALDO (DEBIT) ---
+            if ($totalPotonganToken > 0) {
+                $tokenService->deduct($companyId, $agentId, $totalPotonganToken, "Penerbitan $jumlahPenumpang tiket (Booking: {$bookingCode})", $booking);
+            }
+            // --------------------------------------------
+        });
 
-                'name' => $p['name'],
-                'gender' => $p['gender'] ?? 'male',
-                'passenger_type' => $passengerType,
-                'phone' => $p['phone'] ?? null,
-                'id_card_number' => $p['id_card_number'] ?? null,
-                'is_booker' => (bool) ($p['is_booker'] ?? false),
-                'seat_number' => $p['seat_number'] ?? null,
-                'pickup_address' => $p['pickup_address'] ?? null,
-                'dropoff_address' => $p['dropoff_address'] ?? null,
-                'need_pickup' => (bool) ($p['need_pickup'] ?? false),
-                'need_dropoff' => (bool) ($p['need_dropoff'] ?? false),
-            ]);
-        }
-    });
-
-    session()->flash('success', 'Booking berhasil disimpan.');
-    return $this->redirect(route('schedules.index'), navigate: true);
+        session()->flash('success', 'Booking berhasil disimpan dan Saldo Token terpotong.');
+        return $this->redirect(route('schedules.index'), navigate: true);
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Booking Error: ' . $e->getMessage(), ['exception' => $e]);
+        $this->dispatch('notify', message: 'Error: ' . $e->getMessage(), type: 'error');
+    }
 };
 
 $toggleSeat = function ($seatNumber) {

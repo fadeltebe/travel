@@ -2,6 +2,7 @@
 
 namespace App\Models\Scopes;
 
+use App\Enums\Role;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
@@ -18,12 +19,12 @@ class ScheduleAccessScope implements Scope
             $user = auth()->user();
 
             // 1. Super Admin & Owner: Bebas hambatan, kembalikan query asli
-            if (in_array($user->role, ['super_admin', 'owner'])) {
+            if ($user->canViewAll()) {
                 return;
             }
 
-            // 2. Admin Agen: Hanya jadwal yang rutenya DARI atau KE agennya
-            if ($user->role === 'admin_agen') {
+            // 2. Admin: Hanya jadwal yang rutenya DARI atau KE agennya
+            if ($user->role === Role::Admin) {
                 $builder->whereHas('route', function ($query) use ($user) {
                     $query->where('origin_agent_id', $user->agent_id)
                           ->orWhere('destination_agent_id', $user->agent_id);
@@ -32,7 +33,7 @@ class ScheduleAccessScope implements Scope
             }
 
             // 3. Driver: Hanya jadwal di mana dia menjadi sopirnya
-            if ($user->role === 'driver') {
+            if ($user->role === Role::Driver) {
                 $builder->where('driver_id', $user->id);
                 return;
             }

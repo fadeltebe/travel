@@ -48,8 +48,8 @@ new class extends Component {
                     });
                 })
 
-                ->orderBy('departure_date')
-                ->orderBy('departure_time')
+                ->orderBy('departure_date', 'desc')
+                ->orderBy('departure_time', 'desc')
                 ->get(),
         ];
     }
@@ -120,8 +120,27 @@ new class extends Component {
         return collect($this->items)->sum('price');
     }
 
-    public function save()
+    public function getHasEnoughTokenProperty()
     {
+        $tokenService = app(\App\Services\TokenService::class);
+        $user = auth()->user();
+
+        $company = \App\Models\Company::first();
+        $companyId = $company->id ?? 1;
+        $agentId = $user->agent_id ?? 1;
+
+        $tarifPerKargo = 500;
+        $jumlahKargo = max(1, count($this->items));
+        $totalPotonganToken = $tarifPerKargo * $jumlahKargo;
+
+        return $tokenService->hasEnoughBalance($companyId, $agentId, $totalPotonganToken);
+    }
+
+    public function save(\App\Services\TokenService $tokenService)
+    {
+        // Panggil data user di luar try-catch agar bisa dipakai di dalam DB::transaction
+        $user = auth()->user();
+
         try {
             $this->validate([
                 'schedule_id' => 'required',
@@ -137,8 +156,28 @@ new class extends Component {
             return;
         }
 
+        // --- 1. KALKULASI & CEK SALDO TOKEN ---
+        $tarifPerKargo = 500;
+        $jumlahKargo = count($this->items);
+        $totalPotonganToken = $tarifPerKargo * $jumlahKargo; // Rp 500 per resi/item kargo
+
+        $company = \App\Models\Company::first();
+        $companyId = $company->id ?? 1;
+        $agentId = $user->agent_id ?? 1; // Sesuaikan dengan fallback agen Anda
+
+        if (!$companyId) {
+            $this->dispatch('notify', message: 'Gagal! Akun atau Agen Anda belum terhubung dengan Perusahaan (Company ID kosong).', type: 'error');
+            return;
+        }
+
+        if (!$tokenService->hasEnoughBalance($companyId, $agentId, $totalPotonganToken)) {
+            $this->dispatch('notify', message: 'Gagal! Saldo Token tidak cukup. Butuh Rp ' . number_format($totalPotonganToken, 0, ',', '.'), type: 'error');
+            return;
+        }
+        // --------------------------------------
+
         try {
-            DB::transaction(function () {
+            DB::transaction(function () use ($user, $tokenService, $companyId, $agentId, $totalPotonganToken, $jumlahKargo) {
                 // Ambil jadwal untuk relasi agent
                 $schedule = Schedule::with('route')
                     ->when(!in_array($user->role, ['super_admin', 'owner']) && $user->agent_id, function ($query) use ($user) {
@@ -146,7 +185,7 @@ new class extends Component {
                     })
                     ->findOrFail($this->schedule_id);
 
-                // Buat Booking Induk untuk merekap tagihan
+                // Buat Booking Induk
                 $booking = \App\Models\Booking::create([
                     'schedule_id' => $schedule->id,
                     'agent_id' => $user->agent_id ?? 1,
@@ -178,20 +217,25 @@ new class extends Component {
                         'fee' => (float) ($item['price'] ?? 0),
                         'recipient_name' => $this->receiver_name,
                         'recipient_phone' => $this->receiver_phone,
-                        'dropoff_address' => $this->pickup_address, // di UI sebagai alamat opsional penerima
-                        'payment_type' => $this->payment_type, // origin atau destination (COD)
+                        'dropoff_address' => $this->pickup_address,
+                        'payment_type' => $this->payment_type,
                         'payment_method' => $this->payment_method,
                         'is_paid' => $this->payment_status === 'paid',
                         'paid_at' => $this->payment_status === 'paid' ? now() : null,
                         'status' => 'pending',
                     ]);
                 }
+
+                // --- 2. EKSEKUSI PEMOTONGAN SALDO (DEBIT) ---
+                if ($totalPotonganToken > 0) {
+                    $tokenService->deduct($companyId, $agentId, $totalPotonganToken, "Penerbitan $jumlahKargo resi kargo untuk pengirim {$this->sender_name}", $booking);
+                }
+                // --------------------------------------------
             });
 
-            session()->flash('success', 'Data Cargo berhasil disimpan!');
-            return $this->redirect(route('cargo.index'), navigate: true);
+            session()->flash('success', 'Data Cargo berhasil disimpan & Saldo Token terpotong!');
+            return $this->redirect(route('cargo.index'), navigate: true); // Sesuaikan dengan nama route index cargo Anda
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Error ini otomatis terpanggil jika user memanipulasi ID jadwal
             $this->dispatch('notify', message: 'Akses Ditolak: Jadwal tidak valid atau bukan milik agen Anda.', type: 'error');
         } catch (\Exception $e) {
             $this->dispatch('notify', message: 'Gagal menyimpan: ' . $e->getMessage(), type: 'error');

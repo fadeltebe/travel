@@ -209,56 +209,8 @@ $cargos = computed(function () {
             @elseif($activeTab === 'passengers')
                 <div class="space-y-3 mt-4">
                     @forelse($this->passengers as $passenger)
-                        <a href="{{ route('passengers.show', $passenger) }}"
-                            class="block bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all overflow-hidden relative">
-
-                            {{-- Baris 1: Avatar, Nama, HP --}}
-                            <div class="flex items-start gap-3 p-3 pb-2 pr-24">
-                                <div
-                                    class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-emerald-50 border border-emerald-100">
-                                    <x-heroicon-s-user class="w-5 h-5 text-emerald-600" />
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-sm font-bold text-gray-900 leading-tight">
-                                        {{ $passenger->name }}
-                                    </p>
-                                    <p class="text-[10px] text-gray-500 font-semibold mt-0.5 flex items-center gap-1">
-                                        <x-heroicon-o-device-phone-mobile class="w-3 h-3" />
-                                        {{ $passenger->phone ?? '-' }}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {{-- Status Lunas/Belum Lunas di Pojok Kanan Atas --}}
-                            <div class="absolute top-0 right-0 flex flex-col items-end">
-                                <span
-                                    class="text-[9px] font-bold px-3 py-1 rounded-bl-lg text-white shadow-sm {{ $passenger->booking->payment_status === 'paid' ? 'bg-emerald-500' : 'bg-red-500' }}">
-                                    {{ $passenger->booking->payment_status === 'paid' ? 'LUNAS' : 'BELUM LUNAS' }}
-                                </span>
-                            </div>
-
-                            {{-- Baris 2: Booking, Harga Tiket & Kursi --}}
-                            <div
-                                class="px-3 pb-2 flex items-center justify-between text-[10px] border-t border-gray-50 pt-2 bg-gray-50/50">
-                                <div class="text-gray-600 truncate mr-2 font-bold flex items-center gap-1">
-                                    <x-heroicon-o-ticket class="w-3 h-3 text-emerald-600" />
-                                    {{ $passenger->booking->booking_code ?? '-' }}
-                                </div>
-
-                                {{-- PERUBAHAN DI SINI: Harga dan Kursi dikelompokkan --}}
-                                <div class="flex items-center gap-2 shrink-0">
-                                    <span class="font-black text-orange-500 text-xs">
-                                        {{-- CATATAN: Sesuaikan variabel ini dengan struktur database Anda --}}
-                                        Rp{{ number_format($passenger->booking->total_price ?? 0, 0, ',', '.') }}
-                                    </span>
-                                    <div
-                                        class="flex items-center gap-1 text-emerald-700 font-black px-2 py-0.5 bg-emerald-100 rounded-md">
-                                        KURSI: {{ $passenger->seat_number ?? 'N/A' }}
-                                    </div>
-                                </div>
-                            </div>
-
-                        </a>
+                        {{-- Panggil komponen di sini --}}
+                    <x-card.passenger-card :passenger="$passenger" />
                     @empty
                         <div class="text-center py-10 bg-white rounded-2xl shadow-sm border border-gray-100">
                             <x-heroicon-o-users class="w-8 h-8 text-gray-300 mx-auto" />

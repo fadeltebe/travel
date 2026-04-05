@@ -19,5 +19,16 @@
             @endforelse
         </div>
     </div>
-    <button wire:click="goStep(2)" class="w-full py-4 bg-orange-500 text-white rounded-2xl font-bold shadow-lg">Lanjut: Data Pengirim</button>
+    @if(!$this->hasEnoughToken)
+        <div class="p-3 bg-red-50 text-red-600 rounded-xl border border-red-100 text-xs font-medium text-center">
+            <x-heroicon-s-exclamation-triangle class="w-5 h-5 inline-block mb-1" /> <br>
+            Saldo Token / Dompet Poin tidak mencukupi untuk memproses {{ max(1, count($this->items)) }} kargo. <br>
+            Harap isi ulang (Top-Up) token.
+        </div>
+    @endif
+    <button wire:click="goStep(2)" 
+        @disabled(!$this->hasEnoughToken)
+        class="w-full py-4 rounded-2xl font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed {{ $this->hasEnoughToken ? 'bg-orange-500 text-white' : 'bg-gray-300 text-gray-500' }}">
+        Lanjut: Data Pengirim
+    </button>
 </div>
