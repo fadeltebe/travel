@@ -42,6 +42,9 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('/settings', 'settings.index')
         ->name('settings.index');
 
+    Volt::route('/settings/company', 'settings.company')
+        ->name('settings.company');
+
     // Reports
     Volt::route('/reports', 'reports.index')
         ->name('reports.index');
@@ -49,6 +52,9 @@ Route::middleware(['auth'])->group(function () {
     // Agents
     Volt::route('/agents', 'agents.index')
         ->name('agents.index');
+        
+    Volt::route('/agents/monitoring', 'agents.monitoring')
+        ->name('agents.monitoring');
 
     // Schedules
     Volt::route('/schedules', 'schedules.index')

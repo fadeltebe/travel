@@ -1,6 +1,6 @@
 <?php
 
-use function Livewire\Volt\{state, computed, mount};
+use function Livewire\Volt\{computed, mount};
 
 mount(function () {
     $user = auth()->user();
@@ -17,7 +17,7 @@ $menus = computed(function () {
             'title' => 'Profil Perusahaan',
             'desc' => 'Informasi umum, logo, kontak & NPWP.',
             'icon' => 'heroicon-o-building-office-2',
-            'route' => '#',
+            'route' => route('settings.company'),
             'color' => 'text-blue-600',
             'bg' => 'bg-blue-50',
         ],
@@ -81,7 +81,8 @@ $menus = computed(function () {
         </div>
 
         {{-- Menu List (Mobile First) --}}
-        <div class="px-4 -mt-3 space-y-3 pb-24 relative z-20">
+        <div class="px-4 -mt-3 space-y-4 pb-24 relative z-20">
+
             @foreach ($this->menus as $menu)
                 <a href="{{ $menu['route'] }}" wire:navigate.hover
                     class="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md active:scale-[0.98] transition-all relative overflow-hidden group">

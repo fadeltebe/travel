@@ -111,6 +111,15 @@ new class extends Component {
                         Lihat Invoices
                     </a>
                 </div>
+
+                @if(in_array(auth()->user()->role->value ?? auth()->user()->role, ['superadmin', 'owner', 'super_admin']))
+                <div class="mt-4 pt-4 border-t border-blue-500/30">
+                    <a href="{{ route('agents.monitoring') }}" wire:navigate class="w-full bg-indigo-900 border border-indigo-700 hover:bg-black text-white font-bold py-3 px-4 rounded-xl shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2">
+                        <x-heroicon-s-chart-bar class="w-5 h-5 text-indigo-400 animate-pulse" />
+                        Pusat Pantau Kinerja & Kasir Agen
+                    </a>
+                </div>
+                @endif
             </div>
 
             {{-- Usage Info --}}
