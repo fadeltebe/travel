@@ -38,8 +38,10 @@ new class extends Component {
 
     public function submit()
     {
+        \Illuminate\Support\Facades\Log::info('Topup Submit called', ['amount' => $this->topupAmount]);
+        
         $this->validate([
-            'topupAmount' => 'required|numeric|min:50000',
+            'topupAmount' => 'required|numeric|min:10000',
         ]);
 
         $company = Company::first();
@@ -111,7 +113,7 @@ new class extends Component {
             <div class="mb-8">
                 <label class="block text-sm font-semibold text-gray-700 mb-4">Pilih Jumlah Top-Up</label>
                 <div class="grid grid-cols-2 gap-3 mb-4">
-                    @foreach ([50000, 100000, 500000, 1000000] as $amount)
+                    @foreach ([10000, 50000, 100000, 500000] as $amount)
                         <button wire:click="$set('topupAmount', {{ $amount }})"
                             class="py-3 px-4 text-sm font-bold rounded-lg border-2 transition-all
                         {{ $this->topupAmount === $amount
@@ -125,7 +127,8 @@ new class extends Component {
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Atau Input Nominal Custom</label>
                 <input type="number" wire:model.live="topupAmount"
                     class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:border-blue-600 focus:outline-none"
-                    placeholder="Minimal Rp 50.000" min="50000">
+                    placeholder="Minimal Rp 10.000" min="10000">
+                @error('topupAmount') <span class="text-red-500 text-xs mt-1 block font-semibold">{{ $message }}</span> @enderror
             </div>
 
 

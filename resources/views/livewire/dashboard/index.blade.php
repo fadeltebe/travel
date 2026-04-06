@@ -143,7 +143,7 @@ $metrics = computed(function () {
                 {{-- Stats --}}
                 <div>
                     {{-- Header Ringkasan & Filter Tanggal --}}
-                    <div class="flex justify-between items-center mb-3">
+                    <div class="flex justify-between items-center mb-3 mt-8">
                         <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                             @if ($filterDate === now()->format('Y-m-d'))
                                 Ringkasan Hari Ini
