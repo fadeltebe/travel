@@ -51,6 +51,9 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('/settings/bus-layouts', 'settings.bus-layouts')
         ->name('settings.bus-layouts');
 
+    Volt::route('/settings/users', 'settings.users')
+        ->name('settings.users');
+
     // Reports
     Volt::route('/reports', 'reports.index')
         ->name('reports.index');

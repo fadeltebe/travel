@@ -49,7 +49,7 @@ $menus = computed(function () {
             'title' => 'Pengguna & Akses',
             'desc' => 'Karyawan, supir, dan hak akses sistem.',
             'icon' => 'heroicon-o-users',
-            'route' => '#',
+            'route' => route('settings.users'),
             'color' => 'text-pink-600',
             'bg' => 'bg-pink-50',
         ],
