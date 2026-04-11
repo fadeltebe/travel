@@ -54,7 +54,7 @@ new class extends Component {
             'cargo' => ['paid' => 0, 'unpaid' => 0, 'revenue' => 0, 'total' => 0]
         ];
 
-        $transactions = collect(); // Kosong by default
+        $transactions = \App\Models\WalletTransaction::whereRaw('1 = 0')->paginate(5, ['*'], 'trx_page'); // Kosong by default
         $passengersList = collect();
         $cargosList = collect();
 
@@ -72,14 +72,18 @@ new class extends Component {
 
             // 2. Query Booking Penumpang (Yang dibuat oleh agen ini)
             $bookingsQuery = Booking::where('agent_id', $this->selectedAgentId)
-                ->whereMonth('created_at', $this->selectedMonth)
-                ->whereYear('created_at', $this->selectedYear);
+                ->whereHas('schedule', function (Builder $q) {
+                    $q->whereMonth('departure_date', $this->selectedMonth)
+                      ->whereYear('departure_date', $this->selectedYear);
+                });
 
             // Kita ambil Passenger dari booking tersebut
             $passengerQuery = Passenger::whereHas('booking', function(Builder $query) {
                 $query->where('agent_id', $this->selectedAgentId)
-                      ->whereMonth('created_at', $this->selectedMonth)
-                      ->whereYear('created_at', $this->selectedYear);
+                      ->whereHas('schedule', function (Builder $sq) {
+                          $sq->whereMonth('departure_date', $this->selectedMonth)
+                             ->whereYear('departure_date', $this->selectedYear);
+                      });
             });
             
             $passengersList = (clone $passengerQuery)->with('booking')->limit(10)->get(); // sampel 10
@@ -89,13 +93,14 @@ new class extends Component {
             $metrics['passenger']['unpaid'] = (clone $passengerQuery)->whereHas('booking', fn($q) => $q->where('payment_status', '!=', 'paid'))->count();
             $metrics['passenger']['total'] = (clone $passengerQuery)->count();
             
-            // Revenue (Total harga tiket *hanya* yang sudah lunas dari booking yang diproses agen ini)
-            // Pendekatan presisi: Sum 'total_price' dari booking yang lunas. Total_price booking sudah mencakup passenger + kargo bawaan.
-            // Biar rapi, kita hitung harga dasar penumpang saja:
-            $metrics['passenger']['revenue'] = (clone $passengerQuery)->whereHas('booking', fn($q) => $q->where('payment_status', 'paid'))->sum('ticket_price');
+            // Revenue: Pakai total_price dari Booking agar konsisten dengan reports.index dan agent-reports.index
+            $metrics['passenger']['revenue'] = (clone $bookingsQuery)->where('payment_status', 'paid')->sum('total_price');
 
-            // 3. Query Kargo Logistik (Yang masuk lewat agen ini)
-            $cargoQuery = Cargo::where('origin_agent_id', $this->selectedAgentId)
+            // 3. Query Kargo Logistik (Yang masuk/keluar lewat agen ini) agar konsisten dengan agent-reports
+            $cargoQuery = Cargo::where(function($q) {
+                    $q->where('origin_agent_id', $this->selectedAgentId)
+                      ->orWhere('destination_agent_id', $this->selectedAgentId);
+                })
                 ->whereMonth('created_at', $this->selectedMonth)
                 ->whereYear('created_at', $this->selectedYear);
                 
@@ -104,6 +109,7 @@ new class extends Component {
             $metrics['cargo']['paid'] = (clone $cargoQuery)->where('is_paid', true)->count();
             $metrics['cargo']['unpaid'] = (clone $cargoQuery)->where('is_paid', false)->count();
             $metrics['cargo']['total'] = (clone $cargoQuery)->count();
+            // Cargo revenue: Sum fee dari Cargo yang lunas
             $metrics['cargo']['revenue'] = (clone $cargoQuery)->where('is_paid', true)->sum('fee');
         }
 
@@ -337,7 +343,7 @@ new class extends Component {
             <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-5 border-b border-gray-100 flex items-center justify-between">
                     <h3 class="text-sm font-bold text-gray-900">Riwayat Mutasi Saldo Agen</h3>
-                    <div class="bg-gray-100 text-gray-500 px-2 py-1 rounded text-xs font-bold">{{ $transactions->total() }} Data</div>
+                    <div class="bg-gray-100 text-gray-500 px-2 py-1 rounded text-xs font-bold">{{ method_exists($transactions, 'total') ? $transactions->total() : $transactions->count() }} Data</div>
                 </div>
 
                 @if(count($transactions) > 0)
@@ -366,7 +372,7 @@ new class extends Component {
                             </div>
                         @endforeach
                     </div>
-                    @if($transactions->hasPages())
+                    @if(method_exists($transactions, 'hasPages') && $transactions->hasPages())
                         <div class="p-4 border-t border-gray-50 bg-gray-50/50">
                             {{ $transactions->links() }}
                         </div>

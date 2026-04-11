@@ -113,7 +113,12 @@ class Schedule extends Model
             return $query;
         }
 
-        // 2. Jika Admin Agen, lihat jadwal yang Asal-nya ATAU Tujuan-nya adalah agen dia
+        // 2. Jika Driver, lihat jadwal yang dia sopiri
+        if ($user->isDriver()) {
+            return $query->where('driver_id', $user->id);
+        }
+
+        // 3. Jika Admin Agen, lihat jadwal yang Asal-nya ATAU Tujuan-nya adalah agen dia
         return $query->whereHas('route', function ($q) use ($user) {
             $q->where('origin_agent_id', $user->agent_id)
                 ->orWhere('destination_agent_id', $user->agent_id);

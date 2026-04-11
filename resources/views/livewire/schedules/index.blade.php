@@ -25,8 +25,8 @@ $schedules = computed(function () {
         ->withSum('bookings as total_cargo_sum', 'total_cargo')
         ->withSum('bookings as total_ticket_revenue', 'total_price')
 
-        // Filter Hak Akses & Arah Perjalanan - HANYA berlaku untuk Admin/Driver, bukan Owner/SuperAdmin
-        ->when(!$user->canViewAll(), function ($query) use ($user) {
+        // Filter Hak Akses & Arah Perjalanan - HANYA berlaku untuk Admin, bukan Owner/SuperAdmin/Driver
+        ->when(!$user->canViewAll() && !$user->isDriver(), function ($query) use ($user) {
             $query->where(function ($q) use ($user) {
                 $q->whereHas('route', function ($route) use ($user) {
                     if ($this->filterStatus === 'departure') {
@@ -111,7 +111,8 @@ $schedules = computed(function () {
         {{-- Content --}}
         <div class="px-4 -mt-4 space-y-4 pb-24">
 
-            {{-- Status Filter --}}
+            {{-- Status Filter - Hanya tampil untuk admin agen, bukan driver --}}
+            @if (!auth()->user()->isDriver())
             <div class="bg-white rounded-2xl p-2 shadow-sm border border-gray-100">
                 <div class="grid grid-cols-3 gap-2">
                     @foreach ([
@@ -129,6 +130,7 @@ $schedules = computed(function () {
                     @endforeach
                 </div>
             </div>
+            @endif
 
             {{-- Schedules List (mobile-first) --}}
             <div class="space-y-3">
@@ -161,9 +163,9 @@ $schedules = computed(function () {
                                 {{ strtoupper($status['label']) }}
                             </span>
 
-                            @if (!$isSuperAdmin)
+                            @if (!$isSuperAdmin && !auth()->user()->isDriver())
                                 {{-- Badge Arah: Biru untuk Keluar, Emerald untuk Masuk --}}
-                                <span class="text-[8px] font-bold px-2 py-0.5 mt-0.5 text-white shadow-sm rounded-bl-md {{ $isDeparture ? 'bg-blue-600' : 'bg-emerald-600' }}">
+                                <span class="text-[8px] font-bold px-2 py-0.5 text-white shadow-sm rounded-bl-md {{ $isDeparture ? 'bg-blue-600' : 'bg-emerald-600' }}">
                                     {{ $isDeparture ? 'KEBERANGKATAN' : 'KEDATANGAN' }}
                                 </span>
                             @endif

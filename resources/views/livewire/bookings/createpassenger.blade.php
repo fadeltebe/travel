@@ -31,6 +31,7 @@ state([
     'can_manage_all_agents' => fn() => auth()->user()->canViewAll(),
     'selecting_for_index' => null,
     'selected_seats' => [],
+    'saving' => false,
 
     // State untuk modal form penumpang
     'showPassengerModal' => false,
@@ -420,6 +421,12 @@ $removePassenger = function ($index) {
 };
 
 $save = function () {
+    // GUARD: Cegah double-submit
+    if ($this->saving ?? false) {
+        return;
+    }
+    $this->saving = true;
+
     // DEBUG: Log bahwa method dipanggil
     \Illuminate\Support\Facades\Log::info('Save method called');
 
@@ -464,6 +471,7 @@ $save = function () {
 
     // CEK KEAMANAN: Jika Saldo Tidak Cukup
     if (!$tokenService->hasEnoughBalance($companyId, $agentId, $totalPotonganToken)) {
+        $this->saving = false;
         $this->dispatch('notify', message: 'Gagal! Saldo Token tidak mencukupi. Butuh Rp ' . number_format($totalPotonganToken, 0, ',', '.') . ' untuk Top-Up terlebih dahulu.', type: 'error');
         return;
     }
@@ -554,6 +562,7 @@ $save = function () {
         session()->flash('success', 'Booking berhasil disimpan dan Saldo Token terpotong.');
         return $this->redirect(route('schedules.index'), navigate: true);
     } catch (\Exception $e) {
+        $this->saving = false;
         \Illuminate\Support\Facades\Log::error('Booking Error: ' . $e->getMessage(), ['exception' => $e]);
         $this->dispatch('notify', message: 'Error: ' . $e->getMessage(), type: 'error');
     }

@@ -58,6 +58,9 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('/reports', 'reports.index')
         ->name('reports.index');
 
+    Volt::route('/agent-reports', 'agent-reports.index')
+        ->name('agent.reports.index');
+
     // Agents
     Volt::route('/agents', 'agents.index')
         ->name('agents.index');

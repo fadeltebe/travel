@@ -17,7 +17,8 @@
         <div class="flex items-center gap-3">
 
             @auth
-                {{-- Token/Balance Display --}}
+                {{-- Token/Balance Display - Tidak tampil untuk Driver --}}
+                @if (!auth()->user()->isDriver())
                 <a href="{{ route('wallets.index') }}"
                     class="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-full border border-white/20 transition-all group">
                     <x-heroicon-s-ticket class="w-4 h-4 text-blue-200 group-hover:text-white" />
@@ -26,6 +27,7 @@
                     </span>
                     <x-heroicon-s-plus-circle class="w-3.5 h-3.5 text-blue-300 group-hover:text-white" />
                 </a>
+                @endif
 
                 {{-- Notification --}}
                 <button class="relative">
@@ -79,8 +81,8 @@
                             </span>
                         </div>
 
-                        {{-- Menu Items --}}
                         <div class="py-1">
+                            @if (!auth()->user()->isDriver())
                             <a href="{{ route('wallets.index') }}"
                                 class="flex items-center gap-3 px-4 py-2.5
                                   text-sm text-gray-700 hover:bg-gray-50
@@ -88,6 +90,7 @@
                                 <x-heroicon-o-wallet class="w-4 h-4 text-gray-400" />
                                 Dompet & Billing
                             </a>
+                            @endif
 
                             <a href="{{ route('profile.edit') }}"
                                 class="flex items-center gap-3 px-4 py-2.5
@@ -97,6 +100,7 @@
                                 Profil Saya
                             </a>
 
+                            @if (!auth()->user()->isDriver())
                             <a href="#"
                                 class="flex items-center gap-3 px-4 py-2.5
                                   text-sm text-gray-700 hover:bg-gray-50
@@ -104,6 +108,7 @@
                                 <x-heroicon-o-cog-6-tooth class="w-4 h-4 text-gray-400" />
                                 Pengaturan
                             </a>
+                            @endif
                         </div>
 
                         {{-- Logout --}}

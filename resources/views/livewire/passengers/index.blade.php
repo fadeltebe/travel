@@ -16,9 +16,17 @@ $passengers = computed(function () {
 
     return Passenger::query()
         ->with(['booking.schedule.route.originAgent', 'booking.schedule.route.destinationAgent'])
-        ->whereHas('booking.schedule.route', function (Builder $query) use ($user) {
-            if (!$user->canViewAll()) {
-                $query->where('origin_agent_id', $user->agent_id)->orWhere('destination_agent_id', $user->agent_id);
+        ->when(!$user->canViewAll(), function ($query) use ($user) {
+            if ($user->isDriver()) {
+                // Driver: hanya penumpang dari jadwal yang dia sopiri
+                $query->whereHas('booking.schedule', function (Builder $q) use ($user) {
+                    $q->where('driver_id', $user->id);
+                });
+            } else {
+                // Admin Agen: penumpang dari rute agen mereka
+                $query->whereHas('booking.schedule.route', function (Builder $q) use ($user) {
+                    $q->where('origin_agent_id', $user->agent_id)->orWhere('destination_agent_id', $user->agent_id);
+                });
             }
         })
         ->when($this->search, function ($query) {

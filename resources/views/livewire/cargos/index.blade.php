@@ -32,10 +32,17 @@ $cargos = computed(function () {
             }
         })
         ->when(!$user->canViewAll(), function ($query) use ($user) {
-            // Untuk agen biasa, hanya melihat cargo di mana mereka adalah origin atau destination
-            $query->where(function ($q) use ($user) {
-                $q->where('origin_agent_id', $user->agent_id)->orWhere('destination_agent_id', $user->agent_id);
-            });
+            if ($user->isDriver()) {
+                // Driver: hanya cargo dari jadwal yang dia sopiri
+                $query->whereHas('booking.schedule', function ($q) use ($user) {
+                    $q->where('driver_id', $user->id);
+                });
+            } else {
+                // Admin Agen: hanya melihat cargo di mana mereka adalah origin atau destination
+                $query->where(function ($q) use ($user) {
+                    $q->where('origin_agent_id', $user->agent_id)->orWhere('destination_agent_id', $user->agent_id);
+                });
+            }
         })
         ->latest()
         ->simplePaginate(30);

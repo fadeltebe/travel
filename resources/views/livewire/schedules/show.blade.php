@@ -8,10 +8,17 @@ state([
         $param = request()->route('schedule');
         $schedule = $param instanceof Schedule ? $param : Schedule::with(['route.originAgent', 'route.destinationAgent', 'bus', 'driver'])->findOrFail($param);
 
-        // Otorisasi: Mencegah agen melihat jadwal cabang lain
+        // Otorisasi: Mencegah user melihat jadwal yang bukan haknya
         $user = auth()->user();
-        if (!$user->canViewAll() && $schedule->route->origin_agent_id !== $user->agent_id && $schedule->route->destination_agent_id !== $user->agent_id) {
-            abort(403, 'AKSES DITOLAK: Jadwal ini tidak terdaftar untuk agen Anda.');
+        if (!$user->canViewAll()) {
+            if ($user->isDriver()) {
+                // Driver hanya boleh akses jadwal yang dia sopiri
+                if ($schedule->driver_id !== $user->id) {
+                    abort(403, 'AKSES DITOLAK: Anda bukan sopir untuk jadwal ini.');
+                }
+            } elseif ($schedule->route->origin_agent_id !== $user->agent_id && $schedule->route->destination_agent_id !== $user->agent_id) {
+                abort(403, 'AKSES DITOLAK: Jadwal ini tidak terdaftar untuk agen Anda.');
+            }
         }
 
         $schedule->loadMissing(['route.originAgent', 'route.destinationAgent', 'bus', 'driver']);
@@ -234,13 +241,15 @@ $cargos = computed(function () {
                 </div>
             @endif
 
-            {{-- FAB Edit Jadwal (kanan bawah, orange) --}}
+            {{-- FAB Edit Jadwal (kanan bawah, orange) - Tidak tampil untuk Driver --}}
+            @if (!auth()->user()->isDriver())
             <a href="{{ route('schedules.edit', $scheduleModel) }}"
                 class="fixed right-4 z-40 w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg active:scale-95 transition-transform border-2 border-white/30"
                 style="bottom: calc(72px + env(safe-area-inset-bottom)); background: linear-gradient(135deg, #F57C00, #FF9800); box-shadow: 0 4px 20px rgba(245,124,0,0.45);"
                 title="Edit jadwal">
                 <x-heroicon-o-pencil class="w-7 h-7" />
             </a>
+            @endif
 
         </div>
     </x-layouts.app>

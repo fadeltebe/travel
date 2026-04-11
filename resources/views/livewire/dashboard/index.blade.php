@@ -30,23 +30,41 @@ $metrics = computed(function () {
     // 4. Cargo Diterima Hari Ini
     $cargosQuery = Cargo::whereDate('created_at', $date);
 
-    // Terapkan Filter Berdasarkan Role Agen
+    // Terapkan Filter Berdasarkan Role
     if (!$user->canViewAll()) {
-        $agentId = $user->agent_id;
+        if ($user->isDriver()) {
+            // Driver: Hanya melihat data dari jadwal yang dia sopiri
+            $schedulesQuery->where('driver_id', $user->id);
 
-        $schedulesQuery->whereHas('route', function (Builder $q) use ($agentId) {
-            $q->where('origin_agent_id', $agentId)->orWhere('destination_agent_id', $agentId);
-        });
+            $bookingsQuery->whereHas('schedule', function (Builder $q) use ($user) {
+                $q->where('driver_id', $user->id);
+            });
 
-        $bookingsQuery->where('agent_id', $agentId);
+            $passengersQuery->whereHas('booking.schedule', function (Builder $q) use ($user) {
+                $q->where('driver_id', $user->id);
+            });
 
-        $passengersQuery->whereHas('booking', function (Builder $q) use ($agentId) {
-            $q->where('agent_id', $agentId);
-        });
+            $cargosQuery->whereHas('booking.schedule', function (Builder $q) use ($user) {
+                $q->where('driver_id', $user->id);
+            });
+        } else {
+            // Admin Agen: Filter berdasarkan agent_id
+            $agentId = $user->agent_id;
 
-        $cargosQuery->where(function ($q) use ($agentId) {
-            $q->where('origin_agent_id', $agentId)->orWhere('destination_agent_id', $agentId);
-        });
+            $schedulesQuery->whereHas('route', function (Builder $q) use ($agentId) {
+                $q->where('origin_agent_id', $agentId)->orWhere('destination_agent_id', $agentId);
+            });
+
+            $bookingsQuery->where('agent_id', $agentId);
+
+            $passengersQuery->whereHas('booking', function (Builder $q) use ($agentId) {
+                $q->where('agent_id', $agentId);
+            });
+
+            $cargosQuery->where(function ($q) use ($agentId) {
+                $q->where('origin_agent_id', $agentId)->orWhere('destination_agent_id', $agentId);
+            });
+        }
     }
 
     return [
@@ -133,6 +151,26 @@ $metrics = computed(function () {
                                 </div>
                                 <span class="text-[11px] font-medium text-gray-600 text-center leading-tight">
                                     Pengaturan
+                                </span>
+                            </a>
+
+                        </div>
+                    </div>
+                @elseif (auth()->user()->isDriver())
+                    {{-- Driver: Tidak ada quick actions khusus, tampilkan info singkat --}}
+                @elseif (auth()->user()->agent_id)
+                    {{-- Quick Actions for Agent --}}
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                        <div class="flex gap-4 mt-2">
+
+                            <a href="{{ route('agent.reports.index') }}"
+                                class="flex flex-col items-center gap-2 active:scale-90 transition-transform">
+                                <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                                    style="background: #E8EAF6">
+                                    <x-heroicon-o-chart-bar class="w-6 h-6 text-indigo-700" />
+                                </div>
+                                <span class="text-[11px] font-medium text-gray-600 text-center leading-tight">
+                                    Laporan Agen
                                 </span>
                             </a>
 

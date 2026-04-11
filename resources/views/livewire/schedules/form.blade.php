@@ -1,5 +1,5 @@
 <?php
-use function Livewire\Volt\{state, computed, mount};
+use function Livewire\Volt\{state, computed, mount, updated};
 use App\Models\Route as RouteModel;
 use App\Models\Bus;
 use App\Models\User;
@@ -18,6 +18,7 @@ state([
     'available_seats' => '',
     'status' => 'scheduled',
     'isEdit' => false,
+    'saving' => false,
 ]);
 
 mount(function (int $scheduleId = null) {
@@ -43,40 +44,72 @@ mount(function (int $scheduleId = null) {
     }
 });
 
-// ── Action: Dipanggil saat dropdown Rute berubah ──
-$onRouteChange = function ($value) {
-    $this->route_id = $value;
-    if ($value) {
-        $route = RouteModel::find($value);
-        if ($route) {
-            $this->price = $route->base_price;
+// ── BUG FIX #2: Auto-fill harga & kursi saat dropdown berubah ──
+updated([
+    'route_id' => function ($value) {
+        if ($value) {
+            $route = RouteModel::find($value);
+            if ($route) {
+                $this->price = $route->base_price;
+            }
+        } else {
+            $this->price = '';
         }
-    } else {
-        $this->price = '';
-    }
-};
-
-// ── Action: Dipanggil saat dropdown Bus berubah ──
-$onBusChange = function ($value) {
-    $this->bus_id = $value;
-    if ($value) {
-        $bus = Bus::find($value);
-        if ($bus) {
-            $this->available_seats = $bus->total_seats;
+    },
+    'bus_id' => function ($value) {
+        if ($value) {
+            $bus = Bus::find($value);
+            if ($bus) {
+                $this->available_seats = $bus->total_seats;
+            }
+        } else {
+            $this->available_seats = '';
         }
-    } else {
-        $this->available_seats = '';
-    }
-};
+    },
+]);
 
+// ── BUG FIX #1: Rute hanya untuk agen yang terikat, dengan authorization check lebih ketat ──
 $routes = computed(function () {
-    return RouteModel::query()->with('originAgent', 'destinationAgent')->where('is_active', true)->get();
+    $user = auth()->user();
+    
+    // Jika user bukan agent-bound (Super Admin, Owner), tampilkan semua rute aktif
+    if (!$user || !$user->agent_id || !$user->role->isAgentBound()) {
+        return RouteModel::query()
+            ->with('originAgent', 'destinationAgent')
+            ->where('is_active', true)
+            ->get();
+    }
+    
+    // Jika user adalah agent-bound, HANYA tampilkan rute yang berasal dari agen mereka
+    return RouteModel::query()
+        ->with('originAgent', 'destinationAgent')
+        ->where('is_active', true)
+        ->where('origin_agent_id', $user->agent_id)
+        ->get();
 });
 
 $buses = computed(fn() => Bus::where('is_active', true)->get());
 $drivers = computed(fn() => User::where('role', 'driver')->get());
 
 $submit = function () {
+    // GUARD: Cegah double-submit
+    if ($this->saving) {
+        return;
+    }
+    $this->saving = true;
+
+    // ── BUG FIX #1: Tambahkan authorization check saat submit ──
+    $user = auth()->user();
+    if ($user && $user->agent_id && $user->role->isAgentBound()) {
+        // Validasi route yang dipilih harus milik agen user
+        $selectedRoute = RouteModel::find($this->route_id);
+        if (!$selectedRoute || $selectedRoute->origin_agent_id !== $user->agent_id) {
+            session()->flash('error', 'Anda tidak memiliki izin untuk menggunakan rute ini.');
+            $this->saving = false;
+            return;
+        }
+    }
+
     $validated = $this->validate([
         'route_id' => 'required|exists:routes,id',
         'bus_id' => 'required|exists:buses,id',
@@ -97,8 +130,8 @@ $submit = function () {
                 }
             },
         ],
-        'price' => 'required|numeric|min:1',
-        'available_seats' => 'required|numeric|min:1|max:60',
+        'price' => 'required|numeric|min:1', // ── BUG FIX #2: min:1 untuk cegah 0 ──
+        'available_seats' => 'required|numeric|min:1|max:60', // ── BUG FIX #2: min:1 untuk cegah 0 ──
         'status' => 'required|in:scheduled,ongoing,completed,cancelled',
     ]);
 
@@ -120,7 +153,7 @@ $submit = function () {
     {{-- Pilihan Rute --}}
     <div>
         <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih Rute *</label>
-        <select wire:model="route_id" wire:change="onRouteChange($event.target.value)"
+        <select wire:model.live="route_id"
             class="w-full px-4 py-3 text-sm rounded-xl border border-gray-200
                    focus:outline-none focus:ring-2 focus:ring-primary-500">
             <option value="">-- Pilih Rute --</option>
@@ -135,7 +168,7 @@ $submit = function () {
     {{-- Pilihan Bus --}}
     <div>
         <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih Armada/Bus *</label>
-        <select wire:model="bus_id" wire:change="onBusChange($event.target.value)"
+        <select wire:model.live="bus_id"
             class="w-full px-4 py-3 text-sm rounded-xl border border-gray-200
                    focus:outline-none focus:ring-2 focus:ring-primary-500">
             <option value="">-- Pilih Bus --</option>
@@ -218,7 +251,7 @@ $submit = function () {
                          text-sm shrink-0">
                     Rp
                 </span>
-                <input type="number" wire:model="price" placeholder="0"
+                <input type="number" wire:model.live.debounce-500ms="price" placeholder="0" value="{{ $price ?: '' }}"
                     class="w-0 flex-1 px-3 py-3 rounded-r-xl border border-gray-200
                           text-sm focus:outline-none focus:ring-2
                           focus:ring-primary-500 focus:border-transparent">
@@ -233,7 +266,7 @@ $submit = function () {
             <label class="block text-sm font-semibold text-gray-700 mb-2">
                 Kursi Tersedia *
             </label>
-            <input type="number" wire:model="available_seats" placeholder="0" min="1" max="60"
+            <input type="number" wire:model.live.debounce-500ms="available_seats" placeholder="0" min="1" max="60" value="{{ $available_seats ?: '' }}"
                 class="w-full px-3 py-3 rounded-xl border border-gray-200
                       text-sm focus:outline-none focus:ring-2
                       focus:ring-primary-500 focus:border-transparent">
@@ -266,9 +299,15 @@ $submit = function () {
             Batal
         </a>
         <button type="submit"
+            wire:loading.attr="disabled"
+            wire:loading.class="opacity-50 cursor-not-allowed"
             class="flex-1 px-6 py-3 rounded-xl bg-primary-600 text-white
-               font-semibold hover:bg-primary-700 transition-colors">
-            {{ $isEdit ? 'Perbarui Jadwal' : 'Buat Jadwal' }}
+               font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <span wire:loading.remove wire:target="submit">{{ $isEdit ? 'Perbarui Jadwal' : 'Buat Jadwal' }}</span>
+            <span wire:loading wire:target="submit" class="flex items-center justify-center gap-2">
+                <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                Menyimpan
+            </span>
         </button>
     </div>
 </form>

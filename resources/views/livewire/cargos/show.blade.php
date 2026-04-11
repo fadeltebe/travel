@@ -36,16 +36,16 @@ $canUpdatePayment = computed(function () {
         return true;
     } // Superadmin bebas
 
-    // Ambil tipe pembayaran dari database (Sesuaikan dengan nama kolom/enum Anda, misal: 'paid_origin' atau 'cod')
-    $paymentType = $this->cargo->payment_type ?? 'paid_origin';
+    // Ambil tipe pembayaran dari database: 'origin' atau 'destination'
+    $paymentType = $this->cargo->payment_type ?? 'origin';
 
     // Jika bayar di asal (Cash di loket pengirim)
-    if (in_array($paymentType, ['paid_origin', 'cash'])) {
+    if ($paymentType === 'origin') {
         return $user->agent_id === $this->cargo->origin_agent_id;
     }
 
     // Jika bayar di tujuan (COD)
-    if (in_array($paymentType, ['paid_destination', 'cod'])) {
+    if ($paymentType === 'destination') {
         return $user->agent_id === $this->cargo->destination_agent_id;
     }
 

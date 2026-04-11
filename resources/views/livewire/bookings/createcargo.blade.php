@@ -23,6 +23,7 @@ new class extends Component {
     public $payment_status = 'pending';
     public $payment_type = 'origin'; // origin atau destination (COD)
     public $shipping_status = 'scheduled';
+    public $saving = false;
 
     public function mount()
     {
@@ -127,7 +128,10 @@ new class extends Component {
 
         $company = \App\Models\Company::first();
         $companyId = $company->id ?? 1;
-        $agentId = $user->agent_id ?? 1;
+
+        // Validasi: ambil agent_id dari asal pengiriman tiket, bukan data akun (jika kosong/super admin)
+        $schedule = Schedule::with('route')->find($this->schedule_id);
+        $agentId = $schedule ? $schedule->route->origin_agent_id : ($user->agent_id ?? 1);
 
         $tarifPerKargo = 500;
         $jumlahKargo = max(1, count($this->items));
@@ -138,6 +142,12 @@ new class extends Component {
 
     public function save(\App\Services\TokenService $tokenService)
     {
+        // GUARD: Cegah double-submit
+        if ($this->saving) {
+            return;
+        }
+        $this->saving = true;
+
         // Panggil data user di luar try-catch agar bisa dipakai di dalam DB::transaction
         $user = auth()->user();
 
@@ -152,6 +162,7 @@ new class extends Component {
                 'items.*.price' => 'required|numeric|min:0',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->saving = false;
             $this->dispatch('notify', message: 'Validasi Gagal! Pastikan semua formulir sudah diisi di langkah sebelumnya.', type: 'error');
             return;
         }
@@ -163,32 +174,40 @@ new class extends Component {
 
         $company = \App\Models\Company::first();
         $companyId = $company->id ?? 1;
-        $agentId = $user->agent_id ?? 1; // Sesuaikan dengan fallback agen Anda
+
+        // Ambil jadwal untuk relasi agent SECARA AKURAT
+        $schedule = Schedule::with('route')
+            ->when(!in_array($user->role, ['super_admin', 'owner']) && $user->agent_id, function ($query) use ($user) {
+                $query->whereHas('route', fn($q) => $q->where('origin_agent_id', $user->agent_id));
+            })
+            ->findOrFail($this->schedule_id);
+
+        $agentId = $schedule->route->origin_agent_id; // SELALU POTONG DARI AGEN YANG MENGIRIM!
 
         if (!$companyId) {
+            $this->saving = false;
             $this->dispatch('notify', message: 'Gagal! Akun atau Agen Anda belum terhubung dengan Perusahaan (Company ID kosong).', type: 'error');
             return;
         }
 
         if (!$tokenService->hasEnoughBalance($companyId, $agentId, $totalPotonganToken)) {
+            $this->saving = false;
             $this->dispatch('notify', message: 'Gagal! Saldo Token tidak cukup. Butuh Rp ' . number_format($totalPotonganToken, 0, ',', '.'), type: 'error');
             return;
         }
         // --------------------------------------
 
         try {
-            DB::transaction(function () use ($user, $tokenService, $companyId, $agentId, $totalPotonganToken, $jumlahKargo) {
-                // Ambil jadwal untuk relasi agent
-                $schedule = Schedule::with('route')
-                    ->when(!in_array($user->role, ['super_admin', 'owner']) && $user->agent_id, function ($query) use ($user) {
-                        $query->whereHas('route', fn($q) => $q->where('origin_agent_id', $user->agent_id));
-                    })
-                    ->findOrFail($this->schedule_id);
+            DB::transaction(function () use ($user, $tokenService, $companyId, $agentId, $totalPotonganToken, $jumlahKargo, $schedule) {
+
+                // Otomatis set lunas jika bayar di agen asal, pending jika COD (bayar di tujuan)
+                $paymentStatus = $this->payment_type === 'origin' ? 'paid' : 'pending';
+                $isPaid = $paymentStatus === 'paid';
 
                 // Buat Booking Induk
                 $booking = \App\Models\Booking::create([
                     'schedule_id' => $schedule->id,
-                    'agent_id' => $user->agent_id ?? 1,
+                    'agent_id' => $agentId,
                     'user_id' => $user->id,
                     'booker_name' => $this->sender_name,
                     'booker_phone' => $this->sender_phone,
@@ -197,9 +216,9 @@ new class extends Component {
                     'subtotal_price' => 0,
                     'cargo_fee' => $this->totalBill,
                     'total_price' => $this->totalBill,
-                    'payment_status' => $this->payment_status,
+                    'payment_status' => $paymentStatus,
                     'payment_method' => $this->payment_method,
-                    'paid_at' => $this->payment_status === 'paid' ? now() : null,
+                    'paid_at' => $isPaid ? now() : null,
                     'status' => 'confirmed',
                 ]);
 
@@ -220,8 +239,8 @@ new class extends Component {
                         'dropoff_address' => $this->pickup_address,
                         'payment_type' => $this->payment_type,
                         'payment_method' => $this->payment_method,
-                        'is_paid' => $this->payment_status === 'paid',
-                        'paid_at' => $this->payment_status === 'paid' ? now() : null,
+                        'is_paid' => $isPaid,
+                        'paid_at' => $isPaid ? now() : null,
                         'status' => 'pending',
                     ]);
                 }
@@ -236,8 +255,10 @@ new class extends Component {
             session()->flash('success', 'Data Cargo berhasil disimpan & Saldo Token terpotong!');
             return $this->redirect(route('cargo.index'), navigate: true); // Sesuaikan dengan nama route index cargo Anda
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            $this->saving = false;
             $this->dispatch('notify', message: 'Akses Ditolak: Jadwal tidak valid atau bukan milik agen Anda.', type: 'error');
         } catch (\Exception $e) {
+            $this->saving = false;
             $this->dispatch('notify', message: 'Gagal menyimpan: ' . $e->getMessage(), type: 'error');
         }
     }
