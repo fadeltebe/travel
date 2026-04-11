@@ -14,8 +14,7 @@ new class extends Component {
         $user = auth()->user();
 
         // Cek apakah ada invoice Topup yang masih pending
-        $query = Topup::where('company_id', $company->id)
-                      ->where('status', 'pending');
+        $query = Topup::where('company_id', $company->id)->where('status', 'pending');
 
         if ($company->billing_mode === 'centralized') {
             $query->whereNull('agent_id');
@@ -39,7 +38,7 @@ new class extends Component {
     public function submit()
     {
         \Illuminate\Support\Facades\Log::info('Topup Submit called', ['amount' => $this->topupAmount]);
-        
+
         $this->validate([
             'topupAmount' => 'required|numeric|min:10000',
         ]);
@@ -47,7 +46,7 @@ new class extends Component {
         $company = Company::first();
         $user = auth()->user();
 
-        $invoiceNumber = 'INV-TKN-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+        $invoiceNumber = 'TKN' . date('dm') . strtoupper(Str::random(4));
 
         $topup = Topup::create([
             'company_id' => $company->id,
@@ -60,7 +59,7 @@ new class extends Component {
 
         $paymentService = app(\App\Services\PaymentService::class);
         $snapToken = $paymentService->createSnapToken($topup);
-        
+
         if ($snapToken) {
             $topup->update(['snap_token' => $snapToken]);
             // Langsung buka pop-up Snap di halaman ini
@@ -76,20 +75,31 @@ new class extends Component {
 
 <div>
     {{-- Memanggil Midtrans Snap.js --}}
-    @if(config('services.midtrans.is_production'))
-        <script src="https://app.midtrans.com/snap/snap.js" data-client-key="{{ config('services.midtrans.client_key') }}"></script>
+    @if (config('services.midtrans.is_production'))
+        <script src="https://app.midtrans.com/snap/snap.js" data-client-key="{{ config('services.midtrans.client_key') }}">
+        </script>
     @else
-        <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('services.midtrans.client_key') }}"></script>
+        <script src="https://app.sandbox.midtrans.com/snap/snap.js"
+            data-client-key="{{ config('services.midtrans.client_key') }}"></script>
     @endif
-    
+
     <script>
         document.addEventListener('livewire:initialized', () => {
             Livewire.on('open-midtrans-snap', (event) => {
                 snap.pay(event.token, {
-                    onSuccess: function(result){ window.location.href = "{{ route('wallets.index') }}"; },
-                    onPending: function(result){ window.location.href = "{{ route('billings.index') }}"; },
-                    onError: function(result){ alert('Pembayaran gagal!'); window.location.href = "{{ route('billings.index') }}"; },
-                    onClose: function(){ window.location.href = "{{ route('billings.index') }}"; }
+                    onSuccess: function(result) {
+                        window.location.href = "{{ route('wallets.index') }}";
+                    },
+                    onPending: function(result) {
+                        window.location.href = "{{ route('billings.index') }}";
+                    },
+                    onError: function(result) {
+                        alert('Pembayaran gagal!');
+                        window.location.href = "{{ route('billings.index') }}";
+                    },
+                    onClose: function() {
+                        window.location.href = "{{ route('billings.index') }}";
+                    }
                 });
             });
         });
@@ -99,58 +109,60 @@ new class extends Component {
         <div class="min-h-screen bg-gray-50 pt-6 pb-24">
             <div class="max-w-2xl mx-auto px-4">
 
-        <div class="mb-8">
-            <a href="{{ route('wallets.index') }}" class="text-blue-600 font-semibold flex items-center gap-2 mb-6">
-                <x-heroicon-o-arrow-left class="w-4 h-4" />
-                Kembali ke Dompet
-            </a>
-            <h1 class="text-3xl font-bold text-gray-900">Top-Up Saldo Token</h1>
-        </div>
+                <div class="mb-8">
+                    <a href="{{ route('wallets.index') }}"
+                        class="text-blue-600 font-semibold flex items-center gap-2 mb-6">
+                        <x-heroicon-o-arrow-left class="w-4 h-4" />
+                        Kembali ke Dompet
+                    </a>
+                    <h1 class="text-3xl font-bold text-gray-900">Top-Up Saldo Token</h1>
+                </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
 
-            {{-- Amount Selection --}}
-            <div class="mb-8">
-                <label class="block text-sm font-semibold text-gray-700 mb-4">Pilih Jumlah Top-Up</label>
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    @foreach ([10000, 50000, 100000, 500000] as $amount)
-                        <button wire:click="$set('topupAmount', {{ $amount }})"
-                            class="py-3 px-4 text-sm font-bold rounded-lg border-2 transition-all
+                    {{-- Amount Selection --}}
+                    <div class="mb-8">
+                        <label class="block text-sm font-semibold text-gray-700 mb-4">Pilih Jumlah Top-Up</label>
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            @foreach ([10000, 50000, 100000, 500000] as $amount)
+                                <button wire:click="$set('topupAmount', {{ $amount }})"
+                                    class="py-3 px-4 text-sm font-bold rounded-lg border-2 transition-all
                         {{ $this->topupAmount === $amount
                             ? 'border-blue-600 bg-blue-50 text-blue-600'
                             : 'border-gray-200 text-gray-700 hover:border-gray-300' }}">
-                            Rp{{ number_format($amount, 0, ',', '.') }}
-                        </button>
-                    @endforeach
+                                    Rp{{ number_format($amount, 0, ',', '.') }}
+                                </button>
+                            @endforeach
+                        </div>
+
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Atau Input Nominal Custom</label>
+                        <input type="number" wire:model.live="topupAmount"
+                            class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:border-blue-600 focus:outline-none"
+                            placeholder="Minimal Rp 10.000" min="10000">
+                        @error('topupAmount')
+                            <span class="text-red-500 text-xs mt-1 block font-semibold">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    {{-- Summary --}}
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg px-6 py-4 mb-8">
+                        <div class="flex justify-between pt-2 border-t border-gray-200">
+                            <span class="font-semibold text-gray-900">Total Bayar</span>
+                            <span
+                                class="text-xl font-bold text-blue-600">Rp{{ number_format($this->topupAmount, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+
+                    {{-- Action Button --}}
+                    <button wire:click="submit"
+                        class="w-full bg-blue-600 text-white py-4 rounded-lg font-bold hover:bg-blue-700 active:scale-95 transition-all">
+                        Bayar Sekarang
+                    </button>
+
+                    <p class="text-xs text-gray-400 text-center mt-4">Jendela pop-up pembayaran akan langsung terbuka
+                        saat ditekan. Pastikan popup pada browser tidak diblokir.</p>
+
                 </div>
-
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Atau Input Nominal Custom</label>
-                <input type="number" wire:model.live="topupAmount"
-                    class="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:border-blue-600 focus:outline-none"
-                    placeholder="Minimal Rp 10.000" min="10000">
-                @error('topupAmount') <span class="text-red-500 text-xs mt-1 block font-semibold">{{ $message }}</span> @enderror
-            </div>
-
-
-
-            {{-- Summary --}}
-            <div class="bg-gray-50 border border-gray-200 rounded-lg px-6 py-4 mb-8">
-                <div class="flex justify-between pt-2 border-t border-gray-200">
-                    <span class="font-semibold text-gray-900">Total Bayar</span>
-                    <span
-                        class="text-xl font-bold text-blue-600">Rp{{ number_format($this->topupAmount, 0, ',', '.') }}</span>
-                </div>
-            </div>
-
-            {{-- Action Button --}}
-            <button wire:click="submit"
-                class="w-full bg-blue-600 text-white py-4 rounded-lg font-bold hover:bg-blue-700 active:scale-95 transition-all">
-                Bayar Sekarang
-            </button>
-
-            <p class="text-xs text-gray-400 text-center mt-4">Jendela pop-up pembayaran akan langsung terbuka saat ditekan. Pastikan popup pada browser tidak diblokir.</p>
-
-        </div>
 
             </div>
 

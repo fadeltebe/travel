@@ -1,5 +1,5 @@
 <?php
-use function Livewire\Volt\{state, computed, mount, updated};
+use function Livewire\Volt\{state, computed, mount};
 use App\Models\Route as RouteModel;
 use App\Models\Bus;
 use App\Models\User;
@@ -43,50 +43,31 @@ mount(function (int $scheduleId = null) {
     }
 });
 
-// ← Auto-fill harga dari base_price rute
-$fillPriceFromRoute = function ($routeId) {
-    if (!$routeId || $this->isEdit) {
-        return;
-    }
-    $route = RouteModel::find($routeId);
-    if ($route) {
-        $this->price = $route->base_price;
+// ── Action: Dipanggil saat dropdown Rute berubah ──
+$onRouteChange = function ($value) {
+    $this->route_id = $value;
+    if ($value) {
+        $route = RouteModel::find($value);
+        if ($route) {
+            $this->price = $route->base_price;
+        }
+    } else {
+        $this->price = '';
     }
 };
 
-$fillSeatsFromBus = function ($busId) {
-    if (!$busId || $this->isEdit) {
-        return;
-    }
-    $bus = Bus::find($busId);
-    if ($bus) {
-        $this->available_seats = $bus->total_seats;
+// ── Action: Dipanggil saat dropdown Bus berubah ──
+$onBusChange = function ($value) {
+    $this->bus_id = $value;
+    if ($value) {
+        $bus = Bus::find($value);
+        if ($bus) {
+            $this->available_seats = $bus->total_seats;
+        }
+    } else {
+        $this->available_seats = '';
     }
 };
-
-// Watcher: Memantau perubahan pada pilihan dropdown secara real-time
-updated([
-    'route_id' => function ($value) {
-        if ($value) {
-            $route = RouteModel::find($value);
-            if ($route) {
-                $this->price = $route->base_price;
-            }
-        } else {
-            $this->price = ''; // Kosongkan jika rute tidak dipilih
-        }
-    },
-    'bus_id' => function ($value) {
-        if ($value) {
-            $bus = Bus::find($value);
-            if ($bus) {
-                $this->available_seats = $bus->total_seats;
-            }
-        } else {
-            $this->available_seats = ''; // Kosongkan jika bus tidak dipilih
-        }
-    },
-]);
 
 $routes = computed(function () {
     return RouteModel::query()->with('originAgent', 'destinationAgent')->where('is_active', true)->get();
@@ -139,8 +120,7 @@ $submit = function () {
     {{-- Pilihan Rute --}}
     <div>
         <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih Rute *</label>
-        {{-- Gunakan wire:model.live dan hapus wire:change --}}
-        <select wire:model.live="route_id"
+        <select wire:model="route_id" wire:change="onRouteChange($event.target.value)"
             class="w-full px-4 py-3 text-sm rounded-xl border border-gray-200
                    focus:outline-none focus:ring-2 focus:ring-primary-500">
             <option value="">-- Pilih Rute --</option>
@@ -155,8 +135,7 @@ $submit = function () {
     {{-- Pilihan Bus --}}
     <div>
         <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih Armada/Bus *</label>
-        {{-- Gunakan wire:model.live dan hapus wire:change --}}
-        <select wire:model.live="bus_id"
+        <select wire:model="bus_id" wire:change="onBusChange($event.target.value)"
             class="w-full px-4 py-3 text-sm rounded-xl border border-gray-200
                    focus:outline-none focus:ring-2 focus:ring-primary-500">
             <option value="">-- Pilih Bus --</option>

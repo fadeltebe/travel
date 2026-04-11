@@ -32,7 +32,7 @@ class MidtransWebhookController extends Controller
 
         if ($expectedSignature !== $signatureKey) {
             Log::warning('Midtrans Webhook: Invalid Signature', [
-                'expected' => $expectedSignature, 
+                'expected' => $expectedSignature,
                 'received' => $signatureKey,
                 'order' => $orderId
             ]);
@@ -53,7 +53,7 @@ class MidtransWebhookController extends Controller
 
         // 4. Proses Eksekusi Berdasarkan Status Pembayaran Midtrans
         if ($transactionStatus == 'capture' || $transactionStatus == 'settlement') {
-            
+
             // Bungkus dalam Database Transaction agar aman jika ada crash di tengah eksekusi
             DB::transaction(function () use ($topup, $paymentType) {
                 // Tandai Topup Lunas
@@ -84,7 +84,7 @@ class MidtransWebhookController extends Controller
                         'type' => 'credit',
                         'amount' => $topup->amount,
                         'balance_after' => $wallet->balance,
-                        'description' => "Isi Saldo Token (Midtrans: {$topup->invoice_number})",
+                        'description' => "Isi Saldo Token\n(Midtrans: {$topup->invoice_number})",
                         'reference_id' => $topup->id,
                         'reference_type' => Topup::class,
                     ]);
@@ -92,7 +92,6 @@ class MidtransWebhookController extends Controller
             });
 
             Log::info("Payment Success & Balance Added: {$topup->invoice_number}");
-
         } elseif ($transactionStatus == 'cancel' || $transactionStatus == 'deny' || $transactionStatus == 'expire') {
             // Batalkan Tagihan
             $topup->update([

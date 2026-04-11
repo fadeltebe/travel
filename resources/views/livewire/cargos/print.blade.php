@@ -223,8 +223,9 @@ $getQrCodeBase64 = function() {
             // RawBT menerima intent base64 gambar
             const base64 = canvas.toDataURL("image/png");
             
-            // Format Intent RawBT untuk gambar 
-            const intentUrl = "intent:" + base64 + "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
+            // Format Intent RawBT untuk gambar, hilangkan awalan mimetype
+            const cleanBase64 = base64.replace("data:image/png;base64,", "");
+            const intentUrl = "intent:" + cleanBase64 + "#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;";
             
             // Eksekusi redirect ke aplikasi RawBT
             window.location.href = intentUrl;
