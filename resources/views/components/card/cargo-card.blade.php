@@ -42,8 +42,8 @@
 
                 <span class="text-gray-300">|</span>
                 <x-heroicon-o-calendar class="w-3 h-3" />
-                {{ $cargo->created_at->toIndoDate() }}
-
+                {{ $cargo->booking?->schedule?->departure_date ? $cargo->booking->schedule->departure_date->toIndoDate() : $cargo->created_at->toIndoDate() }} 
+                {{ $cargo->booking?->schedule?->departure_time ? substr($cargo->booking->schedule->departure_time, 0, 5) : '' }}
             </p>
         </div>
     </div>

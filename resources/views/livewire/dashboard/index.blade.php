@@ -27,8 +27,10 @@ $metrics = computed(function () {
         $q->whereDate('departure_date', $date);
     });
 
-    // 4. Cargo Diterima Hari Ini
-    $cargosQuery = Cargo::whereDate('created_at', $date);
+    // 4. Cargo Berangkat Hari Ini
+    $cargosQuery = Cargo::whereHas('booking.schedule', function (Builder $q) use ($date) {
+        $q->whereDate('departure_date', $date);
+    });
 
     // Terapkan Filter Berdasarkan Role
     if (!$user->canViewAll()) {

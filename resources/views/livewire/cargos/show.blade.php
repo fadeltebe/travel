@@ -204,6 +204,17 @@ $markAsReceived = function () {
 
             </div>
 
+            {{-- Tombol Detail Perjalanan --}}
+            @if ($cargo->booking && $cargo->booking->schedule_id)
+            <div class="mt-4 print:hidden">
+                <a href="{{ route('schedules.show', $cargo->booking->schedule) }}" wire:navigate
+                    class="w-full flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 py-4 rounded-2xl font-bold shadow-sm transition-colors active:scale-95 border border-blue-200">
+                    <x-heroicon-s-map class="w-6 h-6" />
+                    <span class="text-xs uppercase tracking-wider font-black">Detail Perjalanan</span>
+                </a>
+            </div>
+            @endif
+
             {{-- Tombol Utilities (WA & Cetak) --}}
             <div class="grid grid-cols-2 gap-3 mt-4 print:hidden">
                 @php

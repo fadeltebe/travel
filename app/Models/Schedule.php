@@ -13,6 +13,7 @@ class Schedule extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'schedule_code',
         'route_id',
         'bus_id',
         'driver_id',           // ← TAMBAH
@@ -48,6 +49,26 @@ class Schedule extends Model
     {
         // Aktifkan kacamata filter otomatis!
         static::addGlobalScope(new ScheduleAccessScope);
+
+        // Auto generate schedule code saat creating
+        static::creating(function ($schedule) {
+            if (empty($schedule->schedule_code)) {
+                $datePart = \Carbon\Carbon::now()->format('ymd');
+                $countToday = static::whereDate('created_at', today())->count() + 1;
+                $countPart = str_pad($countToday, 3, '0', STR_PAD_LEFT);
+                $schedule->schedule_code = 'JDW' . $datePart . $countPart;
+            }
+        });
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'schedule_code';
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('schedule_code', $value)->orWhere('id', $value)->firstOrFail();
     }
 
     // ── Relationships ──────────────────────
