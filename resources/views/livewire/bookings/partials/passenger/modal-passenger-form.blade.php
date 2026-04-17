@@ -39,7 +39,7 @@
                 {{-- Nama --}}
                 <div>
                     <label class="text-xs font-semibold text-gray-500 uppercase ml-1">Nama Lengkap <span class="text-red-500">*</span></label>
-                    <input type="text" wire:model="form_name" class="w-full mt-1 px-4 py-3 rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500" placeholder="Nama penumpang">
+                    <input type="text" wire:model.lazy="form_name" class="w-full mt-1 px-4 py-3 rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500" placeholder="Nama penumpang">
                     @error('form_name') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
@@ -61,9 +61,13 @@
                 <div>
                     <label class="text-xs font-semibold text-gray-500 uppercase ml-1">Kategori Usia <span class="text-red-500">*</span></label>
                     <div class="grid grid-cols-3 gap-2 mt-1">
-                        @foreach(['dewasa' => 'Dewasa', 'anak-anak' => 'Anak-anak', 'balita' => 'Balita'] as $val => $label)
+                        @foreach ($this->passengerTypeOptions as $val => $label)
                         @php
-                            $activeColors = ['dewasa' => 'border-green-600 bg-green-50 text-green-600', 'anak-anak' => 'border-yellow-600 bg-yellow-50 text-yellow-600', 'balita' => 'border-pink-600 bg-pink-50 text-pink-600'];
+                            $activeColors = [
+                                'dewasa' => 'border-green-600 bg-green-50 text-green-600',
+                                'balita' => 'border-pink-600 bg-pink-50 text-pink-600',
+                                'bayi' => 'border-blue-600 bg-blue-50 text-blue-600',
+                            ];
                         @endphp
                         <button type="button" wire:click="$set('form_passenger_type', '{{ $val }}')" class="py-3 text-xs font-bold rounded-xl border-2 transition-all {{ $this->form_passenger_type === $val ? $activeColors[$val] : 'border-gray-100 text-gray-400' }}">
                             {{ $label }}
@@ -77,12 +81,23 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs font-semibold text-gray-500 uppercase ml-1">NIK / KTP</label>
-                        <input type="text" wire:model="form_id_card_number" class="w-full mt-1 px-4 py-3 rounded-xl border-gray-200 focus:ring-blue-500" placeholder="Opsional">
+                        <input type="text" wire:model.lazy="form_id_card_number" class="w-full mt-1 px-4 py-3 rounded-xl border-gray-200 focus:ring-blue-500" placeholder="Opsional">
                     </div>
                     <div>
                         <label class="text-xs font-semibold text-gray-500 uppercase ml-1">No. HP</label>
-                        <input type="tel" wire:model="form_phone" class="w-full mt-1 px-4 py-3 rounded-xl border-gray-200 focus:ring-blue-500" placeholder="Opsional">
+                        <input type="tel" wire:model.lazy="form_phone" class="w-full mt-1 px-4 py-3 rounded-xl border-gray-200 focus:ring-blue-500" placeholder="Opsional">
                     </div>
+                </div>
+
+                {{-- Harga Tiket --}}
+                <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase ml-1">Harga Tiket <span class="text-red-500">*</span></label>
+                    <div class="relative mt-1">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500 font-bold">Rp</span>
+                        <input type="number" wire:model.lazy="form_ticket_price" class="w-full pl-10 pr-4 py-3 rounded-xl border-gray-200 focus:ring-blue-500 focus:border-blue-500" placeholder="Misal: 150000">
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-1 ml-1">Isi 0 untuk penumpang bayi/balita.</p>
+                    @error('form_ticket_price') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
                 {{-- Jemput --}}
@@ -96,7 +111,7 @@
                     @if($this->form_need_pickup)
                     <div>
                         <label class="text-xs font-semibold text-gray-500 ml-1">Alamat Jemput</label>
-                        <textarea wire:model="form_pickup_address" rows="2" class="w-full mt-1 px-4 py-2 rounded-xl border-gray-200 focus:ring-emerald-500 text-sm" placeholder="Masukkan alamat jemput..."></textarea>
+                        <textarea wire:model.lazy="form_pickup_address" rows="2" class="w-full mt-1 px-4 py-2 rounded-xl border-gray-200 focus:ring-emerald-500 text-sm" placeholder="Masukkan alamat jemput..."></textarea>
                     </div>
                     @endif
                 </div>
@@ -112,7 +127,7 @@
                     @if($this->form_need_dropoff)
                     <div>
                         <label class="text-xs font-semibold text-gray-500 ml-1">Alamat Antar</label>
-                        <textarea wire:model="form_dropoff_address" rows="2" class="w-full mt-1 px-4 py-2 rounded-xl border-gray-200 focus:ring-purple-500 text-sm" placeholder="Masukkan alamat tujuan..."></textarea>
+                        <textarea wire:model.lazy="form_dropoff_address" rows="2" class="w-full mt-1 px-4 py-2 rounded-xl border-gray-200 focus:ring-purple-500 text-sm" placeholder="Masukkan alamat tujuan..."></textarea>
                     </div>
                     @endif
                 </div>

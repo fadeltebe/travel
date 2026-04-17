@@ -39,6 +39,20 @@ state([
     'form_name' => '',
     'form_gender' => 'male',
     'form_passenger_type' => 'dewasa',
+    'genderOptions' => [
+        'male' => 'Laki-laki',
+        'female' => 'Perempuan',
+    ],
+    'passengerTypeOptions' => [
+        'dewasa' => 'Dewasa',
+        'balita' => 'Balita',
+        'bayi' => 'Bayi',
+    ],
+    'passengerTypeBadgeClasses' => [
+        'dewasa' => 'bg-green-100 text-green-700',
+        'balita' => 'bg-pink-100 text-pink-700',
+        'bayi' => 'bg-blue-100 text-blue-700',
+    ],
     'form_ticket_price' => '',
     'form_id_card_number' => '',
     'form_phone' => '',
@@ -374,7 +388,7 @@ $savePassenger = function () {
         [
             'form_name' => 'required|string|min:3|max:255',
             'form_gender' => 'required|in:male,female',
-            'form_passenger_type' => 'required|in:balita,anak-anak,dewasa',
+            'form_passenger_type' => 'required|in:bayi,balita,dewasa',
         ],
         [
             'form_name.required' => 'Nama penumpang harus diisi.',
@@ -528,9 +542,7 @@ $save = function () {
             foreach ($passengers as $p) {
                 $passengerType = $p['passenger_type'] ?? 'dewasa';
                 $ticketPrice = $basePrice;
-                if ($passengerType === 'anak-anak') {
-                    $ticketPrice = $basePrice * 0.75;
-                } elseif ($passengerType === 'balita') {
+                if ($passengerType === 'balita' || $passengerType === 'bayi') {
                     $ticketPrice = 0;
                 }
 

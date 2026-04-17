@@ -81,3 +81,53 @@ Nanti jika aplikasi sudah berjalan 1-2 tahun, Anda bisa membuat perintah (Cron J
 
 Pemisahan Laporan dan Operasional:
 Halaman List (Operasional) jangan digabung dengan Laporan Keuangan (Reporting). Jika Owner ingin melihat total pendapatan setahun, buatkan halaman Dashboard Laporan tersendiri yang mungkin datanya di-cache (disimpan sementara), sehingga tidak menghitung ulang jutaan data resi setiap kali halaman direfresh.
+
+
+perbaikan penulisan kode program :
+Component-Based Architecture: Ini adalah paradigma pengembangan perangkat lunak yang memecah aplikasi menjadi bagian-bagian kecil (komponen) yang mandiri, rapi, dan fungsional. Komponen seperti tombol (button), navbar, atau formulir dibuat sekali dan dapat dipasang di halaman mana pun tanpa menulis ulang kodenya.
+Don't Repeat Yourself (DRY): Ini adalah prinsip inti dari penulisan kode rapi. DRY menekankan untuk menghindari duplikasi kode dengan cara memindahkan logika atau UI yang sama ke dalam fungsi, kelas, atau komponen terpisah agar bisa dipakai ulang.
+Modularization (Modul/Modul-based): Teknik memecah kode menjadi modul-modul kecil berdasarkan fungsinya (misalnya: file untuk komponen UI, file untuk logika API, dll).
+Atomic Design: Salah satu teknik atau metodologi dalam component-based architecture yang menyusun komponen dari level terkecil (atom) seperti tombol, hingga tingkat yang lebih kompleks (organisme) seperti navbar. 
+Mendix
+Mendix
+ +7
+Manfaat dari teknik ini:
+Reusability: Komponen dapat digunakan di banyak tempat.
+Maintainability: Mudah diperbaiki, karena jika ada perubahan, Anda hanya perlu mengubah satu komponen tersebut, bukan di semua tempat.
+Readability: Kode menjadi lebih rapi dan mudah dipahami.
+
+kita mulai dulu ke Optimasi Database (Indexing): Menambahkan index migration pada tabel schedules, passengers, dan rute sehingga pencarian rentang tanggal lebih ngebut.
+Penerapan Pagination Visual: Beralih ke paginasi (dan Cursor Pagination) untuk data jutaan baris daripada meload semua list pemesanan sekaligus di tampilan UI Livewire., tapi sebelum mulai, coba cek kambali penulisan kode aplikasi kita, coba cek kambali apakah ada fitur/componen pada aplikasi kita yang digunakan berulang ulang tapi belum modular, contoh yang sudah kita terapkan adalah resources\views\components\card\passenger-card.blade.php jadi card bisa dipanggil di beberapa tempat sekaligus,  coba baca catatan.md mulai baris 86, dan buat rencana pengembangan/implementation plan terlebih dahulu
+
+
+ dari sistem manajemen travel kita, berikut adalah ringkasan sejauh mana progres kita saat ini dan apa saja yang direncanakan untuk dikembangkan selanjutnya:
+
+✅ Sejauh Mana Aplikasi Kita Saat Ini?
+Aplikasi sudah memiliki fondasi operasional dan anti-fraud yang kokoh. Fitur unggulan yang sudah berjalan/terselesaikan meliputi:
+
+Hak Akses Lengkap (Role-based): Pemisahan wewenang ketat antara Super Admin, Owner, Admin Agen, dan Supir.
+Sistem Token & Dompet Prabayar (Anti-Piutang Agen): Saldo agen dipotong presisi otomatis ketika transaksi pemesanan atau kargo terjadi.
+Interactive Seat Mapper: Agen dapat melihat denah sisa kuota kursi bus secara visual untuk menghindari status kursi ganda (double-booking).
+Proteksi Sistem Ekstra: Seperti pencegahan double-submit (menghindari agen terpotong koin ganda atau data terekam dua kali misal saat jaringan lemot) dan akses/limitasi sopir yang hanya bisa melihat manifes keberangkatannya masing-masing.
+Modul Kargo & COD Intuitif: Alur uang masuk kargo (baik lunas di agen pengirim, atau COD ditagih oleh agen tujuan) terekam sangat jelas. Laporan performa masing-masing agen juga sudah selesai.
+🚧 Apa Selanjutnya? (Fitur yang Perlu Diperbaiki / Dikembangkan)
+Menurut Roadmap (Peta Jalan) dan catatan arsitektur kita, ada beberapa tahap perbaikan dan fitur baru yang bisa dikerjakan selanjutnya. Anda bisa menentukan prioritas mana yang sebaiknya kita eksekusi duluan:
+
+1. Perbaikan Skalabilitas & Performa (Wajib Jika Data Makin Besar)
+Dari dokumen 
+
+catatan.md
+ ada PR arsitektur untuk menghindari website lag di masa depan:
+
+Optimasi Database (Indexing): Menambahkan index migration pada tabel schedules, passengers, dan rute sehingga pencarian rentang tanggal lebih ngebut.
+Penerapan Pagination Visual: Beralih ke paginasi (dan Cursor Pagination) untuk data jutaan baris daripada meload semua list pemesanan sekaligus di tampilan UI Livewire.
+Sistem Arsip (Archival System): Menyiapkan logika (atau Cron Job otomatis) untuk memisahkan data jadwal berusia tua (lebih dari 3 bulan) ke data historis.
+2. Fase Terdekat (Utilitas & Ekspor Data Tambahan)
+Ekspor Dokumen ke Excel/PDF: Fitur rekap data (Laporan performa, arus kas harian agen, daftar kargo) agar bisa di-download berbentuk format file Spreadsheet / PDF untuk dibukukan secara per-Bulan.
+Pencetakan Manifes Fisik (Sopir): Walaupun sopir bisa masuk via HP, kita butuh sebuah tombol agen/admin di Terminal yang mencetak Kertas Manifes/Daftar Absen 1-lembar buat supir untuk kontrol di pos pantau/jalan.
+Auto-Kirim Gateway WhatsApp: Ketika pesanan divalidasi, sistem terintegrasi ke layanan provider WA pihak ke-3 (contoh Watzap/Fonnte) tanpa perlu agen mem-forward link tiket PDF-nya secara manual.
+3. Fase Menengah & Jangka Panjang (Penuhi Role B2C)
+Portal Pemesanan Pelanggan Awam (B2C): Daripada selalu lewat tangan agen, menyiapkan antarmuka/website terdepan untuk Pelanggan (via HP sendiri) melakukan order tiket dan bayar pakai metode otomatis ke mutasi pusat secara mandiri.
+Sistem Payroll & Komisi Karyawan/Supir: Menghitung otomatis Uang Jalan, Uang Bensin, Potongan, hingga komisi tarif persenan perjalanan sang sopir terkait di setiap penugasannya.
+Pengingat Maintenance Armada: Meng-input pelacakan jadwal bengkel (Pajak STNK, Servis Ban / ganti Oli) sesuai odometer yang ditempuh selama operasional travel.
+Jika Anda ingin kita mulai bekerja sekarang, mana dari 3 kategori di atas (Skalabilitas, Fase Ekspor & Utiliter, atau Fase Pembuatan B2C) yang ingin Anda kerjakan terlebih dahulu hari ini?

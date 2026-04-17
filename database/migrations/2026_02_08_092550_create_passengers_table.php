@@ -22,7 +22,7 @@ return new class extends Migration
             // 2. DATA PENUMPANG
             $table->string('name');
             $table->enum('gender', ['male', 'female']);
-            $table->enum('passenger_type', ['balita', 'anak-anak', 'dewasa'])->default('dewasa');
+            $table->enum('passenger_type', ['bayi', 'balita', 'dewasa'])->default('dewasa');
             $table->string('id_card_number')->nullable();
             $table->string('phone')->nullable();
             $table->string('seat_number')->nullable();

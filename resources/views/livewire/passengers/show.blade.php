@@ -71,8 +71,8 @@ $markAsPaid = function () {
                     <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Nama Penumpang</p>
                     <p class="text-lg text-gray-900 font-bold uppercase">{{ $passenger->name }}</p>
                     <div class="flex items-center gap-2 mt-1">
-                        <p class="text-xs font-bold px-2 py-0.5 rounded {{ $passenger->gender == 'L' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700' }}">
-                            {{ $passenger->gender == 'L' ? 'Laki-laki' : 'Perempuan' }}
+                        <p class="text-xs font-bold px-2 py-0.5 rounded {{ $passenger->gender === 'male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700' }}">
+                            {{ $passenger->gender === 'male' ? 'Laki-laki' : 'Perempuan' }}
                         </p>
                         <p class="text-xs text-emerald-700 font-black px-2 py-0.5 bg-emerald-100 rounded">
                             Nomor Kursi: {{ $passenger->seat_number ?? 'N/A' }}
@@ -87,7 +87,7 @@ $markAsPaid = function () {
                     </div>
                     <div>
                         <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Tipe Penumpang</p>
-                        <p class="text-sm font-bold text-gray-900 uppercase">{{ $passenger->passenger_type ?? 'Dewasa' }}</p>
+                        <p class="text-sm font-bold text-gray-900 uppercase">{{ ucfirst($passenger->passenger_type ?? 'dewasa') }}</p>
                     </div>
                 </div>
                 

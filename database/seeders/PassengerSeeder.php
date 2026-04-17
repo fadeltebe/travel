@@ -83,7 +83,7 @@ class PassengerSeeder extends Seeder
                 $gender = rand(0, 1) ? 'male' : 'female';
 
                 // Pilih nama sesuai tipe dan gender
-                if ($passengerType === 'balita' || $passengerType === 'anak-anak') {
+                if ($passengerType === 'balita' || $passengerType === 'bayi') {
                     $name = $childNames[array_rand($childNames)];
                 } elseif ($gender === 'male') {
                     $name = $maleNames[array_rand($maleNames)];
@@ -105,9 +105,7 @@ class PassengerSeeder extends Seeder
                 $ticketPrice = 0;
                 if ($passengerType === 'dewasa') {
                     $ticketPrice = 150000;
-                } elseif ($passengerType === 'anak-anak') {
-                    $ticketPrice = 100000; // Anak-anak diskon
-                } // Balita = 0 (Gratis)
+                } // Bayi/Balita = 0 (Gratis)
 
                 // 3. Acak Status
                 $status = $statuses[array_rand($statuses)];
@@ -151,9 +149,9 @@ class PassengerSeeder extends Seeder
         $rand = rand(1, 100);
 
         if ($rand <= 10) {
-            return 'balita';       // 10%
+            return 'bayi';         // 10%
         } elseif ($rand <= 25) {
-            return 'anak-anak';    // 15%
+            return 'balita';       // 15%
         }
 
         return 'dewasa';           // 75%
