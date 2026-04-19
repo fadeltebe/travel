@@ -3,7 +3,7 @@ use function Livewire\Volt\{state, mount, computed}; // Tambahkan computed
 use App\Models\Cargo;
 use Illuminate\Support\Facades\Auth;
 
-state(['cargo' => null]);
+state(['cargo' => null, 'showDeleteModal' => false]);
 
 mount(function (Cargo $cargo) {
     $user = Auth::user();
@@ -13,6 +13,24 @@ mount(function (Cargo $cargo) {
 
     $this->cargo = $cargo->load(['booking', 'originAgent', 'destinationAgent']);
 });
+
+$confirmDelete = function () {
+    $this->showDeleteModal = true;
+};
+
+$deleteCargo = function () {
+    $user = Auth::user();
+    if (!in_array($user->role->value ?? $user->role, ['superadmin', 'owner', 'super_admin'])) {
+        $this->dispatch('notify', message: 'Akses Ditolak: Hanya Super Admin dan Owner yang bisa melakukan ini.', type: 'error');
+        $this->showDeleteModal = false;
+        return;
+    }
+
+    $this->cargo->delete();
+    
+    session()->flash('success', 'Data Kargo / Barang berhasil dihapus!');
+    $this->redirect(route('cargo.index'), navigate: true);
+};
 
 // ==========================================
 // 1. LOGIKA OTORISASI (COMPUTED PROPERTIES)
@@ -242,13 +260,47 @@ $markAsReceived = function () {
                     <x-heroicon-s-chat-bubble-left-right class="w-6 h-6" />
                     <span class="text-[10px] uppercase tracking-wider font-black">WA Pengirim</span>
                 </a>
-                <a href="{{ route('cargo.print', $cargo) }}"
-                    class="flex flex-col items-center justify-center gap-1.5 bg-white text-gray-700 py-3.5 rounded-2xl font-bold border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors active:scale-95">
-                    <x-heroicon-s-printer class="w-6 h-6" />
-                    <span class="text-[10px] uppercase tracking-wider font-black">Cetak Resi</span>
-                </a>
+                <div class="flex flex-col gap-3">
+                    <a href="{{ route('cargo.print', $cargo) }}"
+                        class="flex-1 flex flex-col items-center justify-center gap-1.5 bg-white text-gray-700 py-3.5 rounded-2xl font-bold border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors active:scale-95">
+                        <x-heroicon-s-printer class="w-6 h-6" />
+                        <span class="text-[10px] uppercase tracking-wider font-black">Cetak Resi</span>
+                    </a>
+                </div>
             </div>
 
+            @if(in_array(auth()->user()->role->value ?? auth()->user()->role, ['superadmin', 'owner', 'super_admin']))
+            <button wire:click="confirmDelete" class="w-full mt-3 py-3.5 rounded-xl text-center text-sm font-semibold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 active:scale-[0.98] transition-all print:hidden flex items-center justify-center gap-2">
+                <x-heroicon-s-trash class="w-4 h-4" /> Hapus Data Kargo
+            </button>
+            @endif
+
         </div>
+
+        {{-- DELETE CONFIRMATION MODAL --}}
+        @if ($showDeleteModal)
+            <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4" x-data x-cloak>
+                <div @click="$wire.set('showDeleteModal', false)"
+                    class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+                <div class="relative bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full z-10 text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                        <x-heroicon-s-trash class="w-8 h-8 text-red-500" />
+                    </div>
+                    <h3 class="text-lg font-black text-gray-900 mb-1">Hapus Data Kargo?</h3>
+                    <p class="text-xs text-gray-500 mb-6 px-2">Data ini hanya akan disembunyikan (soft delete). Yakin ingin melanjutkan?</p>
+                    <div class="flex gap-3">
+                        <button wire:click="$set('showDeleteModal', false)"
+                            class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-bold text-sm hover:bg-gray-50 transition-colors">
+                            Batal
+                        </button>
+                        <button wire:click="deleteCargo"
+                            class="flex-1 py-3 rounded-xl bg-red-600 text-white font-bold text-sm shadow-lg shadow-red-200 hover:bg-red-700 active:scale-95 transition-all">
+                            Ya, Hapus
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
     </x-layouts.app>
 </div>

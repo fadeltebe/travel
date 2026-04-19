@@ -21,20 +21,22 @@ state([
     'saving' => false,
 ]);
 
-mount(function (int $scheduleId = null) {
-    if ($scheduleId) {
-        $schedule = Schedule::findOrFail($scheduleId);
-        $this->scheduleId = $schedule->id;
-        $this->route_id = $schedule->route_id;
-        $this->bus_id = $schedule->bus_id;
-        $this->driver_id = $schedule->driver_id;
-        $this->departure_date = $schedule->departure_date->format('Y-m-d');
-        $this->departure_time = $schedule->departure_time ? \Carbon\Carbon::parse($schedule->departure_time)->format('H:i') : '';
-        $this->arrival_date = $schedule->arrival_date ? $schedule->arrival_date->format('Y-m-d') : '';
-        $this->arrival_time = $schedule->arrival_time ? \Carbon\Carbon::parse($schedule->arrival_time)->format('H:i') : '';
-        $this->price = $schedule->price;
-        $this->available_seats = $schedule->available_seats;
-        $this->status = $schedule->status;
+mount(function ($schedule = null) {
+    if ($schedule) {
+        // Mendukung Edit Jadwal menggunakan schedule_code atau id
+        $scheduleModel = $schedule instanceof Schedule ? $schedule : Schedule::where('schedule_code', $schedule)->orWhere('id', $schedule)->firstOrFail();
+        
+        $this->scheduleId = $scheduleModel->id;
+        $this->route_id = $scheduleModel->route_id;
+        $this->bus_id = $scheduleModel->bus_id;
+        $this->driver_id = $scheduleModel->driver_id;
+        $this->departure_date = $scheduleModel->departure_date->format('Y-m-d');
+        $this->departure_time = $scheduleModel->departure_time ? \Carbon\Carbon::parse($scheduleModel->departure_time)->format('H:i') : '';
+        $this->arrival_date = $scheduleModel->arrival_date ? $scheduleModel->arrival_date->format('Y-m-d') : '';
+        $this->arrival_time = $scheduleModel->arrival_time ? \Carbon\Carbon::parse($scheduleModel->arrival_time)->format('H:i') : '';
+        $this->price = $scheduleModel->price;
+        $this->available_seats = $scheduleModel->available_seats;
+        $this->status = $scheduleModel->status;
         $this->isEdit = true;
     } else {
         $this->departure_date = now()->format('Y-m-d');

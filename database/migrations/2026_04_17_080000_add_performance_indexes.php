@@ -21,6 +21,22 @@ return new class extends Migration
         // ================================================
 
         // ================================================
+        // 2. INDEX TABEL SCHEDULES - Tambah index BARU
+        // ================================================
+        Schema::table('schedules', function (Blueprint $table) {
+            // Index untuk composite tanggal dan status
+            if (!$this->indexExists('schedules', 'schedules_departure_date_status_index')) {
+                $table->index(['departure_date', 'status']);
+            }
+            if (!$this->indexExists('schedules', 'schedules_route_id_index')) {
+                $table->index('route_id');
+            }
+            if (!$this->indexExists('schedules', 'schedules_driver_id_index')) {
+                $table->index('driver_id');
+            }
+        });
+
+        // ================================================
         // 3. INDEX TABEL PASSENGERS - Tambah index BARU
         // ================================================
         Schema::table('passengers', function (Blueprint $table) {
@@ -105,6 +121,19 @@ return new class extends Migration
         // ================================================
         // DROP INDEXES YANG DITAMBAHKAN
         // ================================================
+
+        // Drop dari schedules
+        Schema::table('schedules', function (Blueprint $table) {
+            if ($this->indexExists('schedules', 'schedules_departure_date_status_index')) {
+                $table->dropIndex('schedules_departure_date_status_index');
+            }
+            if ($this->indexExists('schedules', 'schedules_route_id_index')) {
+                $table->dropIndex('schedules_route_id_index');
+            }
+            if ($this->indexExists('schedules', 'schedules_driver_id_index')) {
+                $table->dropIndex('schedules_driver_id_index');
+            }
+        });
 
         // Drop dari passengers
         Schema::table('passengers', function (Blueprint $table) {

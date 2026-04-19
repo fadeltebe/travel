@@ -54,6 +54,9 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('/settings/users', 'settings.users')
         ->name('settings.users');
 
+    Volt::route('/settings/routes', 'settings.routes')
+        ->name('settings.routes');
+
     // Reports
     Volt::route('/reports', 'reports.index')
         ->name('reports.index');

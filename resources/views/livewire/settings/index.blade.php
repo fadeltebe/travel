@@ -46,6 +46,14 @@ $menus = computed(function () {
             'bg' => 'bg-purple-50',
         ],
         [
+            'title' => 'Master Rute',
+            'desc' => 'Tentukan relasi asal dan tujuan perjalanan.',
+            'icon' => 'heroicon-o-arrows-right-left',
+            'route' => route('settings.routes'),
+            'color' => 'text-teal-600',
+            'bg' => 'bg-teal-50',
+        ],
+        [
             'title' => 'Pengguna & Akses',
             'desc' => 'Karyawan, supir, dan hak akses sistem.',
             'icon' => 'heroicon-o-users',

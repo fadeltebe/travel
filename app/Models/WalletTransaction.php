@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class WalletTransaction extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'wallet_id',
         'type', // 'credit' atau 'debit'

@@ -4,15 +4,18 @@ use App\Models\Schedule;
 
 state([
     'activeTab' => 'details',
+    'showDeleteModal' => false,
     'scheduleModel' => function () {
         $param = request()->route('schedule');
-        $schedule = $param instanceof Schedule ? $param : Schedule::with(['route.originAgent', 'route.destinationAgent', 'bus', 'driver'])->findOrFail($param);
+        $schedule = $param instanceof Schedule ? $param : Schedule::with(['route.originAgent', 'route.destinationAgent', 'bus', 'driver'])
+            ->where(function($query) use ($param) {
+                $query->where('schedule_code', $param)->orWhere('id', $param);
+            })->firstOrFail();
 
         // Otorisasi: Mencegah user melihat jadwal yang bukan haknya
         $user = auth()->user();
         if (!$user->canViewAll()) {
             if ($user->isDriver()) {
-                // Driver hanya boleh akses jadwal yang dia sopiri
                 if ($schedule->driver_id !== $user->id) {
                     abort(403, 'AKSES DITOLAK: Anda bukan sopir untuk jadwal ini.');
                 }
@@ -25,6 +28,64 @@ state([
         return $schedule;
     },
 ]);
+
+$confirmDelete = function () {
+    $this->showDeleteModal = true;
+};
+
+$deleteSchedule = function () {
+    // Hanya Owner dan Superadmin yang boleh menghapus jadwal
+    $user = auth()->user();
+    if (!in_array($user->role->value ?? $user->role, ['superadmin', 'owner', 'super_admin'])) {
+        $this->dispatch('notify', message: 'Akses Ditolak: Hanya Super Admin dan Owner yang bisa melakukan ini.', type: 'error');
+        $this->showDeleteModal = false;
+        return;
+    }
+
+    $schedule = $this->scheduleModel;
+    
+    // SOFT DELETE: Penumpang (Passengers), Barang (Cargos), dan Bookings
+    $bookings = \App\Models\Booking::where('schedule_id', $schedule->id)->get();
+    foreach ($bookings as $booking) {
+        $booking->passengers()->delete(); // Soft delete all associated passengers
+        $booking->cargos()->delete();     // Soft delete all associated cargos
+        $booking->delete();               // Soft delete the booking itself
+    }
+
+    $schedule->delete(); // Soft delete the schedule
+
+    session()->flash('success', 'Jadwal Pesanan, beserta Penumpang dan Kargo terkait berhasil dihapus!');
+    $this->redirect(route('schedules.index'), navigate: true);
+};
+
+$markAsCompleted = function () {
+    $user = auth()->user();
+    $schedule = $this->scheduleModel;
+
+    // Cek Otorisasi: Hanya Agen Tujuan, Driver, atau Owner/Superadmin yang bisa menyelesaikan
+    if (!in_array($user->role->value ?? $user->role, ['superadmin', 'owner', 'super_admin'])) {
+        if ($user->isDriver() && $schedule->driver_id !== $user->id) {
+            $this->dispatch('notify', message: 'Akses Ditolak: Hanya Driver yang bertugas yang dapat menekan tombol ini.', type: 'error');
+            return;
+        }
+
+        if ($user->role->isAgentBound() && $schedule->route->destination_agent_id !== $user->agent_id) {
+            $this->dispatch('notify', message: 'Akses Ditolak: Hanya Agen Tujuan yang dapat menandai jadwal ini Selesai.', type: 'error');
+            return;
+        }
+    }
+
+    // Ubah status ke completed
+    $schedule->update([
+        'status' => 'completed',
+        // Opsional: kita bisa juga set log waktu kedatangan sebenarnya (arrival_time) ke waktu sekarang
+        // 'arrival_time' => now()->format('H:i'), 
+        // 'arrival_date' => now(),
+    ]);
+
+    session()->flash('success', 'Perjalanan Selesai! Jadwal berhasil ditandai Tiba di Tujuan.');
+    $this->redirect(route('schedules.show', $schedule->schedule_code), navigate: true);
+};
 
 $passengers = computed(function () {
     return \App\Models\Passenger::whereHas('booking', function ($q) {
@@ -203,16 +264,44 @@ $cargos = computed(function () {
                     </div>
                 </div>
 
-                <!-- {{-- Actions --}}
-            <div class="flex gap-3 pt-2">
-                <a href="{{ route('schedules.index') }}" class="flex-1 py-3 rounded-xl border border-gray-200 text-center text-sm font-semibold text-gray-600 hover:bg-gray-50 active:scale-[0.98] transition-all">
-                    Kembali ke Daftar
-                </a>
-                <a href="{{ route('schedules.edit', $scheduleModel) }}" class="flex-1 py-3 rounded-xl text-center text-sm font-semibold text-white
-          hover:opacity-90 active:scale-[0.98] transition-all" style="background: linear-gradient(160deg, #0D47A1 0%, #1565C0 50%, #1976D2 100%);">
-                    Edit Jadwal
-                </a>
-            </div> -->
+                {{-- Actions --}}
+                <div class="flex gap-3 mt-4">
+                    @if ($scheduleModel->status !== 'completed' && $scheduleModel->status !== 'cancelled')
+                        @php
+                            $user = auth()->user();
+                            $canComplete = in_array($user->role->value ?? $user->role, ['superadmin', 'owner', 'super_admin'])
+                                || ($user->isDriver() && $scheduleModel->driver_id === $user->id)
+                                || ($user->role->isAgentBound() && $scheduleModel->route->destination_agent_id === $user->agent_id);
+                        @endphp
+
+                        @if ($canComplete)
+                            <button wire:click="markAsCompleted" 
+                                wire:loading.attr="disabled"
+                                wire:target="markAsCompleted"
+                                wire:confirm="Anda yakin armada ini sudah tiba di agen tujuan dan menurunkan seluruh penumpang/kargo?"
+                                class="flex-1 py-3.5 rounded-xl text-center text-sm font-semibold text-white shadow-sm hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
+                                style="background: linear-gradient(135deg, #3B82F6, #2563EB);">
+                                <span wire:loading.remove wire:target="markAsCompleted">
+                                    <x-heroicon-s-check-circle class="w-4 h-4 inline-block mr-1 -mt-0.5" /> Tandai Tiba
+                                </span>
+                                <span wire:loading wire:target="markAsCompleted">
+                                    <svg class="animate-spin h-4 w-4 inline-block mr-1 -mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                </span>
+                            </button>
+                        @endif
+                    @endif
+
+                    <a href="{{ route('schedules.edit', $scheduleModel) }}" class="flex-1 py-3.5 rounded-xl text-center text-sm font-semibold text-white shadow-sm hover:opacity-90 active:scale-[0.98] transition-all" style="background: linear-gradient(160deg, #F57C00 0%, #FF9800 100%);">
+                        <x-heroicon-s-pencil class="w-4 h-4 inline-block mr-1 -mt-0.5" /> Edit
+                    </a>
+                    
+                    @if(in_array(auth()->user()->role->value ?? auth()->user()->role, ['superadmin', 'owner', 'super_admin']))
+                    <button wire:click="confirmDelete" class="flex-1 py-3.5 rounded-xl text-center text-sm font-semibold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 active:scale-[0.98] transition-all">
+                        <x-heroicon-s-trash class="w-4 h-4 inline-block mr-1 -mt-0.5" /> Hapus
+                    </button>
+                    @endif
+                </div>
+
             @elseif($activeTab === 'passengers')
                 <div class="space-y-3 mt-4">
                     @forelse($this->passengers as $passenger)
@@ -252,5 +341,31 @@ $cargos = computed(function () {
             @endif
 
         </div>
+
+        {{-- DELETE CONFIRMATION MODAL --}}
+        @if ($showDeleteModal)
+            <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4" x-data x-cloak>
+                <div @click="$wire.set('showDeleteModal', false)"
+                    class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+                <div class="relative bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full z-10 text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                        <x-heroicon-s-trash class="w-8 h-8 text-red-500" />
+                    </div>
+                    <h3 class="text-lg font-black text-gray-900 mb-1">Hapus Jadwal (Cascade)?</h3>
+                    <p class="text-xs text-gray-500 mb-6 px-2">Jadwal beserta seluruh antrean Pesanan (Booking), Penumpang, dan Kargo di dalamnya akan ikut dihapus secara soft-delete. Yakin?</p>
+                    <div class="flex gap-3">
+                        <button wire:click="$set('showDeleteModal', false)"
+                            class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-bold text-sm hover:bg-gray-50 transition-colors">
+                            Batal
+                        </button>
+                        <button wire:click="deleteSchedule"
+                            class="flex-1 py-3 rounded-xl bg-red-600 text-white font-bold text-sm shadow-lg shadow-red-200 hover:bg-red-700 active:scale-95 transition-all">
+                            Ya, Hapus
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
     </x-layouts.app>
 </div>

@@ -105,11 +105,15 @@ Penerapan Pagination Visual: Beralih ke paginasi (dan Cursor Pagination) untuk d
 ✅ Sejauh Mana Aplikasi Kita Saat Ini?
 Aplikasi sudah memiliki fondasi operasional dan anti-fraud yang kokoh. Fitur unggulan yang sudah berjalan/terselesaikan meliputi:
 
-Hak Akses Lengkap (Role-based): Pemisahan wewenang ketat antara Super Admin, Owner, Admin Agen, dan Supir.
-Sistem Token & Dompet Prabayar (Anti-Piutang Agen): Saldo agen dipotong presisi otomatis ketika transaksi pemesanan atau kargo terjadi.
-Interactive Seat Mapper: Agen dapat melihat denah sisa kuota kursi bus secara visual untuk menghindari status kursi ganda (double-booking).
-Proteksi Sistem Ekstra: Seperti pencegahan double-submit (menghindari agen terpotong koin ganda atau data terekam dua kali misal saat jaringan lemot) dan akses/limitasi sopir yang hanya bisa melihat manifes keberangkatannya masing-masing.
-Modul Kargo & COD Intuitif: Alur uang masuk kargo (baik lunas di agen pengirim, atau COD ditagih oleh agen tujuan) terekam sangat jelas. Laporan performa masing-masing agen juga sudah selesai.
+- **Hak Akses Lengkap (Role-based):** Pemisahan wewenang ketat antara Super Admin, Owner, Admin Agen, dan Supir.
+- **Sistem Token & Dompet Prabayar (Anti-Piutang Agen):** Saldo agen dipotong presisi otomatis ketika transaksi pemesanan atau kargo terjadi.
+- **Interactive Seat Mapper:** Agen dapat melihat denah sisa kuota kursi bus secara visual untuk menghindari status kursi ganda (double-booking).
+- **Proteksi Sistem Ekstra:** Seperti pencegahan double-submit (menghindari agen terpotong koin ganda atau data terekam dua kali misal saat jaringan lemot) dan akses/limitasi sopir yang hanya bisa melihat manifes keberangkatannya masing-masing.
+- **Modul Kargo & COD Intuitif:** Alur uang masuk kargo (baik lunas di agen pengirim, atau COD ditagih oleh agen tujuan) terekam sangat jelas. Laporan performa masing-masing agen juga sudah selesai.
+- **Sistem Soft Delete Global & Manajemen Rute (Terkini):** 
+   - Penerapan *Soft Delete* di seluruh database inti (Jadwal, Kargo, Penumpang, User, Agen, Transaksi).
+   - Penambahan relasi *Cascade*: Menghapus Jadwal dari Master akan otomatis me-soft delete tiket penumpang & kargo di dalamnya, mengatasi broken references.
+   - Penambahan halaman **Master Rute** penuh *(CRUD)* di menu Pengaturan khusus untuk Super Admin & Owner.
 🚧 Apa Selanjutnya? (Fitur yang Perlu Diperbaiki / Dikembangkan)
 Menurut Roadmap (Peta Jalan) dan catatan arsitektur kita, ada beberapa tahap perbaikan dan fitur baru yang bisa dikerjakan selanjutnya. Anda bisa menentukan prioritas mana yang sebaiknya kita eksekusi duluan:
 
