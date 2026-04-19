@@ -572,7 +572,7 @@ $save = function () {
         });
 
         session()->flash('success', 'Booking berhasil disimpan dan Saldo Token terpotong.');
-        return $this->redirect(route('schedules.index'), navigate: true);
+        return $this->redirect(route('passengers.index'), navigate: true);
     } catch (\Exception $e) {
         $this->saving = false;
         \Illuminate\Support\Facades\Log::error('Booking Error: ' . $e->getMessage(), ['exception' => $e]);
