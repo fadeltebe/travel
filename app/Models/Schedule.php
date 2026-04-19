@@ -112,7 +112,7 @@ class Schedule extends Model
 
     public function getTotalPassengerRevenueAttribute()
     {
-        return $this->bookings()->sum('total_price');
+        return $this->bookings()->sum('subtotal_price') + $this->bookings()->sum('pickup_dropoff_fee');
     }
 
     public function bookingSumTotalPassengers()

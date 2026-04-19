@@ -98,7 +98,7 @@ $metrics = computed(function () {
 
     // --- AGGREGATE REVENUE ---
     $bookingsPaid = (clone $bookingsQuery)->where('payment_status', 'paid');
-    $passengerRevenue = $bookingsPaid->sum('total_price');
+    $passengerRevenue = $bookingsPaid->sum('subtotal_price') + $bookingsPaid->sum('pickup_dropoff_fee');
 
     $cargosPaid = (clone $cargosQuery)->where('is_paid', true);
     $cargoRevenue = $cargosPaid->sum('fee');

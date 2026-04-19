@@ -93,8 +93,8 @@ new class extends Component {
             $metrics['passenger']['unpaid'] = (clone $passengerQuery)->whereHas('booking', fn($q) => $q->where('payment_status', '!=', 'paid'))->count();
             $metrics['passenger']['total'] = (clone $passengerQuery)->count();
             
-            // Revenue: Pakai total_price dari Booking agar konsisten dengan reports.index dan agent-reports.index
-            $metrics['passenger']['revenue'] = (clone $bookingsQuery)->where('payment_status', 'paid')->sum('total_price');
+            // Revenue: Hanya gunakan subtotal tiket dan jasa antar jemput agar tidak double hitung harga kargo
+            $metrics['passenger']['revenue'] = (clone $bookingsQuery)->where('payment_status', 'paid')->sum('subtotal_price') + (clone $bookingsQuery)->where('payment_status', 'paid')->sum('pickup_dropoff_fee');
 
             // 3. Query Kargo Logistik (Yang masuk/keluar lewat agen ini) agar konsisten dengan agent-reports
             $cargoQuery = Cargo::where(function($q) {
