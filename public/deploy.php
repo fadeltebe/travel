@@ -3,7 +3,7 @@
 // Mengambil secret dari file .env (misalnya parameter GITHUB_WEBHOOK_SECRET)
 $envFile = __DIR__ . '/../.env';
 $envVars = file_exists($envFile) ? parse_ini_file($envFile) : [];
-$secret = $envVars['GITHUB_WEBHOOK_SECRET'] ?? 'rahasia_kamu';
+$secret = $envVars['GITHUB_WEBHOOK_SECRET'];
 
 $signature = $_SERVER['HTTP_X_HUB_SIGNATURE'] ?? '';
 
