@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('estimated_duration_minutes')->nullable(); // Estimasi durasi dalam menit
             $table->decimal('base_price', 10, 2); // Harga dasar
             $table->boolean('is_active')->default(true);
+            $table->index('is_active');
             $table->timestamps();
             $table->softDeletes();
         });

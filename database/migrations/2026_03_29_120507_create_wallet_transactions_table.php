@@ -27,6 +27,7 @@ return new class extends Migration
             $table->nullableMorphs('reference');
 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
     /**

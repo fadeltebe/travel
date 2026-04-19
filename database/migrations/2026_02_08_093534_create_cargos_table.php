@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('cargos', function (Blueprint $table) {
             $table->id();
+            $table->string('tracking_code')->nullable()->unique();
             $table->foreignId('booking_id')->constrained()->cascadeOnDelete();
             $table->foreignId('origin_agent_id')->constrained('agents')->cascadeOnDelete();
             $table->foreignId('destination_agent_id')->constrained('agents')->cascadeOnDelete();
+            $table->string('item_name')->nullable()->comment('Nama bentuk/kemasan barang cth: Dos Coklat');
 
             // Detail barang
             $table->string('description'); // Deskripsi barang
@@ -41,8 +43,10 @@ return new class extends Migration
             $table->string('payment_method')->nullable(); // cash, transfer, qris
             $table->boolean('is_paid')->default(false); // Status pembayaran
             $table->timestamp('paid_at')->nullable(); // Waktu pembayaran (untuk COD)
+            $table->index(['payment_type', 'is_paid']);
 
             $table->string('status')->default('pending'); // pending, in_transit, arrived, received
+            $table->index('status');
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();

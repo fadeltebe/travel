@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
             $table->string('name'); // Nama perusahaan
+            $table->enum('billing_mode', ['centralized', 'per_agent'])->default('centralized'); // 'centralized' = Bos yang bayar token, 'per_agent' = Masing-masing agen bayar token sendiri
             $table->string('code')->unique(); // Kode perusahaan: TRV-001
             $table->string('email')->nullable();
             $table->string('phone');
@@ -22,6 +23,7 @@ return new class extends Migration
             $table->string('npwp')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

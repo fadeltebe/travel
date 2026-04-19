@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('bus_layout_seat_id')->constrained()->cascadeOnDelete();
             $table->string('seat_number'); // Cache dari bus_layout_seats
             $table->string('status')->default('booked'); // booked, occupied, cancelled
+            $table->index(['schedule_id', 'status']);
             $table->timestamps();
             $table->softDeletes();
         });

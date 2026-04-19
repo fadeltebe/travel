@@ -21,6 +21,7 @@ return new class extends Migration
             $table->decimal('balance', 15, 2)->default(0);
 
             $table->timestamps();
+            $table->softDeletes();
 
             // Memastikan 1 agen hanya punya 1 dompet (atau 1 company hanya punya 1 dompet utama)
             $table->unique(['company_id', 'agent_id']);

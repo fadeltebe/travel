@@ -19,9 +19,11 @@ return new class extends Migration
             $table->string('password');
             $table->string('role')->default('admin'); // superadmin|owner|admin|driver
             $table->unsignedBigInteger('agent_id')->nullable();
+            $table->index('agent_id');
             $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

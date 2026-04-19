@@ -25,6 +25,10 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreign('agent_id')->references('id')->on('agents')->nullOnDelete();
+        });
     }
 
     /**
@@ -32,6 +36,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['agent_id']);
+        });
         Schema::dropIfExists('agents');
     }
 };

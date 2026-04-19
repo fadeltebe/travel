@@ -18,6 +18,7 @@ return new class extends Migration
             // 1. TAMBAHAN WAJIB (Identitas Tiket & Status)
             $table->string('ticket_code')->unique(); // Contoh: TKT-2603-ABCDEF (Untuk QR Code)
             $table->enum('status', ['booked', 'boarded', 'cancelled', 'no_show'])->default('booked');
+            $table->index('status');
 
             // 2. DATA PENUMPANG
             $table->string('name');
