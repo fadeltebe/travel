@@ -39,23 +39,29 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('/billings/{billing}', 'billings.show')
         ->name('billings.show');
 
-    Volt::route('/settings', 'settings.index')
-        ->name('settings.index');
+    // Settings Routes (Hanya untuk Owner/SuperAdmin)
+    Route::middleware(['App\Http\Middleware\OwnerOrSuperAdminMiddleware'])->group(function () {
+        Volt::route('/settings', 'settings.index')
+            ->name('settings.index');
 
-    Volt::route('/settings/company', 'settings.company')
-        ->name('settings.company');
+        Volt::route('/settings/company', 'settings.company.index')
+            ->name('settings.company');
 
-    Volt::route('/settings/buses', 'settings.buses')
-        ->name('settings.buses');
+        Volt::route('/settings/buses', 'settings.bus.index')
+            ->name('settings.buses');
 
-    Volt::route('/settings/bus-layouts', 'settings.bus-layouts')
-        ->name('settings.bus-layouts');
+        Volt::route('/settings/bus-layouts', 'settings.bus.layouts')
+            ->name('settings.bus-layouts');
 
-    Volt::route('/settings/users', 'settings.users')
-        ->name('settings.users');
+        Volt::route('/settings/routes', 'settings.routes.index')
+            ->name('settings.routes');
+    });
 
-    Volt::route('/settings/routes', 'settings.routes')
-        ->name('settings.routes');
+    // Settings User Management (Hanya untuk SuperAdmin)
+    Route::middleware(['App\Http\Middleware\SuperAdminMiddleware'])->group(function () {
+        Volt::route('/settings/users', 'settings.users.index')
+            ->name('settings.users');
+    });
 
     // Reports
     Volt::route('/reports', 'reports.index')
@@ -67,7 +73,7 @@ Route::middleware(['auth'])->group(function () {
     // Agents
     Volt::route('/agents', 'agents.index')
         ->name('agents.index');
-        
+
     Volt::route('/agents/monitoring', 'agents.monitoring')
         ->name('agents.monitoring');
 

@@ -4,15 +4,15 @@ use function Livewire\Volt\{computed, mount};
 
 mount(function () {
     $user = auth()->user();
-
-    // Authorization: Hanya Owner / Super Admin yang boleh akses pengaturan
-    if (!in_array($user->role->value ?? $user->role, ['superadmin', 'owner', 'super_admin'])) {
-        abort(403, 'Akses Ditolak: Halaman ini khusus untuk Pimpinan.');
+    // Hanya Owner & Super Admin yang bisa akses settings
+    if (!in_array($user->role->value, ['superadmin', 'owner'])) {
+        abort(403, 'Akses Ditolak: Pengaturan sistem hanya untuk Owner atau Super Admin.');
     }
 });
 
 $menus = computed(function () {
-    return [
+    $user = auth()->user();
+    $allMenus = [
         [
             'title' => 'Profil Perusahaan',
             'desc' => 'Informasi umum, logo, kontak & NPWP.',
@@ -53,23 +53,31 @@ $menus = computed(function () {
             'color' => 'text-teal-600',
             'bg' => 'bg-teal-50',
         ],
-        [
+    ];
+
+    // Hanya Super Admin yang bisa melihat menu Pengguna & Akses
+    if ($user->role->value === 'superadmin') {
+        $allMenus[] = [
             'title' => 'Pengguna & Akses',
             'desc' => 'Karyawan, supir, dan hak akses sistem.',
             'icon' => 'heroicon-o-users',
             'route' => route('settings.users'),
             'color' => 'text-pink-600',
             'bg' => 'bg-pink-50',
-        ],
-        [
-            'title' => 'Sistem Token & Dompet',
-            'desc' => 'Atur saldo agen & metode tagihan bos.',
-            'icon' => 'heroicon-o-wallet',
-            'route' => route('wallets.index'),
-            'color' => 'text-orange-600',
-            'bg' => 'bg-orange-50',
-        ],
+        ];
+    }
+
+    // Semua role bisa akses Token & Dompet
+    $allMenus[] = [
+        'title' => 'Sistem Token & Dompet',
+        'desc' => 'Atur saldo agen & metode tagihan bos.',
+        'icon' => 'heroicon-o-wallet',
+        'route' => route('wallets.index'),
+        'color' => 'text-orange-600',
+        'bg' => 'bg-orange-50',
     ];
+
+    return $allMenus;
 });
 ?>
 

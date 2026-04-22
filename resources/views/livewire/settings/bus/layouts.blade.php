@@ -36,9 +36,12 @@ $layouts = computed(function () {
 });
 
 $editLayoutSeats = computed(function () {
-    if (!$this->editingLayoutId) return [];
+    if (!$this->editingLayoutId) {
+        return [];
+    }
     return BusLayoutSeat::where('bus_layout_id', $this->editingLayoutId)
-        ->orderBy('row')->orderBy('column')
+        ->orderBy('row')
+        ->orderBy('column')
         ->get(['row', 'column', 'type', 'seat_number', 'label', 'capacity', 'is_available'])
         ->toArray();
 });
@@ -57,7 +60,7 @@ $openEdit = function ($layoutId) {
     $this->total_rows = $layout->total_rows;
     $this->total_columns = $layout->total_columns;
     $this->is_active = $layout->is_active;
-    
+
     // Refresh computed property for seats explicitly if needed, but it works reactively via editingLayoutId.
     $this->showFormModal = true;
 };
@@ -86,15 +89,15 @@ $saveLayout = function ($newLayoutData) {
         $layout->update([
             'name' => $this->name,
             'type' => $this->type ?: null,
-            'total_rows' => (int) ($newLayoutData['rows']),
-            'total_columns' => (int) ($newLayoutData['cols']),
+            'total_rows' => (int) $newLayoutData['rows'],
+            'total_columns' => (int) $newLayoutData['cols'],
             'total_seats' => $totalSeats,
             'is_active' => $this->is_active,
         ]);
 
         // Recreate seats (simplest approach for full grid change)
         BusLayoutSeat::where('bus_layout_id', $layout->id)->delete();
-        
+
         foreach ($seats as $s) {
             BusLayoutSeat::create([
                 'bus_layout_id' => $layout->id,
@@ -107,14 +110,14 @@ $saveLayout = function ($newLayoutData) {
                 'is_available' => $s['is_available'] ?? true,
             ]);
         }
-        
+
         $msg = 'Layout berhasil diperbarui!';
     } else {
         $layout = BusLayout::create([
             'name' => $this->name,
             'type' => $this->type ?: null,
-            'total_rows' => (int) ($newLayoutData['rows']),
-            'total_columns' => (int) ($newLayoutData['cols']),
+            'total_rows' => (int) $newLayoutData['rows'],
+            'total_columns' => (int) $newLayoutData['cols'],
             'total_seats' => $totalSeats,
             'is_active' => $this->is_active,
         ]);
@@ -131,7 +134,7 @@ $saveLayout = function ($newLayoutData) {
                 'is_available' => $s['is_available'] ?? true,
             ]);
         }
-        
+
         $msg = 'Layout berhasil ditambahkan!';
     }
 
@@ -145,7 +148,7 @@ $confirmDelete = function ($layoutId) {
         $this->dispatch('notify', message: 'Layout ini sedang dipakai oleh armada bus dan tidak bisa dihapus!', type: 'error');
         return;
     }
-    
+
     $this->deletingLayoutId = $layoutId;
     $this->showDeleteModal = true;
 };
@@ -186,7 +189,8 @@ $deleteLayout = function () {
             {{-- Search --}}
             <div class="mb-6 w-full sm:w-72">
                 <div class="relative">
-                    <x-heroicon-o-magnifying-glass class="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                    <x-heroicon-o-magnifying-glass
+                        class="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
                     <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari layout..."
                         class="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm">
                 </div>
@@ -195,23 +199,28 @@ $deleteLayout = function () {
             {{-- Layout List --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 @forelse ($this->layouts as $layout)
-                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:border-purple-200 transition-all group flex flex-col">
+                    <div
+                        class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:border-purple-200 transition-all group flex flex-col">
                         <div class="p-5 border-b border-gray-50 flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                            <div
+                                class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                                 <x-heroicon-s-squares-2x2 class="w-6 h-6" />
                             </div>
                             <div class="flex-1 min-w-0 pt-0.5">
                                 <h3 class="font-bold text-gray-900 text-lg truncate">{{ $layout->name }}</h3>
                                 <div class="flex flex-wrap items-center gap-2 mt-1">
                                     @if ($layout->type)
-                                        <span class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg border border-gray-200">{{ $layout->type }}</span>
+                                        <span
+                                            class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg border border-gray-200">{{ $layout->type }}</span>
                                     @endif
-                                    <span class="text-[10px] font-bold bg-purple-50 text-purple-700 px-2 py-0.5 rounded-lg border border-purple-100">
+                                    <span
+                                        class="text-[10px] font-bold bg-purple-50 text-purple-700 px-2 py-0.5 rounded-lg border border-purple-100">
                                         {{ $layout->total_seats }} Kursi Penumpang
                                     </span>
                                 </div>
                             </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-black tracking-wide {{ $layout->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }}">
+                            <span
+                                class="px-2.5 py-1 rounded-full text-[10px] font-black tracking-wide {{ $layout->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }}">
                                 {{ $layout->is_active ? 'AKTIF' : 'NONAKTIF' }}
                             </span>
                         </div>
@@ -221,7 +230,8 @@ $deleteLayout = function () {
                             <div class="inline-grid gap-1 bg-white p-3 rounded-xl shadow-sm border border-gray-100"
                                 style="grid-template-columns: repeat({{ $layout->total_columns }}, 1fr);">
                                 @foreach ($layout->seats as $seat)
-                                    <div class="w-5 h-5 rounded flex items-center justify-center text-[8px] font-bold shadow-sm
+                                    <div
+                                        class="w-5 h-5 rounded flex items-center justify-center text-[8px] font-bold shadow-sm
                                         {{ $seat->type === 'passenger' ? 'bg-emerald-400 text-white shadow-emerald-200' : '' }}
                                         {{ $seat->type === 'driver' ? 'bg-indigo-400 text-white shadow-indigo-200' : '' }}
                                         {{ $seat->type === 'door' ? 'bg-amber-400 text-white shadow-amber-200' : '' }}
@@ -241,10 +251,10 @@ $deleteLayout = function () {
 
                         {{-- Actions --}}
                         <div class="px-5 py-4 border-t border-gray-50 flex justify-end gap-2 bg-white">
-                                <button wire:click="openEdit({{ $layout->id }})"
-                                    class="px-4 py-2 text-xs font-bold text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 active:scale-95 transition-all">
-                                    Edit Denah
-                                </button>
+                            <button wire:click="openEdit({{ $layout->id }})"
+                                class="px-4 py-2 text-xs font-bold text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 active:scale-95 transition-all">
+                                Edit Denah
+                            </button>
                             <button wire:click="confirmDelete({{ $layout->id }})"
                                 class="px-4 py-2 text-xs font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 active:scale-95 transition-all">
                                 Hapus
@@ -252,13 +262,15 @@ $deleteLayout = function () {
                         </div>
                     </div>
                 @empty
-                    <div class="col-span-full text-center py-20 bg-white rounded-3xl border border-gray-100 border-dashed">
+                    <div
+                        class="col-span-full text-center py-20 bg-white rounded-3xl border border-gray-100 border-dashed">
                         <div class="w-20 h-20 mx-auto mb-4 bg-purple-50 rounded-full flex items-center justify-center">
                             <x-heroicon-o-squares-2x2 class="w-10 h-10 text-purple-300" />
                         </div>
                         <h3 class="font-bold text-gray-500 text-lg">Belum ada layout</h3>
                         <p class="text-sm text-gray-400 mt-1">Buat template denah kursi untuk armada Anda.</p>
-                        <button wire:click="openCreate" class="mt-4 px-6 py-2.5 bg-purple-50 text-purple-700 font-bold text-sm rounded-xl hover:bg-purple-100 transition-colors">
+                        <button wire:click="openCreate"
+                            class="mt-4 px-6 py-2.5 bg-purple-50 text-purple-700 font-bold text-sm rounded-xl hover:bg-purple-100 transition-colors">
                             Buat Layout Sekarang
                         </button>
                     </div>
@@ -277,13 +289,11 @@ $deleteLayout = function () {
                     "seats": {!! json_encode($this->editLayoutSeats ?? []) !!}
                 }
             </script>
-            <div x-data="busLayoutBuilder()" x-cloak
-                 wire:key="layout-modal-{{ $editingLayoutId ?? 'new' }}"
-                 class="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center overflow-hidden">
+            <div x-data="busLayoutBuilder()" x-cloak wire:key="layout-modal-{{ $editingLayoutId ?? 'new' }}"
+                class="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center overflow-hidden">
 
                 {{-- Backdrop --}}
-                <div x-transition.opacity
-                    @click="$wire.set('showFormModal', false)"
+                <div x-transition.opacity @click="$wire.set('showFormModal', false)"
                     class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm"></div>
 
                 {{-- Content --}}
@@ -315,14 +325,16 @@ $deleteLayout = function () {
 
                     {{-- Body --}}
                     <div class="flex-1 overflow-y-auto p-6 space-y-6">
-                        
+
                         {{-- Info Dasar --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-gray-600 mb-1.5">Nama Layout *</label>
                                 <input type="text" wire:model="name" placeholder="cth: ELF 15 Seat"
                                     class="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                @error('name')<span class="text-xs text-red-500 mt-1 block">{{ $message }}</span>@enderror
+                                @error('name')
+                                    <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span>
+                                @enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-600 mb-1.5">Tipe Layout</label>
@@ -335,8 +347,12 @@ $deleteLayout = function () {
                         <label class="flex items-center gap-3 cursor-pointer">
                             <div class="relative">
                                 <input type="checkbox" wire:model="is_active" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-200 peer-checked:bg-emerald-500 rounded-full transition-colors"></div>
-                                <div class="absolute left-[2px] top-[2px] w-5 h-5 bg-white rounded-full shadow-md transition-transform peer-checked:translate-x-5"></div>
+                                <div
+                                    class="w-11 h-6 bg-gray-200 peer-checked:bg-emerald-500 rounded-full transition-colors">
+                                </div>
+                                <div
+                                    class="absolute left-[2px] top-[2px] w-5 h-5 bg-white rounded-full shadow-md transition-transform peer-checked:translate-x-5">
+                                </div>
                             </div>
                             <span class="text-sm font-bold text-gray-700">Status Aktif</span>
                         </label>
@@ -346,48 +362,62 @@ $deleteLayout = function () {
                         {{-- Grid Controls --}}
                         <div>
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                                <div class="flex items-center gap-4 bg-purple-50 px-4 py-3 rounded-xl border border-purple-100">
+                                <div
+                                    class="flex items-center gap-4 bg-purple-50 px-4 py-3 rounded-xl border border-purple-100">
                                     <div class="flex items-center gap-2">
                                         <label class="text-xs font-bold text-purple-700">Baris:</label>
-                                        <button type="button" @click="gridRows = Math.max(1, gridRows - 1); rebuildGrid()"
+                                        <button type="button"
+                                            @click="gridRows = Math.max(1, gridRows - 1); rebuildGrid()"
                                             class="w-8 h-8 rounded-lg bg-white border border-purple-200 text-purple-600 font-bold shadow-sm active:scale-90">−</button>
-                                        <span x-text="gridRows" class="w-8 text-center text-sm font-black text-purple-900"></span>
-                                        <button type="button" @click="gridRows = Math.min(20, gridRows + 1); rebuildGrid()"
+                                        <span x-text="gridRows"
+                                            class="w-8 text-center text-sm font-black text-purple-900"></span>
+                                        <button type="button"
+                                            @click="gridRows = Math.min(20, gridRows + 1); rebuildGrid()"
                                             class="w-8 h-8 rounded-lg bg-white border border-purple-200 text-purple-600 font-bold shadow-sm active:scale-90">+</button>
                                     </div>
                                     <div class="w-px h-6 bg-purple-200"></div>
                                     <div class="flex items-center gap-2">
                                         <label class="text-xs font-bold text-purple-700">Kolom:</label>
-                                        <button type="button" @click="gridCols = Math.max(1, gridCols - 1); rebuildGrid()"
+                                        <button type="button"
+                                            @click="gridCols = Math.max(1, gridCols - 1); rebuildGrid()"
                                             class="w-8 h-8 rounded-lg bg-white border border-purple-200 text-purple-600 font-bold shadow-sm active:scale-90">−</button>
-                                        <span x-text="gridCols" class="w-8 text-center text-sm font-black text-purple-900"></span>
-                                        <button type="button" @click="gridCols = Math.min(8, gridCols + 1); rebuildGrid()"
+                                        <span x-text="gridCols"
+                                            class="w-8 text-center text-sm font-black text-purple-900"></span>
+                                        <button type="button"
+                                            @click="gridCols = Math.min(8, gridCols + 1); rebuildGrid()"
                                             class="w-8 h-8 rounded-lg bg-white border border-purple-200 text-purple-600 font-bold shadow-sm active:scale-90">+</button>
                                     </div>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button type="button" @click="fillAllPassenger()" class="px-4 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors">Isi Semua</button>
-                                    <button type="button" @click="clearAll()" class="px-4 py-2 text-xs font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors">Reset</button>
+                                    <button type="button" @click="fillAllPassenger()"
+                                        class="px-4 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors">Isi
+                                        Semua</button>
+                                    <button type="button" @click="clearAll()"
+                                        class="px-4 py-2 text-xs font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors">Reset</button>
                                 </div>
                             </div>
 
                             <p class="text-[11px] text-gray-500 mb-3 italic">
-                                Klik kotak untuk mengubah fungsinya. 
+                                Klik kotak untuk mengubah fungsinya.
                             </p>
 
                             {{-- Grid Area --}}
-                            <div class="bg-gray-50 p-6 rounded-3xl border border-gray-200 shadow-inner overflow-x-auto">
+                            <div
+                                class="bg-gray-50 p-6 rounded-3xl border border-gray-200 shadow-inner overflow-x-auto">
                                 <div class="mx-auto inline-grid gap-3"
                                     :style="`grid-template-columns: repeat(${gridCols}, minmax(40px, 60px))`">
                                     <template x-for="cell in flatCells" :key="cell.key">
                                         <button type="button" @click="cycleType(cell.r, cell.c)"
                                             :class="getColor(grid[cell.key] || 'empty')"
                                             class="aspect-square rounded-2xl flex items-center justify-center font-black transition-all duration-200 active:scale-90 cursor-pointer select-none">
-                                            <span x-show="grid[cell.key] === 'passenger'" x-text="seatLabels[cell.key] || ''" class="text-sm"></span>
+                                            <span x-show="grid[cell.key] === 'passenger'"
+                                                x-text="seatLabels[cell.key] || ''" class="text-sm"></span>
                                             <span x-show="grid[cell.key] === 'driver'" class="text-2xl">ꔮ</span>
                                             <span x-show="grid[cell.key] === 'door'" class="text-2xl">🚪</span>
-                                            <span x-show="grid[cell.key] === 'aisle'" class="text-2xl opacity-40">·</span>
-                                            <span x-show="!grid[cell.key] || grid[cell.key] === 'empty'" class="text-gray-300 text-xl font-normal">+</span>
+                                            <span x-show="grid[cell.key] === 'aisle'"
+                                                class="text-2xl opacity-40">·</span>
+                                            <span x-show="!grid[cell.key] || grid[cell.key] === 'empty'"
+                                                class="text-gray-300 text-xl font-normal">+</span>
                                         </button>
                                     </template>
                                 </div>
@@ -399,15 +429,18 @@ $deleteLayout = function () {
                     {{-- Footer --}}
                     <div class="p-5 bg-white border-t shrink-0 flex items-center justify-between">
                         <div class="flex flex-col">
-                            <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">Total Kapasitas</span>
-                            <span class="text-lg font-black text-emerald-600"><span x-text="totalSeats"></span> Penumpang</span>
+                            <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">Total
+                                Kapasitas</span>
+                            <span class="text-lg font-black text-emerald-600"><span x-text="totalSeats"></span>
+                                Penumpang</span>
                         </div>
                         <div class="flex gap-3">
                             <button type="button" @click="$wire.set('showFormModal', false)"
                                 class="px-5 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-bold text-sm transition-colors hidden sm:block">
                                 Batal
                             </button>
-                            <button type="button" @click="$wire.saveLayout({ rows: gridRows, cols: gridCols, seats: getSeatsData() })"
+                            <button type="button"
+                                @click="$wire.saveLayout({ rows: gridRows, cols: gridCols, seats: getSeatsData() })"
                                 class="px-8 py-3 rounded-xl bg-purple-600 text-white font-bold text-sm shadow-lg shadow-purple-200 hover:bg-purple-700 active:scale-95 transition-all">
                                 Simpan Layout
                             </button>
@@ -420,16 +453,22 @@ $deleteLayout = function () {
         {{-- Delete Confirm Modal --}}
         @if ($showDeleteModal)
             <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4" x-cloak>
-                <div @click="$wire.set('showDeleteModal', false)" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity"></div>
-                <div class="relative bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full z-10 text-center transform transition-all">
+                <div @click="$wire.set('showDeleteModal', false)"
+                    class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity"></div>
+                <div
+                    class="relative bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full z-10 text-center transform transition-all">
                     <div class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
                         <x-heroicon-s-trash class="w-8 h-8 text-red-500" />
                     </div>
                     <h3 class="text-lg font-black text-gray-900 mb-1">Hapus Layout?</h3>
-                    <p class="text-sm text-gray-500 mb-6">Data tidak bisa dikembalikan. Pastikan layout tidak sedang dipakai armada lain.</p>
+                    <p class="text-sm text-gray-500 mb-6">Data tidak bisa dikembalikan. Pastikan layout tidak sedang
+                        dipakai armada lain.</p>
                     <div class="flex gap-3">
-                        <button wire:click="$set('showDeleteModal', false)" class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-bold text-sm hover:bg-gray-50">Batal</button>
-                        <button wire:click="deleteLayout" class="flex-1 py-3 rounded-xl bg-red-600 text-white font-bold text-sm shadow-lg shadow-red-200 hover:bg-red-700 active:scale-95">Ya, Hapus</button>
+                        <button wire:click="$set('showDeleteModal', false)"
+                            class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-bold text-sm hover:bg-gray-50">Batal</button>
+                        <button wire:click="deleteLayout"
+                            class="flex-1 py-3 rounded-xl bg-red-600 text-white font-bold text-sm shadow-lg shadow-red-200 hover:bg-red-700 active:scale-95">Ya,
+                            Hapus</button>
                     </div>
                 </div>
             </div>
@@ -446,23 +485,29 @@ $deleteLayout = function () {
 
                 init() {
                     let dataEl = document.getElementById('edit-layout-data');
-                    let data = dataEl ? JSON.parse(dataEl.textContent) : { rows: 4, cols: 4, seats: [] };
-                    
+                    let data = dataEl ? JSON.parse(dataEl.textContent) : {
+                        rows: 4,
+                        cols: 4,
+                        seats: []
+                    };
+
                     this.gridRows = data.rows || 4;
                     this.gridCols = data.cols || 4;
                     let existingSeats = data.seats || [];
-                    
+
                     if (existingSeats && existingSeats.length > 0) {
                         this.gridRows = Math.max(this.gridRows, ...existingSeats.map(s => s.row));
                         this.gridCols = Math.max(this.gridCols, ...existingSeats.map(s => s.column));
                         this.rebuildGrid();
-                        
+
                         existingSeats.forEach(seat => {
                             let key = (seat.row - 1) + '-' + (seat.column - 1);
                             this.grid[key] = seat.type;
                             if (seat.seat_number) this.seatLabels[key] = seat.seat_number;
                         });
-                        this.grid = { ...this.grid };
+                        this.grid = {
+                            ...this.grid
+                        };
                     } else {
                         this.rebuildGrid();
                     }
@@ -485,7 +530,10 @@ $deleteLayout = function () {
                     const types = ['empty', 'passenger', 'aisle', 'driver', 'door'];
                     let current = this.grid[key] || 'empty';
                     let nextIdx = (types.indexOf(current) + 1) % types.length;
-                    this.grid = { ...this.grid, [key]: types[nextIdx] };
+                    this.grid = {
+                        ...this.grid,
+                        [key]: types[nextIdx]
+                    };
                     this.autoNumber();
                 },
 
@@ -509,7 +557,11 @@ $deleteLayout = function () {
                     let cells = [];
                     for (let r = 0; r < this.gridRows; r++) {
                         for (let c = 0; c < this.gridCols; c++) {
-                            cells.push({ r, c, key: r + '-' + c });
+                            cells.push({
+                                r,
+                                c,
+                                key: r + '-' + c
+                            });
                         }
                     }
                     return cells;

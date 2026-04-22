@@ -9,9 +9,11 @@ state([
     'search' => '',
 ]);
 
-on(['route-saved' => function () {
-    // Re-render
-}]);
+on([
+    'route-saved' => function () {
+        // Re-render
+    },
+]);
 
 mount(function () {
     $user = auth()->user();
@@ -22,13 +24,16 @@ mount(function () {
 
 $routes = computed(function () {
     return Route::with(['originAgent', 'destinationAgent'])
-        ->when($this->search, fn($q) => $q->whereHas('originAgent', function($sq) {
-            $sq->where('city', 'like', "%{$this->search}%")
-               ->orWhere('name', 'like', "%{$this->search}%");
-        })->orWhereHas('destinationAgent', function($sq) {
-            $sq->where('city', 'like', "%{$this->search}%")
-               ->orWhere('name', 'like', "%{$this->search}%");
-        }))
+        ->when(
+            $this->search,
+            fn($q) => $q
+                ->whereHas('originAgent', function ($sq) {
+                    $sq->where('city', 'like', "%{$this->search}%")->orWhere('name', 'like', "%{$this->search}%");
+                })
+                ->orWhereHas('destinationAgent', function ($sq) {
+                    $sq->where('city', 'like', "%{$this->search}%")->orWhere('name', 'like', "%{$this->search}%");
+                }),
+        )
         ->orderBy('created_at', 'desc')
         ->get();
 });
@@ -49,7 +54,7 @@ $confirmDelete = function ($routeId) {
 $deleteRoute = function () {
     if ($this->deletingRouteId) {
         $route = Route::withCount(['schedules'])->findOrFail($this->deletingRouteId);
-        
+
         if ($route->schedules_count > 0) {
             $this->dispatch('notify', message: 'Tida bisa menghapus Rute karena memiliki jadwal terkait!', type: 'error');
             $this->showDeleteModal = false;
@@ -91,7 +96,8 @@ $deleteRoute = function () {
                 {{-- Search --}}
                 <div class="mt-5 relative z-10">
                     <div class="relative">
-                        <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari rute, kota asal atau tujuan..."
+                        <input type="text" wire:model.live.debounce.300ms="search"
+                            placeholder="Cari rute, kota asal atau tujuan..."
                             class="w-full pl-10 pr-4 py-3 bg-white rounded-xl text-sm focus:ring-2 focus:ring-white border-0 shadow-sm text-gray-900 focus:outline-none transition-all placeholder-gray-400">
                     </div>
                 </div>
@@ -111,17 +117,20 @@ $deleteRoute = function () {
                             {{-- Info --}}
                             <div class="flex-1 min-w-0">
                                 <h3 class="font-bold text-gray-900 truncate">
-                                    {{ $r->originAgent->city ?? 'N/A' }} &rarr; {{ $r->destinationAgent->city ?? 'N/A' }}
+                                    {{ $r->originAgent->city ?? 'N/A' }} &rarr;
+                                    {{ $r->destinationAgent->city ?? 'N/A' }}
                                 </h3>
                                 <p class="text-[11px] text-gray-500 mt-0.5">
                                     {{ $r->originAgent->name ?? '-' }} ke {{ $r->destinationAgent->name ?? '-' }}
                                 </p>
                                 <div class="flex flex-wrap items-center gap-1.5 mt-2">
-                                    <span class="text-[10px] font-bold bg-teal-50 text-teal-600 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                                    <span
+                                        class="text-[10px] font-bold bg-teal-50 text-teal-600 px-2 py-0.5 rounded-lg flex items-center gap-1">
                                         <x-heroicon-s-currency-dollar class="w-3 h-3" />
                                         Rp {{ number_format($r->base_price, 0, ',', '.') }}
                                     </span>
-                                    <span class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg">
+                                    <span
+                                        class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg">
                                         {{ $r->distance_km ?? 0 }} km
                                     </span>
                                 </div>
@@ -147,8 +156,7 @@ $deleteRoute = function () {
                     </div>
                 @empty
                     <div class="text-center py-16">
-                        <div
-                            class="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                             <x-heroicon-o-arrows-right-left class="w-10 h-10 text-gray-300" />
                         </div>
                         <h3 class="font-bold text-gray-500">Belum ada rute</h3>
@@ -158,19 +166,22 @@ $deleteRoute = function () {
             </div>
 
             {{-- FAB Tambah --}}
-            <button wire:click="openCreate" class="fixed right-4 z-40 w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg active:scale-95 transition-transform border-2 border-white/30" style="bottom: calc(72px + env(safe-area-inset-bottom)); background: linear-gradient(135deg, #0d9488, #0f766e); box-shadow: 0 4px 20px rgba(13,148,136,0.45);" title="Tambah Rute">
+            <button wire:click="openCreate"
+                class="fixed right-4 z-40 w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg active:scale-95 transition-transform border-2 border-white/30"
+                style="bottom: calc(72px + env(safe-area-inset-bottom)); background: linear-gradient(135deg, #0d9488, #0f766e); box-shadow: 0 4px 20px rgba(13,148,136,0.45);"
+                title="Tambah Rute">
                 <x-heroicon-o-plus class="w-7 h-7" />
             </button>
         </div>
 
         {{-- Component Form --}}
-        <livewire:settings.route-form />
+        <livewire:settings.routes.form />
 
         {{-- CONFIRMATION MODAL --}}
         @if ($showDeleteModal)
             <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4" x-data x-cloak>
-                <div @click="$wire.set('showDeleteModal', false)"
-                    class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+                <div @click="$wire.set('showDeleteModal', false)" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm">
+                </div>
                 <div class="relative bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full z-10 text-center">
                     <div class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
                         <x-heroicon-s-trash class="w-8 h-8 text-red-500" />
