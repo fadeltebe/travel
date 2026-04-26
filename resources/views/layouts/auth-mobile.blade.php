@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
@@ -15,7 +15,7 @@
         <meta name="theme-color" content="#1d4ed8">
         <style> body { font-family: 'Outfit', sans-serif; } </style>
     </head>
-    <body class="font-sans text-gray-900 antialiased h-full overflow-hidden">
+    <body class="font-sans text-gray-900 antialiased bg-white">
         {{ $slot }}
         <script>
             if ('serviceWorker' in navigator) {

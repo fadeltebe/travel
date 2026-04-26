@@ -17,7 +17,7 @@ new #[Layout('layouts.auth-mobile')] class extends Component {
     }
 }; ?>
 
-<div class="min-h-screen bg-white flex flex-col items-center">
+<div class="min-h-[100dvh] bg-white flex flex-col items-center">
     <!-- Top Image Section (Using your uploaded travel bus & cargo image) -->
     <!-- Gambarnya memiliki border melengkung bergelombang di bawah secara bawaan -->
     <div class="w-full max-w-md relative">
