@@ -25,12 +25,12 @@ new #[Layout('layouts.auth-mobile')] class extends Component {
     </div>
 
     <!-- Login Form Section -->
-    <div class="w-full max-w-md px-6 py-6 flex flex-col bg-white -mt-10 rounded-t-[32px] shadow-xl shadow-slate-200/80">
+    <div class="w-full max-w-md px-6 py-6 flex flex-col bg-white -mt-10 rounded-t-[32px] shadow-xl shadow-slate-200/80 flex-1">
         <h2 class="text-[#004a8b] text-3xl font-extrabold mb-6 tracking-tight">Login</h2>
 
         <x-auth-session-status class="mb-4" :status="session('status')" />
 
-        <form wire:submit="login" class="flex flex-col">
+        <form wire:submit="login" class="flex flex-col flex-1">
             <!-- Box Input (Username/Email & Password) -->
             <div class="bg-white rounded-[14px] border border-gray-200 shadow-sm overflow-hidden mb-4">
 
@@ -101,7 +101,7 @@ new #[Layout('layouts.auth-mobile')] class extends Component {
                 </a>
             </div>
 
-            <div class="pt-2 pb-12 flex w-full">
+            <div class="pt-2 pb-12 flex w-full mt-auto">
                 <!-- Login Button -->
                 <!-- x-data handles the dynamic blue color exactly like BRIMO (light blue if empty, dark blue if filled) -->
                 <button type="submit" x-data="{
