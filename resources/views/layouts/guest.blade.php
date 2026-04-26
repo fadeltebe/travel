@@ -17,6 +17,11 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+        <!-- PWA -->
+        <link rel="manifest" href="{{ asset('manifest.json') }}">
+        <link rel="apple-touch-icon" href="{{ asset('images/pwa-icon.png') }}">
+        <meta name="theme-color" content="#1d4ed8">
+
         <style>
             body {
                 font-family: 'Outfit', sans-serif;
@@ -122,6 +127,17 @@
             </div> --}}
         </div>
 
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js').then(registration => {
+                        console.log('SW registered: ', registration);
+                    }).catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+                });
+            }
+        </script>
     </body>
 
 </html>
