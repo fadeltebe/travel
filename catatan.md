@@ -100,38 +100,40 @@ kita mulai dulu ke Optimasi Database (Indexing): Menambahkan index migration pad
 Penerapan Pagination Visual: Beralih ke paginasi (dan Cursor Pagination) untuk data jutaan baris daripada meload semua list pemesanan sekaligus di tampilan UI Livewire., tapi sebelum mulai, coba cek kambali penulisan kode aplikasi kita, coba cek kambali apakah ada fitur/componen pada aplikasi kita yang digunakan berulang ulang tapi belum modular, contoh yang sudah kita terapkan adalah resources\views\components\card\passenger-card.blade.php jadi card bisa dipanggil di beberapa tempat sekaligus,  coba baca catatan.md mulai baris 86, dan buat rencana pengembangan/implementation plan terlebih dahulu
 
 
- dari sistem manajemen travel kita, berikut adalah ringkasan sejauh mana progres kita saat ini dan apa saja yang direncanakan untuk dikembangkan selanjutnya:
+Berikut adalah ringkasan sejauh mana progres kita saat ini dan apa saja yang direncanakan untuk dikembangkan selanjutnya:
 
-✅ Sejauh Mana Aplikasi Kita Saat Ini?
-Aplikasi sudah memiliki fondasi operasional dan anti-fraud yang kokoh. Fitur unggulan yang sudah berjalan/terselesaikan meliputi:
+✅ **Sejauh Mana Aplikasi Kita Saat Ini (Yang Sudah Selesai)?**
+Aplikasi sudah memiliki fondasi operasional dan anti-fraud yang kokoh. Berdasarkan perkembangan terbaru, fitur unggulan yang sudah berjalan/terselesaikan meliputi:
 
-- **Hak Akses Lengkap (Role-based):** Pemisahan wewenang ketat antara Super Admin, Owner, Admin Agen, dan Supir.
+- **Hak Akses Lengkap (Role-based):** Pemisahan wewenang ketat antara Super Admin, Owner, Admin Agen, dan Supir. Ditambah dengan **Manajemen User khusus Super Admin**.
 - **Sistem Token & Dompet Prabayar (Anti-Piutang Agen):** Saldo agen dipotong presisi otomatis ketika transaksi pemesanan atau kargo terjadi.
 - **Interactive Seat Mapper:** Agen dapat melihat denah sisa kuota kursi bus secara visual untuk menghindari status kursi ganda (double-booking).
-- **Proteksi Sistem Ekstra:** Seperti pencegahan double-submit (menghindari agen terpotong koin ganda atau data terekam dua kali misal saat jaringan lemot) dan akses/limitasi sopir yang hanya bisa melihat manifes keberangkatannya masing-masing.
-- **Modul Kargo & COD Intuitif:** Alur uang masuk kargo (baik lunas di agen pengirim, atau COD ditagih oleh agen tujuan) terekam sangat jelas. Laporan performa masing-masing agen juga sudah selesai.
-- **Sistem Soft Delete Global & Manajemen Rute (Terkini):** 
-   - Penerapan *Soft Delete* di seluruh database inti (Jadwal, Kargo, Penumpang, User, Agen, Transaksi).
-   - Penambahan relasi *Cascade*: Menghapus Jadwal dari Master akan otomatis me-soft delete tiket penumpang & kargo di dalamnya, mengatasi broken references.
-   - Penambahan halaman **Master Rute** penuh *(CRUD)* di menu Pengaturan khusus untuk Super Admin & Owner.
-🚧 Apa Selanjutnya? (Fitur yang Perlu Diperbaiki / Dikembangkan)
-Menurut Roadmap (Peta Jalan) dan catatan arsitektur kita, ada beberapa tahap perbaikan dan fitur baru yang bisa dikerjakan selanjutnya. Anda bisa menentukan prioritas mana yang sebaiknya kita eksekusi duluan:
+- **Proteksi Sistem Ekstra:** Pencegahan double-submit dan limitasi akses sopir (hanya melihat manifes perjalanannya).
+- **Modul Kargo & COD Intuitif:** Alur uang masuk kargo terekam jelas. Laporan performa agen sudah diperbaiki, termasuk **Akurasi Perhitungan Pendapatan Agen vs Kargo**.
+- **Sistem Soft Delete Global & Manajemen Rute:** Penerapan *Soft Delete* berantai (Cascade) dan halaman Master Rute (CRUD). Perbaikan **Route Model Binding** pada jadwal (mendukung `id` dan `schedule_code`).
+- **Pembaruan Arsitektur Database:** Konsolidasi file *migrations* dan *seeders* untuk database yang lebih bersih.
+- **Peningkatan UI & Mobile:** Perbaikan *clipping* halaman login di perangkat mobile dan inisiasi penyesuaian aplikasi menjadi **Progressive Web App (PWA)**.
+- **Automasi Status Jadwal:** Penyesuaian logika penyelesaian perjalanan otomatis/semi-otomatis.
 
-1. Perbaikan Skalabilitas & Performa (Wajib Jika Data Makin Besar)
-Dari dokumen 
+🚧 **Apa Selanjutnya (Yang Belum & Akan Dikembangkan)?**
+Menurut Peta Jalan (Roadmap) dan catatan sebelumnya, ada beberapa tahap perbaikan dan fitur baru yang bisa dikerjakan selanjutnya:
 
-catatan.md
- ada PR arsitektur untuk menghindari website lag di masa depan:
+**1. Modularisasi UI & Component-Based Architecture (Prioritas Refactoring)**
+- Menerapkan prinsip DRY (Don't Repeat Yourself) dan Atomic Design pada komponen Livewire & Blade agar kode UI (seperti form, pencarian, tombol) lebih rapi dan dapat di-reuse secara maksimal.
 
-Optimasi Database (Indexing): Menambahkan index migration pada tabel schedules, passengers, dan rute sehingga pencarian rentang tanggal lebih ngebut.
-Penerapan Pagination Visual: Beralih ke paginasi (dan Cursor Pagination) untuk data jutaan baris daripada meload semua list pemesanan sekaligus di tampilan UI Livewire.
-Sistem Arsip (Archival System): Menyiapkan logika (atau Cron Job otomatis) untuk memisahkan data jadwal berusia tua (lebih dari 3 bulan) ke data historis.
-2. Fase Terdekat (Utilitas & Ekspor Data Tambahan)
-Ekspor Dokumen ke Excel/PDF: Fitur rekap data (Laporan performa, arus kas harian agen, daftar kargo) agar bisa di-download berbentuk format file Spreadsheet / PDF untuk dibukukan secara per-Bulan.
-Pencetakan Manifes Fisik (Sopir): Walaupun sopir bisa masuk via HP, kita butuh sebuah tombol agen/admin di Terminal yang mencetak Kertas Manifes/Daftar Absen 1-lembar buat supir untuk kontrol di pos pantau/jalan.
-Auto-Kirim Gateway WhatsApp: Ketika pesanan divalidasi, sistem terintegrasi ke layanan provider WA pihak ke-3 (contoh Watzap/Fonnte) tanpa perlu agen mem-forward link tiket PDF-nya secara manual.
-3. Fase Menengah & Jangka Panjang (Penuhi Role B2C)
-Portal Pemesanan Pelanggan Awam (B2C): Daripada selalu lewat tangan agen, menyiapkan antarmuka/website terdepan untuk Pelanggan (via HP sendiri) melakukan order tiket dan bayar pakai metode otomatis ke mutasi pusat secara mandiri.
-Sistem Payroll & Komisi Karyawan/Supir: Menghitung otomatis Uang Jalan, Uang Bensin, Potongan, hingga komisi tarif persenan perjalanan sang sopir terkait di setiap penugasannya.
-Pengingat Maintenance Armada: Meng-input pelacakan jadwal bengkel (Pajak STNK, Servis Ban / ganti Oli) sesuai odometer yang ditempuh selama operasional travel.
-Jika Anda ingin kita mulai bekerja sekarang, mana dari 3 kategori di atas (Skalabilitas, Fase Ekspor & Utiliter, atau Fase Pembuatan B2C) yang ingin Anda kerjakan terlebih dahulu hari ini?
+**2. Perbaikan Skalabilitas & Performa (Wajib Jika Data Makin Besar)**
+- **Optimasi Database (Indexing):** Menambahkan index migration pada tabel schedules, passengers, dan rute sehingga pencarian rentang tanggal lebih ngebut.
+- **Penerapan Pagination Visual:** Beralih ke paginasi (dan Cursor Pagination) untuk data bervolume tinggi agar tidak meload semua list pemesanan sekaligus di tampilan UI Livewire.
+- **Sistem Arsip (Archival System):** Menyiapkan logika (atau Cron Job otomatis) untuk memisahkan data jadwal berusia tua (lebih dari 3 bulan) ke data historis.
+
+**3. Fase Terdekat (Utilitas & Ekspor Data Tambahan)**
+- **Ekspor Dokumen ke Excel/PDF:** Fitur rekap data (Laporan performa, arus kas harian agen, daftar kargo) agar bisa di-download berbentuk format file Spreadsheet / PDF untuk dibukukan secara per-Bulan.
+- **Pencetakan Manifes Fisik (Sopir):** Butuh sebuah tombol agen/admin di Terminal yang mencetak Kertas Manifes/Daftar Absen 1-lembar buat supir untuk kontrol di pos pantau/jalan.
+- **Auto-Kirim Gateway WhatsApp:** Sistem terintegrasi ke layanan provider WA pihak ke-3 tanpa perlu agen mem-forward link tiket PDF-nya secara manual.
+
+**4. Fase Menengah & Jangka Panjang (Ekspansi Bisnis)**
+- **Portal Pemesanan Pelanggan Awam (B2C):** Portal mandiri untuk Pelanggan melakukan order tiket dan bayar pakai metode otomatis ke rekening mutasi pusat secara independen.
+- **Sistem Payroll & Komisi Karyawan/Supir:** Menghitung otomatis Uang Jalan, Uang Bensin, Potongan, hingga komisi persenan sang sopir di setiap penugasan.
+- **Pengingat Maintenance Armada:** Pelacakan jadwal bengkel (Pajak STNK, Servis Ban / ganti Oli) sesuai odometer operasional travel.
+
+Jika Anda ingin kita mulai bekerja sekarang, mana dari 4 kategori di atas (Modularisasi, Skalabilitas, Ekspor Dokumen, atau B2C) yang ingin Anda kerjakan terlebih dahulu?
