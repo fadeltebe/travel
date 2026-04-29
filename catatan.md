@@ -114,6 +114,7 @@ Aplikasi sudah memiliki fondasi operasional dan anti-fraud yang kokoh. Berdasark
 - **Pembaruan Arsitektur Database:** Konsolidasi file *migrations* dan *seeders* untuk database yang lebih bersih.
 - **Peningkatan UI & Mobile:** Perbaikan *clipping* halaman login di perangkat mobile dan inisiasi penyesuaian aplikasi menjadi **Progressive Web App (PWA)**.
 - **Automasi Status Jadwal:** Penyesuaian logika penyelesaian perjalanan otomatis/semi-otomatis.
+- **Transformasi ke SaaS Multi-Tenant:** Migrasi dari aplikasi *Single-Tenant* menjadi *SaaS Multi-Database* menggunakan `stancl/tenancy`. Data antar perusahaan travel/PO kini 100% terisolasi dalam database masing-masing, memungkinkan kita mengelola banyak perusahaan dalam satu instalasi utama (Central Portal).
 
 🚧 **Apa Selanjutnya (Yang Belum & Akan Dikembangkan)?**
 Menurut Peta Jalan (Roadmap) dan catatan sebelumnya, ada beberapa tahap perbaikan dan fitur baru yang bisa dikerjakan selanjutnya:
@@ -137,3 +138,8 @@ Menurut Peta Jalan (Roadmap) dan catatan sebelumnya, ada beberapa tahap perbaika
 - **Pengingat Maintenance Armada:** Pelacakan jadwal bengkel (Pajak STNK, Servis Ban / ganti Oli) sesuai odometer operasional travel.
 
 Jika Anda ingin kita mulai bekerja sekarang, mana dari 4 kategori di atas (Modularisasi, Skalabilitas, Ekspor Dokumen, atau B2C) yang ingin Anda kerjakan terlebih dahulu?
+
+multy Tenant:
+- ketika menambahkan tenant baru maka akan ada database baru, tambahkan pengecekkan apakah tenant yang akan ditambahkan sudah ada ditabel tenant,jika sudah ada tampilakan pesan error, dan database/domain tidak akan dibuat sehingga tidak double
+-   ketika membuat tenant baru, maka akan ada database baru secara otomatis, tambahkan juga data awal untuk user yaitu, akun saya sebagai developer dengan role super admin, owner, admin agen, dan sopir, buatkan juga satu data rute,bus,layout bus
+ 

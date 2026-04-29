@@ -19,6 +19,17 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
 
+    // public static function booted (){
+    //     static::created(function($user){
+    //         $userTenant = Tenant::create([
+    //             'id' => $user->id,
+    //         ]);
+    //         $userTenant->domains()->create([
+    //             'domain' => $user->email,
+    //         ]);
+    //     });
+    // }
+
     /**
      * The attributes that are mass assignable.
      *

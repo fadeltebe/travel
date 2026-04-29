@@ -21,7 +21,7 @@ new #[Layout('layouts.auth-mobile')] class extends Component {
     <!-- Top Image Section (Using your uploaded travel bus & cargo image) -->
     <!-- Gambarnya memiliki border melengkung bergelombang di bawah secara bawaan -->
     <div class="w-full max-w-md relative">
-        <img src="{{ asset('images/hero-login.webp') }}" alt="Travel & Cargo Illustration" class="w-full object-cover">
+        <img src="{{ global_asset('images/hero-login.webp') }}" alt="Travel & Cargo Illustration" class="w-full object-cover">
     </div>
 
     <!-- Login Form Section -->

@@ -25,6 +25,17 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        \Livewire\Livewire::setUpdateRoute(function ($handle) {
+            $middleware = ['web'];
+            
+            if (!in_array(request()->getHost(), config('tenancy.central_domains', []))) {
+                $middleware[] = \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class;
+            }
+
+            return \Illuminate\Support\Facades\Route::post('/livewire/update', $handle)
+                ->middleware($middleware);
+        });
+
 
         // Memaksa seluruh tanggal di aplikasi menggunakan bahasa Indonesia
         Carbon::setLocale('id');
