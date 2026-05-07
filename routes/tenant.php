@@ -96,6 +96,9 @@ Route::middleware([
         Volt::route('/agents/monitoring', 'agents.monitoring')
             ->name('agents.monitoring');
 
+        Volt::route('/agents/{agent}', 'agents.show')
+            ->name('agents.show');
+
         // Schedules
         Volt::route('/schedules', 'schedules.index')
             ->name('schedules.index');

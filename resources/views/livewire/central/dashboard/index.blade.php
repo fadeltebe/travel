@@ -26,7 +26,7 @@ new #[Layout('layouts.app')] class extends Component {
 ?>
 
 <div class="min-h-screen bg-slate-50 py-16">
-    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-6xl pb-28 px-4 sm:px-6 lg:px-8">
         <div class="rounded-3xl border border-slate-200 bg-white p-10 shadow-xl shadow-slate-200/50">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -87,4 +87,17 @@ new #[Layout('layouts.app')] class extends Component {
             </div>
         </div>
     </div>
-</div>
+
+    <div
+        class="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur-lg px-4 py-4 shadow-xl">
+        <div class="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Quick Action</p>
+                <p class="mt-1 text-sm font-semibold text-slate-900">Lihat daftar tenant dan akses detail tenant</p>
+            </div>
+            <a href="{{ route('central.tenants.index') }}"
+                class="inline-flex items-center justify-center rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/10 hover:bg-emerald-600 transition">
+                Daftar Tenant
+            </a>
+        </div>
+    </div>

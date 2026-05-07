@@ -5,7 +5,7 @@ use Livewire\Volt\Volt;
 
 foreach (config('tenancy.central_domains', []) as $centralDomain) {
     Route::domain($centralDomain)->middleware('web')->group(function () {
-        Volt::route('/', 'central.index')->name('central.home');
+        Route::redirect('/', '/login')->name('central.home');
 
         Route::middleware('guest')->group(function () {
             Volt::route('/login', 'central.auth.login')
@@ -16,8 +16,14 @@ foreach (config('tenancy.central_domains', []) as $centralDomain) {
             Volt::route('/dashboard', 'central.dashboard.index')
                 ->name('central.dashboard');
 
+            Volt::route('/tenants', 'central.tenants.index')
+                ->name('central.tenants.index');
+
             Volt::route('/tenants/create', 'central.tenants.create')
                 ->name('central.tenants.create');
+
+            Volt::route('/tenants/{tenant}', 'central.tenants.show')
+                ->name('central.tenants.show');
         });
     });
 }

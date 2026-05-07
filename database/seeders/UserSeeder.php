@@ -24,7 +24,7 @@ class UserSeeder extends Seeder
         // Owner
         User::create([
             'name'      => 'Owner',
-            'email'     => 'owner@meganjaya.com',
+            'email'     => 'owner@travel.com',
             'password'  => bcrypt('password'),
             'role'      => Role::Owner,
             'agent_id'  => null,
@@ -36,7 +36,7 @@ class UserSeeder extends Seeder
         foreach ($agents as $agent) {
             User::create([
                 'name'      => "Admin {$agent->city}",
-                'email'     => "admin." . strtolower($agent->city) . "@meganjaya.com",
+                'email'     => "admin." . strtolower($agent->city) . "@travel.com",
                 'password'  => bcrypt('password'),
                 'role'      => Role::Admin,
                 'agent_id'  => $agent->id,
@@ -48,7 +48,7 @@ class UserSeeder extends Seeder
         for ($i = 1; $i <= 4; $i++) {
             User::create([
                 'name'      => "Driver $i",
-                'email'     => "driver$i@meganjaya.com",
+                'email'     => "driver$i@travel.com",
                 'password'  => bcrypt('password'),
                 'role'      => Role::Driver,
                 'agent_id'  => null,

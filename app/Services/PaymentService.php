@@ -55,6 +55,7 @@ class PaymentService
                 ->withHeaders([
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
+                    'X-Override-Notification' => route('midtrans.webhook'),
                 ])
                 ->post($baseUrl, $payload);
 

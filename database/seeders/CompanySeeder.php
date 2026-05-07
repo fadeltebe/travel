@@ -14,11 +14,11 @@ class CompanySeeder extends Seeder
     public function run(): void
     {
         Company::create([
-            'name' => 'Megan Jaya',
-            'code' => 'MJ-001',
-            'email' => 'megan@jaya.com',
+            'name' => 'Travel',
+            'code' => 'TR-001',
+            'email' => 'travel@sulteng.com',
             'phone' => '0451-123456',
-            'address' => 'Jl. Trans Sulawesi No. 123, Palu, Sulawesi Tengah',
+            'address' => 'Jl. Samratulangi, Palu, Sulawesi Tengah',
             'logo' => null,
             'npwp' => '12.345.678.9-012.345',
             'is_active' => true,

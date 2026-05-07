@@ -138,6 +138,7 @@
                 });
             }
         </script>
+        <x-toast-notification />
     </body>
 
 </html>

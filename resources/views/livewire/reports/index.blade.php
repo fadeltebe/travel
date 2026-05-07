@@ -60,7 +60,9 @@ $metrics = computed(function () {
     $passengersQuery = Passenger::query()->whereHas('booking.schedule', function (Builder $q) use ($month, $year) {
         $q->whereMonth('departure_date', $month)->whereYear('departure_date', $year);
     });
-    $cargosQuery = Cargo::query()->whereMonth('created_at', $month)->whereYear('created_at', $year);
+    $cargosQuery = Cargo::query()->whereHas('booking.schedule', function (Builder $q) use ($month, $year) {
+        $q->whereMonth('departure_date', $month)->whereYear('departure_date', $year);
+    });
 
     // CATATAN: Blok "Apply Role Filters" untuk Agen telah dihapus
     // karena agen sudah diblokir oleh fungsi mount() di atas.

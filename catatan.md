@@ -141,5 +141,5 @@ Jika Anda ingin kita mulai bekerja sekarang, mana dari 4 kategori di atas (Modul
 
 multy Tenant:
 - ketika menambahkan tenant baru maka akan ada database baru, tambahkan pengecekkan apakah tenant yang akan ditambahkan sudah ada ditabel tenant,jika sudah ada tampilakan pesan error, dan database/domain tidak akan dibuat sehingga tidak double
--   ketika membuat tenant baru, maka akan ada database baru secara otomatis, tambahkan juga data awal untuk user yaitu, akun saya sebagai developer dengan role super admin, owner, admin agen, dan sopir, buatkan juga satu data rute,bus,layout bus
+-   ketika membuat tenant baru, maka akan ada database baru secara otomatis, tambahkan juga data awal untuk user baru yaitu, akun saya sebagai developer dengan role super admin, owner, admin agen, dan sopir, buatkan juga satu data rute,bus,layout bus
  

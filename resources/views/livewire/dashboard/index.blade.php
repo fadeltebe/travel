@@ -77,6 +77,61 @@ $metrics = computed(function () {
     ];
 });
 
+$chartData = computed(function () {
+    $user = auth()->user();
+    $days = [];
+    $schedules = [];
+    $passengers = [];
+    $cargos = [];
+
+    for ($i = 6; $i >= 0; $i--) {
+        $date = now()->subDays($i)->format('Y-m-d');
+        $days[] = now()->subDays($i)->locale('id')->translatedFormat('d M');
+
+        $schedulesQuery = Schedule::whereDate('departure_date', $date);
+        $passengersQuery = Passenger::whereHas('booking.schedule', function (Builder $q) use ($date) {
+            $q->whereDate('departure_date', $date);
+        });
+        $cargosQuery = Cargo::whereHas('booking.schedule', function (Builder $q) use ($date) {
+            $q->whereDate('departure_date', $date);
+        });
+
+        if (!$user->canViewAll()) {
+            if ($user->isDriver()) {
+                $schedulesQuery->where('driver_id', $user->id);
+                $passengersQuery->whereHas('booking.schedule', function (Builder $q) use ($user) {
+                    $q->where('driver_id', $user->id);
+                });
+                $cargosQuery->whereHas('booking.schedule', function (Builder $q) use ($user) {
+                    $q->where('driver_id', $user->id);
+                });
+            } else {
+                $agentId = $user->agent_id;
+                $schedulesQuery->whereHas('route', function (Builder $q) use ($agentId) {
+                    $q->where('origin_agent_id', $agentId)->orWhere('destination_agent_id', $agentId);
+                });
+                $passengersQuery->whereHas('booking', function (Builder $q) use ($agentId) {
+                    $q->where('agent_id', $agentId);
+                });
+                $cargosQuery->where(function ($q) use ($agentId) {
+                    $q->where('origin_agent_id', $agentId)->orWhere('destination_agent_id', $agentId);
+                });
+            }
+        }
+
+        $schedules[] = $schedulesQuery->count();
+        $passengers[] = $passengersQuery->count();
+        $cargos[] = $cargosQuery->count();
+    }
+
+    return [
+        'labels' => $days,
+        'schedules' => $schedules,
+        'passengers' => $passengers,
+        'cargos' => $cargos,
+    ];
+});
+
 ?>
 
 <div>
@@ -257,6 +312,48 @@ $metrics = computed(function () {
                         </div>
 
                     </div>
+                </div>
+
+                {{-- Chart Section --}}
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mt-6" wire:ignore
+                     x-data="{ chart: null }"
+                     x-init="
+                        let options = {
+                            chart: { type: 'area', height: 250, toolbar: { show: false }, zoom: { enabled: false } },
+                            series: [
+                                { name: 'Jadwal', data: @js($this->chartData['schedules']) },
+                                { name: 'Penumpang', data: @js($this->chartData['passengers']) },
+                                { name: 'Cargo', data: @js($this->chartData['cargos']) }
+                            ],
+                            xaxis: { categories: @js($this->chartData['labels']), tooltip: { enabled: false } },
+                            stroke: { curve: 'smooth', width: 2 },
+                            colors: ['#1976D2', '#4CAF50', '#FF9800'],
+                            fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, stops: [50, 100] } },
+                            dataLabels: { enabled: false },
+                            legend: { position: 'top', horizontalAlign: 'left', offsetX: -10 },
+                            tooltip: { theme: 'light' }
+                        };
+                        let initChart = () => {
+                            chart = new ApexCharts($refs.chart, options);
+                            chart.render();
+                        };
+                        if (typeof ApexCharts !== 'undefined') {
+                            initChart();
+                        } else {
+                            let script = document.createElement('script');
+                            script.src = 'https://cdn.jsdelivr.net/npm/apexcharts';
+                            script.onload = initChart;
+                            document.head.appendChild(script);
+                        }
+                     "
+                >
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-gray-800">Tren 7 Hari Terakhir</h3>
+                        <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+                            <x-heroicon-o-presentation-chart-line class="w-4 h-4 text-blue-600" />
+                        </div>
+                    </div>
+                    <div x-ref="chart" class="-ml-2 -mr-2"></div>
                 </div>
 
             </div>
