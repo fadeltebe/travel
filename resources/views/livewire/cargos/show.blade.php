@@ -134,13 +134,24 @@ $markAsReceived = function () {
                 </div>
 
                 {{-- Data Barang di Atas --}}
-                <div class="pb-3 border-b border-gray-100">
+                <div class="pb-3 border-b border-gray-100 flex gap-4">
+                    @if($cargo->photo)
+                        <div class="w-20 h-20 shrink-0 rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                            <img src="{{ route('tenant.storage', ['path' => $cargo->photo]) }}" class="w-full h-full object-cover">
+                        </div>
+                    @else
+                        <div class="w-20 h-20 shrink-0 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
+                            <x-heroicon-o-photo class="w-8 h-8 text-gray-300" />
+                        </div>
+                    @endif
+                    <div>
                     <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Nama Barang / Kemasan
                     </p>
                     <p class="text-lg text-gray-900 font-bold uppercase">{{ $cargo->item_name ?? 'BARANG KARGO' }}</p>
                     <p class="text-sm text-gray-600 leading-snug mt-1">{{ $cargo->description }}</p>
                     <p class="text-xs text-orange-500 font-bold mt-2">{{ $cargo->weight_kg }} Kg &bull;
                         {{ $cargo->quantity }} Koli</p>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">

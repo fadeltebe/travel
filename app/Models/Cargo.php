@@ -34,21 +34,22 @@ class Cargo extends Model
         'paid_at',
         'status',
         'notes',
+        'photo',
     ];
 
     protected $casts = [
-        'weight_kg' => 'decimal:2',
-        'quantity' => 'integer',
-        'fee' => 'decimal:2',
-        'pickup_fee' => 'decimal:2',
-        'dropoff_fee' => 'decimal:2',
-        'need_pickup' => 'boolean',
-        'need_dropoff' => 'boolean',
-        'is_paid' => 'boolean',
-        'paid_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+        'weight_kg'     => 'decimal:2',
+        'quantity'      => 'integer',
+        'fee'           => 'decimal:2',
+        'pickup_fee'    => 'decimal:2',
+        'dropoff_fee'   => 'decimal:2',
+        'need_pickup'   => 'boolean',
+        'need_dropoff'  => 'boolean',
+        'is_paid'       => 'boolean',
+        'paid_at'       => 'datetime',
+        'created_at'    => 'datetime',
+        'updated_at'    => 'datetime',
+        'deleted_at'    => 'datetime',
     ];
 
     public function booking()

@@ -128,6 +128,15 @@ Route::middleware([
         Volt::route('/cargo/{cargo}/print', 'cargos.print')
             ->name('cargo.print');
 
+        // Route untuk serve file tenant storage
+        Route::get('/tenant-storage/{path}', function ($path) {
+            $filePath = storage_path('app/public/' . $path);
+            if (!file_exists($filePath)) {
+                abort(404);
+            }
+            return response()->file($filePath);
+        })->where('path', '.*')->name('tenant.storage');
+
         // Passengers
         Volt::route('/passengers', 'passengers.index')
             ->name('passengers.index');

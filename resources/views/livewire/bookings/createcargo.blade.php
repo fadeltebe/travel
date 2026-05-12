@@ -1,12 +1,15 @@
 <?php
 
 use Livewire\Volt\Component;
+use Livewire\WithFileUploads;
 use App\Models\Schedule;
 use App\Models\Agent;
 use App\Models\Cargo; // Pastikan Model Cargo sudah ada
 use Illuminate\Support\Facades\DB;
 
 new class extends Component {
+    use WithFileUploads;
+
     // State Form
     public $step = 1;
     public $schedule_id;
@@ -17,6 +20,7 @@ new class extends Component {
 
     // Data Barang (Multiple Items)
     public $items = [];
+    public $photos = [];
 
     // Pembayaran
     public $payment_method = 'cash';
@@ -66,12 +70,18 @@ new class extends Component {
             'weight' => 1,
             'price' => 0,
         ];
+        $this->photos[] = null;
     }
 
     public function removeItem($index)
     {
         unset($this->items[$index]);
         $this->items = array_values($this->items);
+
+        if (isset($this->photos[$index])) {
+            unset($this->photos[$index]);
+        }
+        $this->photos = array_values($this->photos);
     }
 
     public function goStep($step)
@@ -94,6 +104,7 @@ new class extends Component {
                         'items.*.item_name' => 'required',
                         'items.*.description' => 'required',
                         'items.*.price' => 'required|numeric|min:0',
+                        'photos.*' => 'nullable|image|max:2048',
                     ],
                     [
                         'items.*.item_name.required' => 'Semua Nama Barang harus diisi',
@@ -160,6 +171,7 @@ new class extends Component {
                 'items.*.item_name' => 'required',
                 'items.*.description' => 'required',
                 'items.*.price' => 'required|numeric|min:0',
+                'photos.*' => 'nullable|image|max:2048',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->saving = false;
@@ -223,7 +235,17 @@ new class extends Component {
                 ]);
 
                 // Loop & simpan setiap barang ke tabel cargos
-                foreach ($this->items as $item) {
+                \Illuminate\Support\Facades\Log::info('Saving items:', $this->items);
+                \Illuminate\Support\Facades\Log::info('Photos array:', $this->photos);
+                foreach ($this->items as $index => $item) {
+                    $photoPath = null;
+                    if (!empty($this->photos[$index])) {
+                        \Illuminate\Support\Facades\Log::info('Photo item type: ' . gettype($this->photos[$index]));
+                        if (!is_string($this->photos[$index])) {
+                            $photoPath = $this->photos[$index]->store('cargos', 'public');
+                        }
+                    }
+
                     Cargo::create([
                         'tracking_code' => $item['code'],
                         'booking_id' => $booking->id,
@@ -242,6 +264,7 @@ new class extends Component {
                         'is_paid' => $isPaid,
                         'paid_at' => $isPaid ? now() : null,
                         'status' => 'pending',
+                        'photo' => $photoPath,
                     ]);
                 }
 
@@ -294,23 +317,23 @@ new class extends Component {
         </div>
 
         {{-- STEP 1: JADWAL --}}
-        @if ($step === 1)
+        <div class="{{ $step === 1 ? 'block' : 'hidden' }}">
             @include('livewire.bookings.partials.cargo.step1-jadwal')
-        @endif
+        </div>
 
         {{-- STEP 2: KONTAK --}}
-        @if ($step === 2)
+        <div class="{{ $step === 2 ? 'block' : 'hidden' }}">
             @include('livewire.bookings.partials.cargo.step2-kontak')
-        @endif
+        </div>
 
         {{-- STEP 3: BARANG --}}
-        @if ($step === 3)
+        <div class="{{ $step === 3 ? 'block' : 'hidden' }}">
             @include('livewire.bookings.partials.cargo.step3-barang')
-        @endif
+        </div>
 
         {{-- STEP 4: FINAL --}}
-        @if ($step === 4)
+        <div class="{{ $step === 4 ? 'block' : 'hidden' }}">
             @include('livewire.bookings.partials.cargo.step4-pembayaran')
-        @endif
+        </div>
     </div>
 </div>
