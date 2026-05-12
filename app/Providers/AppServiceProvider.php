@@ -57,5 +57,7 @@ class AppServiceProvider extends ServiceProvider
         Carbon::macro('toIndoDateTime', function () {
             return $this->translatedFormat('d M Y - H:i');
         });
+
+        Schema::defaultStringLength(191);
     }
 }
