@@ -21,7 +21,7 @@ return [
         // 'localhost',
         // 'travel.test',
         // '192.168.1.7',
-        env('APP_CENTRAL_DOMAIN')
+        env('APP_CENTRAL_DOMAIN', 'localhost')
     ],
 
     /**
