@@ -8,13 +8,23 @@ use App\Models\Wallet;
 class WalletHelper
 {
     /**
-     * Dapatkan wallet user saat ini (Single Company Mode)
+     * Dapatkan wallet user saat ini (Single Company Mode dalam Tenant)
      */
     public static function getWallet()
     {
+        // 1. CEK KONTEKS: Pastikan hanya dieksekusi di dalam Tenant, bukan di Central Panel
+        if (! function_exists('tenant') || ! tenant()) {
+            return null;
+        }
+
         $user = auth()->user();
 
-        // Karena single company, ambil company pertama
+        // Pastikan ada user yang sedang login
+        if (! $user) {
+            return null;
+        }
+
+        // Karena single company di dalam tenant, ambil company pertama
         $company = Company::first();
 
         if (! $company) {
