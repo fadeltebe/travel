@@ -17,7 +17,7 @@ return [
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
     'central_domains' => [
-        '192.168.1.7',
+        '192.168.1.16',
         '127.0.0.1',
         'localhost',
         'travel.test',
