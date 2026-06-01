@@ -20,7 +20,7 @@ return new class extends Migration
             // Data penerima barang
             $table->string('received_by_name'); // Nama yang ambil barang
             $table->string('received_by_phone')->nullable(); // Telepon penerima
-            $table->timestamp('received_at'); // Waktu penerimaan
+            $table->timestamp('received_at')->nullable(); // Waktu penerimaan
 
             // Data agen & handler
             $table->foreignId('agent_id')->constrained()->cascadeOnDelete(); // Agen yang serahkan barang

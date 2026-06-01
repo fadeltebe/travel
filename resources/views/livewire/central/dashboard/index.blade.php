@@ -25,12 +25,12 @@ new #[Layout('layouts.app')] class extends Component {
 };
 ?>
 
-<div class="min-h-screen bg-slate-50 py-16">
-    <div class="mx-auto max-w-6xl pb-28 px-4 sm:px-6 lg:px-8">
-        <div class="rounded-3xl border border-slate-200 bg-white p-10 shadow-xl shadow-slate-200/50">
+<div class="min-h-screen bg-slate-50 py-8 sm:py-16">
+    <div class="mx-auto max-w-6xl pb-40 sm:pb-28 px-4 sm:px-6 lg:px-8">
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 sm:p-10 shadow-xl shadow-slate-200/50">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-slate-900">Central Dashboard</h1>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Central Dashboard</h1>
                     <p class="mt-2 text-slate-600">Ringkasan tenant dan manajemen sistem.</p>
                 </div>
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -45,24 +45,24 @@ new #[Layout('layouts.app')] class extends Component {
                 </div>
             </div>
 
-            <div class="mt-10 grid gap-6 sm:grid-cols-3">
+            <div class="mt-8 sm:mt-10 grid gap-4 sm:gap-6 sm:grid-cols-3">
                 <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
                     <p class="text-sm uppercase tracking-[0.2em] text-slate-400">Tenant Terdaftar</p>
-                    <p class="mt-4 text-4xl font-bold text-slate-900">{{ $this->tenantCount }}</p>
+                    <p class="mt-4 text-3xl sm:text-4xl font-bold text-slate-900">{{ $this->tenantCount }}</p>
                 </div>
 
-                <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6 overflow-hidden">
                     <p class="text-sm uppercase tracking-[0.2em] text-slate-400">Host Central</p>
-                    <p class="mt-4 text-4xl font-bold text-slate-900">{{ request()->getHost() }}</p>
+                    <p class="mt-4 text-3xl sm:text-4xl font-bold text-slate-900 truncate" title="{{ request()->getHost() }}">{{ request()->getHost() }}</p>
                 </div>
 
                 <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
                     <p class="text-sm uppercase tracking-[0.2em] text-slate-400">Status</p>
-                    <p class="mt-4 text-4xl font-bold text-slate-900">Active</p>
+                    <p class="mt-4 text-3xl sm:text-4xl font-bold text-slate-900">Active</p>
                 </div>
             </div>
 
-            <div class="mt-10 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div class="mt-8 sm:mt-10 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div
                     class="border-b border-slate-200 bg-slate-50 px-6 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
                     Tenant Terdaftar
@@ -70,12 +70,12 @@ new #[Layout('layouts.app')] class extends Component {
                 <div class="divide-y divide-slate-200">
                     @forelse ($this->tenants as $tenant)
                         <div class="px-6 py-4 sm:flex sm:items-center sm:justify-between">
-                            <div>
-                                <p class="font-semibold text-slate-900">{{ $tenant->id }}</p>
-                                <p class="text-sm text-slate-500">{{ $tenant->domains->pluck('domain')->join(', ') }}
+                            <div class="min-w-0">
+                                <p class="font-semibold text-slate-900 truncate">{{ $tenant->id }}</p>
+                                <p class="text-sm text-slate-500 break-words">{{ $tenant->domains->pluck('domain')->join(', ') }}
                                 </p>
                             </div>
-                            <p class="mt-3 text-sm text-slate-500 sm:mt-0">
+                            <p class="mt-3 text-sm text-slate-500 sm:mt-0 whitespace-nowrap">
                                 {{ $tenant->created_at?->format('d M Y') ?? '-' }}</p>
                         </div>
                     @empty
