@@ -43,6 +43,17 @@ class AgentSeeder extends Seeder
                 'commission_rate' => 5.00,
                 'is_active'       => true,
             ],
+            [
+                'name'            => 'Agen Luwuk',
+                'slug'            => 'agen-luwuk',
+                'code'            => 'LUWUK01',
+                'city'            => 'Luwuk',
+                'address'         => 'Jl. MT Haryono No. 1, Luwuk',
+                'phone'           => '085244567890',
+                'email'           => 'luwuk@sultengtravel.com',
+                'commission_rate' => 5.00,
+                'is_active'       => true,
+            ],
         ];
 
         foreach ($agents as $agent) {

@@ -54,7 +54,7 @@ return [
          * Tenant database names are created like this:
          * prefix + tenant_id + suffix.
          */
-        'prefix' => 'tenant',
+        'prefix' => 'travel',
         'suffix' => '',
 
         /**
@@ -197,7 +197,7 @@ return [
      * Parameters used by the tenants:seed command.
      */
     'seeder_parameters' => [
-        '--class' => 'DatabaseSeeder', // root seeder class
+        '--class' => 'Database\Seeders\TenantBaseSeeder', // root seeder class untuk tenant baru
         '--force' => true, // This needs to be true to seed tenant databases in production
     ],
 ];
