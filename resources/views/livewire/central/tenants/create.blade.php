@@ -84,7 +84,7 @@ new #[Layout('layouts.app')] class extends Component {
                 </div>
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <a href="{{ route('central.dashboard') }}"
+                    <a href="{{ url('/dashboard') }}"
                         class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100">
                         Kembali ke Dashboard
                     </a>

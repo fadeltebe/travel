@@ -34,7 +34,7 @@ new #[Layout('layouts.app')] class extends Component {
                     <p class="mt-2 text-slate-600">Ringkasan tenant dan manajemen sistem.</p>
                 </div>
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <a href="{{ route('central.tenants.create') }}"
+                    <a href="{{ url('/tenants/create') }}"
                         class="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700">
                         Buat Tenant Baru
                     </a>
@@ -95,7 +95,7 @@ new #[Layout('layouts.app')] class extends Component {
                 <p class="text-xs uppercase tracking-[0.24em] text-slate-500">Quick Action</p>
                 <p class="mt-1 text-sm font-semibold text-slate-900">Lihat daftar tenant dan akses detail tenant</p>
             </div>
-            <a href="{{ route('central.tenants.index') }}"
+            <a href="{{ url('/tenants') }}"
                 class="inline-flex items-center justify-center rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/10 hover:bg-emerald-600 transition">
                 Daftar Tenant
             </a>
