@@ -31,7 +31,13 @@ class RouteSeeder extends Seeder
         ];
 
         foreach ($routes as $route) {
-            Route::create($route);
+            Route::updateOrCreate(
+                [
+                    'origin_agent_id' => $route['origin_agent_id'],
+                    'destination_agent_id' => $route['destination_agent_id']
+                ],
+                $route
+            );
         }
     }
 }

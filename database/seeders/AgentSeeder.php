@@ -57,7 +57,10 @@ class AgentSeeder extends Seeder
         ];
 
         foreach ($agents as $agent) {
-            Agent::create($agent);
+            Agent::updateOrCreate(
+                ['code' => $agent['code']],
+                $agent
+            );
         }
     }
 }

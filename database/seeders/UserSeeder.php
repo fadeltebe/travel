@@ -12,48 +12,57 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // SuperAdmin
-        User::create([
-            'name'      => 'Super Admin',
-            'email'     => 'sss@s.com',
-            'password'  => bcrypt('password'),
-            'role'      => Role::SuperAdmin,
-            'agent_id'  => null,
-            'is_active' => true,
-        ]);
+        User::updateOrCreate(
+            ['email' => 'sss@s.com'],
+            [
+                'name'      => 'Super Admin',
+                'password'  => bcrypt('password'),
+                'role'      => Role::SuperAdmin,
+                'agent_id'  => null,
+                'is_active' => true,
+            ]
+        );
 
         // Owner
-        User::create([
-            'name'      => 'Owner',
-            'email'     => 'owner@travel.com',
-            'password'  => bcrypt('password'),
-            'role'      => Role::Owner,
-            'agent_id'  => null,
-            'is_active' => true,
-        ]);
+        User::updateOrCreate(
+            ['email' => 'owner@travel.com'],
+            [
+                'name'      => 'Owner',
+                'password'  => bcrypt('password'),
+                'role'      => Role::Owner,
+                'agent_id'  => null,
+                'is_active' => true,
+            ]
+        );
 
         // Admin per agent (Palu, Poso, Ampana = 3)
         $agents = Agent::all();
         foreach ($agents as $agent) {
-            User::create([
-                'name'      => "Admin {$agent->city}",
-                'email'     => "admin." . strtolower($agent->city) . "@travel.com",
-                'password'  => bcrypt('password'),
-                'role'      => Role::Admin,
-                'agent_id'  => $agent->id,
-                'is_active' => true,
-            ]);
+            $email = "admin." . strtolower($agent->city) . "@travel.com";
+            User::updateOrCreate(
+                ['email' => $email],
+                [
+                    'name'      => "Admin {$agent->city}",
+                    'password'  => bcrypt('password'),
+                    'role'      => Role::Admin,
+                    'agent_id'  => $agent->id,
+                    'is_active' => true,
+                ]
+            );
         }
 
         // Drivers (4 drivers)
         for ($i = 1; $i <= 4; $i++) {
-            User::create([
-                'name'      => "Driver $i",
-                'email'     => "driver$i@travel.com",
-                'password'  => bcrypt('password'),
-                'role'      => Role::Driver,
-                'agent_id'  => null,
-                'is_active' => true,
-            ]);
+            User::updateOrCreate(
+                ['email' => "driver$i@travel.com"],
+                [
+                    'name'      => "Driver $i",
+                    'password'  => bcrypt('password'),
+                    'role'      => Role::Driver,
+                    'agent_id'  => null,
+                    'is_active' => true,
+                ]
+            );
         }
     }
 }

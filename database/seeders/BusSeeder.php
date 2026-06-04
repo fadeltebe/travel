@@ -44,7 +44,10 @@ class BusSeeder extends Seeder
         ];
 
         foreach ($buses as $bus) {
-            Bus::create($bus);
+            Bus::updateOrCreate(
+                ['plate_number' => $bus['plate_number']],
+                $bus
+            );
         }
     }
 }

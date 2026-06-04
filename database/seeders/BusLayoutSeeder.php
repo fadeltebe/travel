@@ -11,28 +11,37 @@ class BusLayoutSeeder extends Seeder
     public function run(): void
     {
         // Layout Elf 15 Seat (4 kolom, baris 1=driver, baris 2-5=penumpang)
-        $elf = BusLayout::create([
-            'name'          => 'Layout Elf 15 Seat',
-            'type'          => 'Elf',
-            'total_rows'    => 5,
-            'total_columns' => 4,
-            'total_seats'   => 15,
-            'description'   => 'Layout standar Elf 15 kursi',
-            'is_active'     => true,
-        ]);
+        $elf = BusLayout::updateOrCreate(
+            ['name' => 'Layout Elf 15 Seat'],
+            [
+                'type'          => 'Elf',
+                'total_rows'    => 5,
+                'total_columns' => 4,
+                'total_seats'   => 15,
+                'description'   => 'Layout standar Elf 15 kursi',
+                'is_active'     => true,
+            ]
+        );
 
+        // Delete seats first to prevent duplicate seats on re-run
+        BusLayoutSeat::where('bus_layout_id', $elf->id)->delete();
         $this->createElfSeats($elf->id);
 
         // Layout Medium 25 Seat
-        $medium = BusLayout::create([
-            'name'          => 'Layout Medium 25 Seat',
-            'type'          => 'Medium',
-            'total_rows'    => 7,
-            'total_columns' => 4,
-            'total_seats'   => 25,
-            'description'   => 'Layout standar Medium Bus 25 kursi',
-            'is_active'     => true,
-        ]);
+        $medium = BusLayout::updateOrCreate(
+            ['name' => 'Layout Medium 25 Seat'],
+            [
+                'type'          => 'Medium',
+                'total_rows'    => 7,
+                'total_columns' => 4,
+                'total_seats'   => 25,
+                'description'   => 'Layout standar Medium Bus 25 kursi',
+                'is_active'     => true,
+            ]
+        );
+
+        // Delete seats first to prevent duplicate seats on re-run
+        BusLayoutSeat::where('bus_layout_id', $medium->id)->delete();
 
         $this->createMediumSeats($medium->id);
     }

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('paid_by')->nullable(); // Nama yang bayar
             $table->foreignId('received_by')->nullable()->constrained('users')->nullOnDelete(); // User yang terima pembayaran
             $table->foreignId('agent_id')->constrained()->cascadeOnDelete(); // Agen yang terima pembayaran
-            $table->timestamp('paid_at'); // Waktu pembayaran
+            $table->timestamp('paid_at')->nullable(); // Waktu pembayaran
             $table->text('proof_photo')->nullable(); // Path foto bukti transfer
             $table->text('notes')->nullable(); // Catatan pembayaran
             $table->timestamps();
