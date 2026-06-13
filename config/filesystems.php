@@ -49,7 +49,7 @@ return [
 
         'livewire_tmp' => [
             'driver' => 'local',
-            'root' => storage_path('app/livewire-tmp'),
+            'root' => base_path('storage/app/livewire-tmp'),
             'throw' => false,
             'report' => false,
         ],
