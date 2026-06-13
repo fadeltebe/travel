@@ -45,7 +45,13 @@ class PaymentService
                     'quantity' => 1,
                     'name' => 'Top-Up Saldo Token Travel',
                 ]
-            ]
+            ],
+            // Override URL redirect secara spesifik untuk tenant ini
+            'callbacks' => [
+                'finish' => route('wallets.index'),
+                'unfinish' => route('billings.index'),
+                'error' => route('billings.index'),
+            ],
         ];
 
         try {

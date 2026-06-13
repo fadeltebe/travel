@@ -24,7 +24,7 @@ state([
     'cargo_fee' => 0,
     'cargo_cod_fee' => 0,
     'pickup_dropoff_fee' => 0,
-    'payment_status' => 'pending',
+    'payment_status' => 'paid',
     'payment_method' => 'cash',
     'status' => 'confirmed',
     'notes' => '',
@@ -177,8 +177,8 @@ $schedules = computed(function () {
                 $q->where('origin_agent_id', $user->agent_id);
             });
         })
-        ->orderBy('departure_date', 'desc')
-        ->orderBy('departure_time', 'desc')
+        ->orderBy('departure_date', 'asc')
+        ->orderBy('departure_time', 'asc')
         ->get();
 });
 

@@ -53,8 +53,8 @@ new class extends Component {
                     });
                 })
 
-                ->orderBy('departure_date', 'desc')
-                ->orderBy('departure_time', 'desc')
+                ->orderBy('departure_date', 'asc')
+                ->orderBy('departure_time', 'asc')
                 ->get(),
         ];
     }
@@ -68,7 +68,7 @@ new class extends Component {
             'description' => '',
             'qty' => 1,
             'weight' => 1,
-            'price' => 0,
+            'price' => '',
         ];
         $this->photos[] = null;
     }
@@ -113,7 +113,7 @@ new class extends Component {
                     ],
                 );
 
-                if (collect($this->items)->sum('price') <= 0) {
+                if ($this->totalBill <= 0) {
                     $this->dispatch('notify', message: 'Total tagihan tidak boleh Rp0', type: 'error');
                 }
             }
@@ -129,7 +129,9 @@ new class extends Component {
     // Hitung Total Otomatis
     public function getTotalBillProperty()
     {
-        return collect($this->items)->sum('price');
+        return collect($this->items)->sum(function($item) {
+            return (float) ($item['price'] ?: 0);
+        });
     }
 
     public function getHasEnoughTokenProperty()
